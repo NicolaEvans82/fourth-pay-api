@@ -1,5 +1,3 @@
-import { Injectable } from '@nestjs/common';
-
 export const SELF_CONTROLS_READER = Symbol('SelfControlsReader');
 
 export interface SelfControlsRecord {
@@ -10,6 +8,9 @@ export interface SelfControlsRecord {
   perTransferLimitAmount: number | null;
   coolingOffEnabled: boolean;
   coolingOffHours: number;
+  autoSaveEnabled: boolean;
+  autoSavePercent: number;
+  wellbeingNudgesEnabled: boolean;
   pausedUntil: Date | null;
 }
 
@@ -17,24 +18,4 @@ export interface SelfControlsReader {
   findByEmployeeAccountId(
     employeeAccountId: string,
   ): Promise<SelfControlsRecord | null>;
-}
-
-// Defaults match the self_controls migration: monthly limit £200 enabled,
-// no per-transfer limit, no cooling-off, not paused.
-@Injectable()
-export class MockSelfControlsReader implements SelfControlsReader {
-  async findByEmployeeAccountId(
-    employeeAccountId: string,
-  ): Promise<SelfControlsRecord | null> {
-    return {
-      employeeAccountId,
-      monthlyLimitEnabled: true,
-      monthlyLimitAmount: 200,
-      perTransferLimitEnabled: false,
-      perTransferLimitAmount: null,
-      coolingOffEnabled: false,
-      coolingOffHours: 48,
-      pausedUntil: null,
-    };
-  }
 }

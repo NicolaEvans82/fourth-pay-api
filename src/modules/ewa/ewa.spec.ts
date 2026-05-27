@@ -10,9 +10,14 @@ import {
 } from '../../database/readers/employee-account.reader';
 import {
   SELF_CONTROLS_READER,
-  MockSelfControlsReader,
   type SelfControlsReader,
 } from '../../database/readers/self-controls.reader';
+import { InMemorySelfControlsStore } from '../../database/self-controls.store';
+import { SELF_CONTROLS_WRITER } from '../../database/writers/self-controls.writer';
+import {
+  AUTO_SAVE_SINK,
+  InMemoryAutoSaveSink,
+} from '../savings/auto-save.sink';
 import {
   AUDIT_LOG_WRITER,
   InMemoryAuditLogWriter,
@@ -53,7 +58,9 @@ async function buildModule(
         provide: EMPLOYEE_ACCOUNT_READER,
         useClass: MockEmployeeAccountReader,
       },
-      { provide: SELF_CONTROLS_READER, useClass: MockSelfControlsReader },
+      InMemorySelfControlsStore,
+      { provide: SELF_CONTROLS_READER, useExisting: InMemorySelfControlsStore },
+      { provide: SELF_CONTROLS_WRITER, useExisting: InMemorySelfControlsStore },
       InMemoryEwaTransferStore,
       { provide: EWA_TRANSFER_READER, useExisting: InMemoryEwaTransferStore },
       { provide: EWA_TRANSFER_WRITER, useExisting: InMemoryEwaTransferStore },
@@ -62,6 +69,7 @@ async function buildModule(
         provide: EWA_DEDUCTION_QUEUE_WRITER,
         useClass: InMemoryEwaDeductionQueueWriter,
       },
+      { provide: AUTO_SAVE_SINK, useClass: InMemoryAutoSaveSink },
     ],
   });
 
@@ -110,6 +118,9 @@ const NO_LIMITS_SELF_CONTROLS: SelfControlsReader = {
       perTransferLimitAmount: null,
       coolingOffEnabled: false,
       coolingOffHours: 48,
+      autoSaveEnabled: false,
+      autoSavePercent: 10,
+      wellbeingNudgesEnabled: true,
       pausedUntil: null,
     };
   },
@@ -125,6 +136,9 @@ const COOLING_OFF_SELF_CONTROLS: SelfControlsReader = {
       perTransferLimitAmount: null,
       coolingOffEnabled: true,
       coolingOffHours: 48,
+      autoSaveEnabled: false,
+      autoSavePercent: 10,
+      wellbeingNudgesEnabled: true,
       pausedUntil: null,
     };
   },

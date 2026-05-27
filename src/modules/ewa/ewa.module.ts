@@ -9,10 +9,6 @@ import {
   MockEmployeeAccountReader,
 } from '../../database/readers/employee-account.reader';
 import {
-  SELF_CONTROLS_READER,
-  MockSelfControlsReader,
-} from '../../database/readers/self-controls.reader';
-import {
   AUDIT_LOG_WRITER,
   InMemoryAuditLogWriter,
 } from '../../database/writers/audit-log.writer';
@@ -23,6 +19,11 @@ import {
 import { HrModule } from '../../integrations/hr/hr.module';
 import { PayrollModule } from '../../integrations/payroll/payroll.module';
 import { WfmModule } from '../../integrations/wfm/wfm.module';
+import {
+  AUTO_SAVE_SINK,
+  InMemoryAutoSaveSink,
+} from '../savings/auto-save.sink';
+import { SelfControlsModule } from '../self-controls/self-controls.module';
 import { BalanceService } from './balance.service';
 import { EwaController } from './ewa.controller';
 import { TransferService } from './transfer.service';
@@ -40,16 +41,16 @@ const devReaderWriterProviders: Provider[] =
           provide: EMPLOYEE_ACCOUNT_READER,
           useClass: MockEmployeeAccountReader,
         },
-        { provide: SELF_CONTROLS_READER, useClass: MockSelfControlsReader },
         { provide: AUDIT_LOG_WRITER, useClass: InMemoryAuditLogWriter },
         {
           provide: EWA_DEDUCTION_QUEUE_WRITER,
           useClass: InMemoryEwaDeductionQueueWriter,
         },
+        { provide: AUTO_SAVE_SINK, useClass: InMemoryAutoSaveSink },
       ];
 
 @Module({
-  imports: [WfmModule, HrModule, PayrollModule],
+  imports: [WfmModule, HrModule, PayrollModule, SelfControlsModule],
   controllers: [EwaController],
   providers: [BalanceService, TransferService, ...devReaderWriterProviders],
 })

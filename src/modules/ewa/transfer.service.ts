@@ -34,6 +34,10 @@ import {
   type PayrollAdapter,
 } from '../../integrations/payroll/payroll.adapter';
 import { WFM_ADAPTER, type WfmAdapter } from '../../integrations/wfm/wfm.adapter';
+import {
+  AUTO_SAVE_SINK,
+  type AutoSaveSink,
+} from '../savings/auto-save.sink';
 
 const INSTANT_FEE = 1.95;
 const FCA_MAX_ACCESS_FRACTION = 0.5;
@@ -56,6 +60,7 @@ export class TransferService {
     @Inject(AUDIT_LOG_WRITER) private readonly audit: AuditLogWriter,
     @Inject(EWA_DEDUCTION_QUEUE_WRITER)
     private readonly deductionQueue: EwaDeductionQueueWriter,
+    @Inject(AUTO_SAVE_SINK) private readonly autoSave: AutoSaveSink,
   ) {}
 
   async executeTransfer(input: {
@@ -256,6 +261,12 @@ export class TransferService {
       fourthEmployeeId: input.fourthEmployeeId,
       payPeriodStart: period.periodStart,
       amount: input.amount,
+    });
+
+    await this.autoSave.onTransferCompleted({
+      employeeAccountId: employee.id,
+      transferId: completed.id,
+      transferAmount: completed.requestedAmount,
     });
 
     await this.audit.append({
