@@ -27,8 +27,8 @@
   --t-fast:150ms ease;--t-base:220ms ease;
   --font:'Roboto',-apple-system,sans-serif;
 }
-html,body{height:100%;background:#000;}
-.app{width:100%;max-width:390px;margin:0 auto;background:var(--bg-page);min-height:100vh;display:flex;flex-direction:column;font-family:var(--font);color:var(--text-1);overflow:hidden;}
+html,body{height:100%;margin:0;background:#1a1a2e;display:flex;align-items:center;justify-content:center;}
+.phone-frame{width:390px;height:844px;border-radius:44px;box-shadow:0 30px 80px rgba(0,0,0,0.6);overflow:hidden;flex-shrink:0;} .app{width:390px;height:844px;background:var(--bg-page);display:flex;flex-direction:column;font-family:var(--font);color:var(--text-1);overflow:hidden;}
 
 /* STATUS BAR */
 .status-bar{background:var(--navy);padding:12px 20px 8px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
@@ -1578,3 +1578,4 @@ updateStream();
 </script>
 </body>
 </html>
+
