@@ -13,11 +13,38 @@ export interface PayPeriodConfig {
   averageDeductionRate: number;
 }
 
+export interface PayslipElement {
+  elementName: string;
+  units: number | null;
+  rate: number | null;
+  value: number;
+  isDeduction: boolean;
+}
+
+export interface PayslipSummary {
+  payPeriodStart: Date;
+  paymentDate: Date;
+  grossPay: number;
+  netPay: number;
+}
+
+export interface PayslipDetail extends PayslipSummary {
+  totalDeductions: number;
+  elements: PayslipElement[];
+}
+
 export interface PayrollAdapter {
   getPayPeriodConfig(input: {
     fourthEmployeeId: string;
     fourthEmployerId: string;
   }): Promise<PayPeriodConfig>;
+  listPayslips(input: {
+    fourthEmployeeId: string;
+  }): Promise<PayslipSummary[]>;
+  getPayslip(input: {
+    fourthEmployeeId: string;
+    payPeriodStart: Date;
+  }): Promise<PayslipDetail | null>;
 }
 
 interface PayrollPeriodApiRow {
@@ -57,7 +84,7 @@ export class FourthPayrollAdapter implements PayrollAdapter {
   }): Promise<PayPeriodConfig> {
     const [period, payslips] = await Promise.all([
       this.fetchCurrentPeriod(input.fourthEmployeeId),
-      this.fetchRecentPayslips(input.fourthEmployeeId),
+      this.fetchPayslipRows(input.fourthEmployeeId),
     ]);
 
     if (!period) {
@@ -72,6 +99,30 @@ export class FourthPayrollAdapter implements PayrollAdapter {
       nextPayday: new Date(period.PayDate),
       averageDeductionRate: computeAverageDeductionRate(payslips),
     };
+  }
+
+  async listPayslips(input: {
+    fourthEmployeeId: string;
+  }): Promise<PayslipSummary[]> {
+    const rows = await this.fetchPayslipRows(input.fourthEmployeeId);
+    const grouped = groupByPayslipDate(rows);
+    return Array.from(grouped.entries())
+      .map(([date, items]) => buildSummary(date, items))
+      .sort((a, b) => b.paymentDate.getTime() - a.paymentDate.getTime());
+  }
+
+  async getPayslip(input: {
+    fourthEmployeeId: string;
+    payPeriodStart: Date;
+  }): Promise<PayslipDetail | null> {
+    // TODO: real period-start matching needs a join with Payroll Periods to map
+    // PeriodStartDate ↔ PayslipDate. For now we treat the request's
+    // payPeriodStart as the PayslipDate prefix.
+    const rows = await this.fetchPayslipRows(input.fourthEmployeeId);
+    const target = input.payPeriodStart.toISOString().slice(0, 10);
+    const items = rows.filter((r) => r.PayslipDate.startsWith(target));
+    if (items.length === 0) return null;
+    return buildDetail(target, items);
   }
 
   private async fetchCurrentPeriod(
@@ -98,9 +149,7 @@ export class FourthPayrollAdapter implements PayrollAdapter {
     );
   }
 
-  private async fetchRecentPayslips(
-    faid: string,
-  ): Promise<PayslipApiRow[]> {
+  private async fetchPayslipRows(faid: string): Promise<PayslipApiRow[]> {
     // TODO: confirm endpoint path and query-param names with Ali Barlow.
     const url = new URL('/peoplesystem/payslips', this.config.baseUrl);
     url.searchParams.set('FAID', faid);
@@ -123,16 +172,55 @@ export class FourthPayrollAdapter implements PayrollAdapter {
   }
 }
 
+function groupByPayslipDate(
+  rows: PayslipApiRow[],
+): Map<string, PayslipApiRow[]> {
+  const grouped = new Map<string, PayslipApiRow[]>();
+  for (const row of rows) {
+    const list = grouped.get(row.PayslipDate) ?? [];
+    list.push(row);
+    grouped.set(row.PayslipDate, list);
+  }
+  return grouped;
+}
+
+function buildSummary(date: string, items: PayslipApiRow[]): PayslipSummary {
+  const grossPay = items
+    .filter((r) => r.Value > 0)
+    .reduce((s, r) => s + r.Value, 0);
+  const totalDeductions = -items
+    .filter((r) => r.Value < 0)
+    .reduce((s, r) => s + r.Value, 0);
+  const paymentDate = items[0]?.PaymentDate
+    ? new Date(items[0].PaymentDate)
+    : new Date(date);
+  return {
+    payPeriodStart: new Date(date),
+    paymentDate,
+    grossPay: round2(grossPay),
+    netPay: round2(grossPay - totalDeductions),
+  };
+}
+
+function buildDetail(date: string, items: PayslipApiRow[]): PayslipDetail {
+  const summary = buildSummary(date, items);
+  return {
+    ...summary,
+    totalDeductions: round2(summary.grossPay - summary.netPay),
+    elements: items.map((r) => ({
+      elementName: r.ElementName,
+      units: r.Units ?? null,
+      rate: r.Rate ?? null,
+      value: r.Value,
+      isDeduction: r.Value < 0,
+    })),
+  };
+}
+
 // Deduction elements appear as negative-Value rows per docs/05-integration-contracts.md.
 // Rate = sum(|negative values|) / sum(positive values), averaged across the last N payslips.
 function computeAverageDeductionRate(rows: PayslipApiRow[]): number {
-  const byDate = new Map<string, PayslipApiRow[]>();
-  for (const row of rows) {
-    const list = byDate.get(row.PayslipDate) ?? [];
-    list.push(row);
-    byDate.set(row.PayslipDate, list);
-  }
-  const recentPeriods = Array.from(byDate.entries())
+  const recentPeriods = Array.from(groupByPayslipDate(rows).entries())
     .sort((a, b) => (a[0] < b[0] ? 1 : -1))
     .slice(0, DEDUCTION_RATE_PERIODS)
     .map(([, items]) => items);
@@ -149,4 +237,8 @@ function computeAverageDeductionRate(rows: PayslipApiRow[]): number {
     return earnings === 0 ? 0 : deductions / earnings;
   });
   return rates.reduce((sum, r) => sum + r, 0) / rates.length;
+}
+
+function round2(value: number): number {
+  return Math.round(value * 100) / 100;
 }

@@ -25,6 +25,8 @@ import {
 } from '../savings/auto-save.sink';
 import { SelfControlsModule } from '../self-controls/self-controls.module';
 import { BalanceService } from './balance.service';
+import { EarningsController } from './earnings.controller';
+import { EarningsService } from './earnings.service';
 import { EwaController } from './ewa.controller';
 import { TransferService } from './transfer.service';
 
@@ -51,7 +53,12 @@ const devReaderWriterProviders: Provider[] =
 
 @Module({
   imports: [WfmModule, HrModule, PayrollModule, SelfControlsModule],
-  controllers: [EwaController],
-  providers: [BalanceService, TransferService, ...devReaderWriterProviders],
+  controllers: [EwaController, EarningsController],
+  providers: [
+    BalanceService,
+    TransferService,
+    EarningsService,
+    ...devReaderWriterProviders,
+  ],
 })
 export class EwaModule {}

@@ -11,6 +11,7 @@ import {
   InMemoryAuditLogWriter,
 } from '../../database/writers/audit-log.writer';
 import { HrModule } from '../../integrations/hr/hr.module';
+import { SelfControlsController } from './self-controls.controller';
 import { SelfControlsService } from './self-controls.service';
 
 // Dev/test bindings only — production needs DatabaseModule for PG-backed
@@ -37,6 +38,7 @@ const devProviders: Provider[] =
 
 @Module({
   imports: [HrModule],
+  controllers: [SelfControlsController],
   providers: [SelfControlsService, ...devProviders],
   exports: [SelfControlsService, SELF_CONTROLS_READER, SELF_CONTROLS_WRITER],
 })
