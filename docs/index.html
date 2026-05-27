@@ -1,0 +1,1580 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Fourth Pay</title>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- icons replaced with inline SVG -->
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  /* Exact Manager App tokens */
+  --navy:#002747;--navy-deep:#14304F;--navy-soft:#234B73;--navy-line:rgba(255,255,255,0.10);
+  --teal:#00B69F;--teal-tint:rgba(0,182,159,0.10);--teal-border:rgba(0,182,159,0.30);--teal-text:#007F6F;--teal-on-dark:#34D9C0;
+  --orange:#FAA51A;--orange-tint:rgba(250,165,26,0.10);--orange-border:rgba(250,165,26,0.30);--orange-text:#9E6302;
+  --red:#D81632;--red-tint:rgba(216,22,50,0.08);--red-border:rgba(216,22,50,0.25);--red-text:#CD142F;
+  --sky:#6FB4E3;--sky-tint:rgba(111,180,227,0.10);--sky-border:rgba(111,180,227,0.30);--sky-text:#2275AF;
+  --purple:#9678B6;--purple-tint:rgba(150,120,182,0.10);--purple-text:#7E59A5;
+  --text-1:#14304F;--text-2:#4A5568;--text-3:#647282;
+  --on-dark-1:#FFFFFF;--on-dark-2:rgba(255,255,255,0.72);--on-dark-3:rgba(255,255,255,0.55);
+  --bg-page:#F5F7FA;--bg-card:#FFFFFF;--bg-card-hover:#F9FAFB;
+  --border:#E8ECF1;--border-strong:#D1D9E2;
+  --shadow-card:0 1px 3px rgba(20,48,79,0.06),0 4px 12px rgba(20,48,79,0.05);
+  --shadow-elev:0 4px 16px rgba(20,48,79,0.10),0 2px 6px rgba(20,48,79,0.06);
+  --r-sm:6px;--r-md:10px;--r-lg:14px;--r-xl:20px;
+  --s1:4px;--s2:8px;--s3:12px;--s4:16px;--s5:20px;--s6:24px;--s8:32px;
+  --t-fast:150ms ease;--t-base:220ms ease;
+  --font:'Roboto',-apple-system,sans-serif;
+}
+html,body{height:100%;background:#000;}
+.app{width:100%;max-width:390px;margin:0 auto;background:var(--bg-page);min-height:100vh;display:flex;flex-direction:column;font-family:var(--font);color:var(--text-1);overflow:hidden;}
+
+/* STATUS BAR */
+.status-bar{background:var(--navy);padding:12px 20px 8px;display:flex;justify-content:space-between;align-items:center;flex-shrink:0;}
+.status-time{font-size:15px;font-weight:700;color:white;font-family:var(--font);}
+.status-icons{display:flex;gap:6px;align-items:center;color:var(--on-dark-2);font-size:14px;}
+
+.scroll-area{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;}
+.screen{display:none;flex-direction:column;min-height:100%;}
+.screen.active{display:flex;}
+
+/* HEADER */
+
+
+.screen-title-row{display:flex;align-items:center;gap:var(--s3);}
+
+
+
+
+/* HOME HEADER */
+
+
+
+
+.header-right{display:flex;align-items:center;gap:var(--s2);}
+
+
+
+
+
+
+
+/* PAY CARD */
+
+
+
+
+
+.pay-card-meta{display:grid;grid-template-columns:1fr 1fr;gap:var(--s3);}
+
+
+
+
+
+/* PERIOD PROGRESS */
+.period-progress{margin:var(--s4) var(--s4) 0;}
+.prog-label{display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-bottom:var(--s1);font-weight:500;}
+.prog-track{background:var(--border);border-radius:100px;height:6px;overflow:hidden;}
+.prog-fill{height:100%;border-radius:100px;background:var(--teal);}
+
+/* SECTION HEADER */
+.section-header{padding:var(--s5) var(--s4) var(--s2);display:flex;justify-content:space-between;align-items:center;}
+.section-title{font-size:14px;font-weight:700;color:var(--text-1);letter-spacing:-0.2px;}
+.section-link{font-size:12px;color:var(--teal);font-weight:500;cursor:pointer;}
+
+/* QUICK ACTIONS */
+.quick-actions{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s2);padding:0 var(--s4);}
+.qa-btn{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s4);cursor:pointer;transition:var(--t-fast);text-align:left;box-shadow:var(--shadow-card);}
+.qa-btn:active{background:var(--bg-card-hover);transform:scale(0.98);}
+.qa-icon{width:34px;height:34px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;margin-bottom:var(--s2);font-size:16px;}
+.qa-label{font-size:13px;font-weight:700;color:var(--text-1);display:block;margin-bottom:1px;}
+.qa-sub{font-size:11px;color:var(--text-3);}
+
+/* ACTIVITY */
+.activity-list{padding:0 var(--s4);display:flex;flex-direction:column;gap:var(--s2);}
+.activity-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3) var(--s4);display:flex;align-items:center;gap:var(--s3);box-shadow:var(--shadow-card);}
+.a-icon{width:34px;height:34px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:15px;flex-shrink:0;}
+.a-body{flex:1;}
+.a-title{font-size:13px;font-weight:700;color:var(--text-1);}
+.a-date{font-size:11px;color:var(--text-3);}
+.a-amount{font-size:13px;font-weight:700;}
+.a-amount.out{color:var(--teal-text);}
+.a-amount.neutral{color:var(--text-3);font-size:11px;}
+
+/* STREAM SCREEN */
+
+
+
+
+.stream-body{flex:1;padding:var(--s4);}
+
+/* CARDS */
+.amount-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5);margin-bottom:var(--s3);box-shadow:var(--shadow-card);}
+.amount-card label{font-size:10px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.8px;display:block;margin-bottom:var(--s3);}
+.amount-row{display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s4);}
+.amt-prefix{font-size:26px;font-weight:700;color:var(--text-3);}
+.amt-input{font-size:36px;font-weight:700;color:var(--text-1);border:none;outline:none;width:100%;background:transparent;letter-spacing:-0.5px;}
+.presets{display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s2);margin-bottom:var(--s3);}
+.preset{background:var(--bg-page);border:1px solid var(--border);border-radius:var(--r-sm);padding:var(--s2);font-size:12px;font-weight:700;color:var(--text-2);cursor:pointer;transition:var(--t-fast);text-align:center;}
+.preset:active,.preset.sel{background:var(--teal-tint);border-color:var(--teal-border);color:var(--teal-text);}
+
+/* INFO ROWS */
+.info-row{background:var(--bg-page);border-radius:var(--r-sm);padding:var(--s3) var(--s4);margin-bottom:var(--s2);display:flex;justify-content:space-between;align-items:center;border:1px solid var(--border);}
+.info-label{font-size:12px;color:var(--text-3);}
+.info-val{font-size:12px;font-weight:700;color:var(--text-1);}
+.info-val.teal{color:var(--teal-text);}
+.info-val.orange{color:var(--orange-text);}
+.bank-row{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3) var(--s4);display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s2);cursor:pointer;box-shadow:var(--shadow-card);}
+.bank-logo{width:30px;height:30px;border-radius:var(--r-sm);background:var(--navy);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;}
+.bank-name{font-size:13px;font-weight:700;color:var(--text-1);}
+.bank-num{font-size:11px;color:var(--text-3);}
+.receive-row{background:var(--teal-tint);border:1px solid var(--teal-border);border-radius:var(--r-md);padding:var(--s3) var(--s4);margin-bottom:var(--s4);display:flex;justify-content:space-between;align-items:center;}
+
+/* BUTTONS */
+.btn{border:none;border-radius:var(--r-sm);padding:14px var(--s4);width:100%;font-family:var(--font);font-size:14px;font-weight:700;cursor:pointer;transition:var(--t-fast);display:flex;align-items:center;justify-content:center;gap:var(--s2);letter-spacing:0.1px;}
+.btn:active{transform:scale(0.98);}
+.btn-teal{background:var(--teal);color:white;}
+.btn-teal:active{background:var(--teal-text);}
+.btn-navy{background:var(--navy-deep);color:white;}
+.btn-navy:active{background:var(--navy);}
+.btn-orange{background:var(--orange);color:white;}
+.btn-ghost{background:transparent;border:1px solid var(--border);color:var(--text-1);}
+.btn-ghost:active{background:var(--bg-card-hover);}
+.btn-danger-ghost{background:var(--red-tint);border:1px solid var(--red-border);color:var(--red-text);}
+.btn-sm{padding:var(--s2) var(--s4);font-size:12px;border-radius:var(--r-sm);width:auto;}
+
+/* CONFIRM */
+.confirm-body{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:var(--s6);text-align:center;}
+.confirm-icon{width:72px;height:72px;border-radius:50%;background:var(--teal-tint);border:2px solid var(--teal-border);display:flex;align-items:center;justify-content:center;font-size:30px;margin:0 auto var(--s5);color:var(--teal-text);}
+.confirm-title{font-size:20px;font-weight:700;color:var(--text-1);margin-bottom:var(--s2);letter-spacing:-0.3px;}
+.confirm-sub{font-size:13px;color:var(--text-3);line-height:1.5;margin-bottom:var(--s2);}
+.confirm-big{font-size:42px;font-weight:700;color:var(--teal-text);margin:var(--s3) 0;letter-spacing:-1px;}
+.confirm-detail{background:var(--bg-page);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s4);width:100%;margin-bottom:var(--s6);text-align:left;}
+.c-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);}
+.c-row:last-child{border-bottom:none;}
+.c-label{color:var(--text-3);}
+.c-val{font-weight:700;color:var(--text-1);}
+
+/* TRACK */
+.track-body{flex:1;padding:var(--s4);}
+.period-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s4);margin-bottom:var(--s4);box-shadow:var(--shadow-card);}
+.period-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--s3);}
+.badge{font-size:10px;font-weight:700;padding:3px var(--s2);border-radius:100px;letter-spacing:0.3px;}
+.badge-teal{background:var(--teal-tint);color:var(--teal-text);border:1px solid var(--teal-border);}
+.badge-orange{background:var(--orange-tint);color:var(--orange-text);border:1px solid var(--orange-border);}
+.badge-navy{background:rgba(20,48,79,0.08);color:var(--text-1);}
+.period-dates{font-size:11px;color:var(--text-3);margin-bottom:var(--s4);}
+.stats-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s3);}
+.stat{text-align:center;}
+.stat-val{font-size:16px;font-weight:700;color:var(--text-1);letter-spacing:-0.3px;}
+.stat-label{font-size:10px;color:var(--text-3);font-weight:500;text-transform:uppercase;letter-spacing:0.5px;margin-top:1px;}
+.shift-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3) var(--s4);display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s2);box-shadow:var(--shadow-card);}
+.shift-left{display:flex;align-items:center;gap:var(--s3);}
+.shift-dot{width:30px;height:30px;border-radius:var(--r-sm);background:var(--teal-tint);border:1px solid var(--teal-border);display:flex;flex-direction:column;align-items:center;justify-content:center;}
+.shift-day{font-size:8px;font-weight:700;color:var(--teal-text);text-transform:uppercase;letter-spacing:0.3px;}
+.shift-num{font-size:12px;font-weight:700;color:var(--teal-text);}
+.shift-name{font-size:13px;font-weight:700;color:var(--text-1);}
+.shift-hrs{font-size:11px;color:var(--text-3);}
+.shift-earn{font-size:13px;font-weight:700;color:var(--text-1);}
+
+/* SPEND */
+.spend-body{flex:1;padding:var(--s4);}
+
+
+
+
+.bar-chart{display:flex;align-items:flex-end;gap:4px;height:72px;margin-top:var(--s3);}
+.bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;}
+.bar{width:100%;background:var(--border);border-radius:3px 3px 0 0;}
+.bar.active{background:var(--teal);}
+.bar-label{font-size:8px;color:var(--text-3);font-weight:500;}
+.account-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3) var(--s4);display:flex;align-items:center;justify-content:space-between;margin-bottom:var(--s2);box-shadow:var(--shadow-card);}
+.account-left{display:flex;align-items:center;gap:var(--s3);}
+.account-logo{width:34px;height:34px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;}
+.account-name{font-size:13px;font-weight:700;color:var(--text-1);}
+.account-type{font-size:11px;color:var(--text-3);}
+.account-bal{font-size:13px;font-weight:700;color:var(--text-1);text-align:right;}
+.account-change{font-size:11px;text-align:right;}
+.cat-list{display:flex;flex-direction:column;gap:var(--s2);}
+.cat-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3) var(--s4);box-shadow:var(--shadow-card);}
+.cat-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--s2);}
+.cat-name{font-size:13px;font-weight:700;color:var(--text-1);}
+.cat-amt{font-size:13px;font-weight:700;color:var(--text-1);}
+.cat-bar-track{background:var(--bg-page);border-radius:100px;height:5px;overflow:hidden;border:1px solid var(--border);}
+.cat-bar-fill{height:100%;border-radius:100px;}
+.cat-pct{font-size:10px;color:var(--text-3);margin-top:3px;}
+
+/* SAVE */
+.save-body{flex:1;padding:var(--s4);}
+
+
+
+
+.list-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s4);display:flex;align-items:center;justify-content:space-between;cursor:pointer;margin-bottom:var(--s2);box-shadow:var(--shadow-card);}
+.list-item:active{background:var(--bg-card-hover);}
+.list-item-left{display:flex;align-items:center;gap:var(--s3);}
+.list-icon{width:38px;height:38px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:17px;}
+.list-title{font-size:13px;font-weight:700;color:var(--text-1);}
+.list-sub{font-size:11px;color:var(--text-3);}
+.pot-bar-wrap{margin-top:4px;}
+.pot-prog{background:var(--border);border-radius:100px;height:4px;overflow:hidden;}
+.pot-prog-fill{height:100%;border-radius:100px;background:var(--teal);}
+.pot-prog-label{display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);margin-top:2px;}
+
+/* LOANS */
+.loans-body{flex:1;padding:var(--s4);}
+.loan-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:var(--s3);box-shadow:var(--shadow-card);}
+
+
+
+.loan-details{padding:var(--s3) var(--s4);}
+.loan-row{display:flex;justify-content:space-between;font-size:12px;padding:5px 0;border-bottom:1px solid var(--border);}
+.loan-row:last-child{border-bottom:none;}
+.loan-label{color:var(--text-3);}
+.loan-val{font-weight:700;color:var(--text-1);}
+.repay-progress{padding:var(--s3) var(--s4);border-top:1px solid var(--border);}
+.repay-label{display:flex;justify-content:space-between;font-size:11px;font-weight:500;color:var(--text-3);margin-bottom:var(--s1);}
+.loan-option{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s4);margin-bottom:var(--s2);box-shadow:var(--shadow-card);}
+.loan-opt-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--s2);}
+.loan-opt-name{font-size:14px;font-weight:700;color:var(--text-1);}
+.loan-opt-rate{font-size:18px;font-weight:700;color:var(--teal-text);}
+.loan-opt-rate span{font-size:11px;font-weight:500;color:var(--text-3);}
+.loan-opt-body{font-size:12px;color:var(--text-3);line-height:1.5;margin-bottom:var(--s3);}
+.eligibility-tag{display:inline-flex;align-items:center;gap:4px;background:var(--teal-tint);color:var(--teal-text);font-size:10px;font-weight:700;padding:3px var(--s2);border-radius:100px;margin-bottom:var(--s2);border:1px solid var(--teal-border);}
+
+/* BENEFITS */
+.benefits-body{flex:1;padding:var(--s4);}
+
+
+
+
+.benefit-item{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s4);display:flex;align-items:center;gap:var(--s3);margin-bottom:var(--s2);cursor:pointer;box-shadow:var(--shadow-card);}
+.benefit-icon{width:38px;height:38px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.benefit-name{font-size:13px;font-weight:700;color:var(--text-1);}
+.benefit-desc{font-size:11px;color:var(--text-3);}
+.benefit-right{margin-left:auto;text-align:right;flex-shrink:0;}
+.benefit-val{font-size:12px;font-weight:700;color:var(--teal-text);}
+.benefit-status{font-size:10px;color:var(--text-3);}
+
+/* PENSION */
+.pension-body{flex:1;padding:var(--s4);}
+
+
+
+
+.pension-pots{display:flex;flex-direction:column;gap:var(--s2);margin-bottom:var(--s4);}
+.pension-pot{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s4);box-shadow:var(--shadow-card);}
+.pension-pot-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--s3);}
+.pension-pot-name{font-size:13px;font-weight:700;color:var(--text-1);}
+.pension-pot-val{font-size:15px;font-weight:700;color:var(--text-1);letter-spacing:-0.3px;}
+.pension-pot-provider{font-size:11px;color:var(--text-3);}
+.pension-pot-growth{font-size:11px;color:var(--teal-text);font-weight:500;}
+.forecast-card{background:var(--bg-page);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s4);margin-bottom:var(--s4);}
+.forecast-row{display:flex;justify-content:space-between;font-size:12px;padding:4px 0;border-bottom:1px solid var(--border);}
+.forecast-row:last-child{border-bottom:none;}
+.forecast-label{color:var(--text-3);}
+.forecast-val{font-weight:700;color:var(--text-1);}
+
+/* AI COACH */
+.coach-body{flex:1;display:flex;flex-direction:column;padding:0;}
+
+.coach-messages{flex:1;padding:var(--s4);display:flex;flex-direction:column;gap:var(--s3);overflow-y:auto;}
+.msg{max-width:82%;display:flex;flex-direction:column;gap:3px;}
+.msg.bot{align-self:flex-start;}
+.msg.user{align-self:flex-end;}
+.msg-bubble{padding:var(--s3) var(--s4);border-radius:var(--r-lg);font-size:13px;line-height:1.5;}
+.msg.bot .msg-bubble{background:var(--bg-card);border:1px solid var(--border);color:var(--text-1);border-bottom-left-radius:var(--r-sm);box-shadow:var(--shadow-card);}
+
+.msg-time{font-size:10px;color:var(--text-3);font-weight:500;}
+.msg.user .msg-time{text-align:right;}
+.coach-bot-icon{width:26px;height:26px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:11px;color:white;font-weight:700;flex-shrink:0;margin-bottom:3px;}
+.quick-prompts{display:flex;gap:var(--s2);padding:var(--s2) var(--s4);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.quick-prompts::-webkit-scrollbar{display:none;}
+.quick-prompt{padding:var(--s2) var(--s3);border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;border:1px solid var(--border);background:var(--bg-card);color:var(--text-2);flex-shrink:0;transition:var(--t-fast);}
+.quick-prompt:active{background:var(--teal-tint);border-color:var(--teal-border);color:var(--teal-text);}
+.chat-input-row{padding:var(--s3) var(--s4);background:var(--bg-card);border-top:1px solid var(--border);display:flex;gap:var(--s2);align-items:center;}
+.chat-input{flex:1;border:1px solid var(--border);border-radius:100px;padding:var(--s2) var(--s4);font-size:13px;font-family:var(--font);outline:none;color:var(--text-1);background:var(--bg-page);}
+.chat-input:focus{border-color:var(--teal-border);}
+.chat-send{width:34px;height:34px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;border:none;cursor:pointer;flex-shrink:0;}.chat-send svg{stroke:white;width:16px;height:16px;}
+
+/* WELLBEING */
+.wellbeing-body{flex:1;padding:var(--s4);}
+
+
+.score-row{display:flex;align-items:center;justify-content:space-between;}
+
+
+.score-ring{width:70px;height:70px;}
+.score-ring svg{width:70px;height:70px;transform:rotate(-90deg);}
+.score-ring circle{fill:none;stroke-width:6;}
+
+
+.insight-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s4);margin-bottom:var(--s2);box-shadow:var(--shadow-card);}
+.insight-header{display:flex;align-items:center;gap:var(--s2);margin-bottom:var(--s2);}
+.insight-title{font-size:13px;font-weight:700;color:var(--text-1);}
+.insight-body{font-size:12px;color:var(--text-3);line-height:1.5;}
+.insight-action{margin-top:var(--s2);display:inline-block;font-size:12px;font-weight:700;color:var(--teal-text);cursor:pointer;}
+
+/* DISCOUNTS */
+.discount-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s2);padding:0 var(--s4) var(--s4);}
+.discount-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-md);overflow:hidden;cursor:pointer;box-shadow:var(--shadow-card);}
+.discount-img{height:64px;display:flex;align-items:center;justify-content:center;font-size:20px;font-weight:700;}
+.discount-info{padding:var(--s3);}
+.discount-name{font-size:12px;font-weight:700;color:var(--text-1);}
+.discount-pct{font-size:11px;color:var(--teal-text);font-weight:500;}
+
+/* PAYSLIP */
+.payslip-body{flex:1;padding:var(--s4);}
+.payslip-tabs{display:flex;gap:var(--s2);margin-bottom:var(--s4);overflow-x:auto;}
+.payslip-tabs::-webkit-scrollbar{display:none;}
+.ptab{padding:var(--s2) var(--s4);border-radius:var(--r-sm);font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:var(--bg-card);color:var(--text-3);white-space:nowrap;transition:var(--t-fast);}
+.ptab.active{background:var(--navy);color:white;border-color:var(--navy);}
+.payslip-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:var(--s3);box-shadow:var(--shadow-card);}
+.ps-header{background:var(--navy);padding:var(--s4);color:white;}
+.ps-employer{font-size:10px;color:var(--on-dark-3);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:2px;}
+.ps-period{font-size:14px;font-weight:700;color:white;letter-spacing:-0.2px;}
+.ps-ref{font-size:10px;color:var(--on-dark-3);margin-top:2px;}
+.ps-net{text-align:center;padding:var(--s5);border-bottom:1px solid var(--border);}
+.ps-net-label{font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:0.6px;margin-bottom:var(--s1);}
+.ps-net-amount{font-size:34px;font-weight:700;color:var(--text-1);letter-spacing:-0.5px;}
+.ps-net-sub{font-size:11px;color:var(--text-3);margin-top:4px;}
+.ps-section{padding:var(--s3) var(--s4);}
+.ps-section-title{font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-3);margin-bottom:var(--s3);}
+.ps-row{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--border);}
+.ps-row:last-child{border-bottom:none;}
+.ps-row-label{font-size:12px;color:var(--text-2);}
+.ps-row-val{font-size:12px;font-weight:700;}
+.ps-row-val.pos{color:var(--text-1);}
+.ps-row-val.neg{color:var(--red-text);}
+.ps-total{display:flex;justify-content:space-between;align-items:center;padding:var(--s3) var(--s4);background:var(--bg-page);border-top:1px solid var(--border);}
+.ps-total-label{font-size:13px;font-weight:700;color:var(--text-1);}
+.ps-total-val{font-size:14px;font-weight:700;}
+.ytd-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--s2);margin-bottom:var(--s4);}
+.ytd-item{background:var(--bg-page);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3);}
+.ytd-label{font-size:10px;color:var(--text-3);font-weight:700;text-transform:uppercase;letter-spacing:0.4px;margin-bottom:3px;}
+.ytd-val{font-size:15px;font-weight:700;color:var(--text-1);letter-spacing:-0.3px;}
+
+/* CONTROLS */
+.controls-body{flex:1;padding:var(--s4);}
+
+
+
+
+.control-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s4);margin-bottom:var(--s3);box-shadow:var(--shadow-card);}
+.control-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--s2);}
+.control-title{font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:2px;}
+.control-sub{font-size:11px;color:var(--text-3);}
+.toggle{width:42px;height:23px;border-radius:100px;position:relative;cursor:pointer;transition:background var(--t-fast);flex-shrink:0;}
+.toggle.on{background:var(--teal);}
+.toggle.off{background:var(--border-strong);}
+.toggle-thumb{width:17px;height:17px;border-radius:50%;background:white;position:absolute;top:3px;transition:left var(--t-fast);box-shadow:0 1px 3px rgba(0,0,0,0.2);}
+.toggle.on .toggle-thumb{left:22px;}
+.toggle.off .toggle-thumb{left:3px;}
+input[type=range]{width:100%;accent-color:var(--teal);}
+.ctrl-slider-wrap{margin-top:var(--s3);}
+.ctrl-slider-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:var(--s1);}
+.ctrl-slider-label span:first-child{color:var(--text-3);}
+.ctrl-slider-label span:last-child{font-weight:700;color:var(--text-1);}
+.ctrl-range-labels{display:flex;justify-content:space-between;font-size:10px;color:var(--text-3);margin-top:3px;}
+.cooldown-opts{display:grid;grid-template-columns:repeat(3,1fr);gap:var(--s2);margin-top:var(--s3);}
+.cooldown-opt{background:var(--bg-page);border:1px solid var(--border);border-radius:var(--r-sm);padding:var(--s2);text-align:center;font-size:12px;font-weight:700;color:var(--text-2);cursor:pointer;transition:var(--t-fast);}
+.cooldown-opt.active{background:var(--navy);color:white;border-color:var(--navy);}
+
+/* NOTIFICATIONS */
+.notif-body{flex:1;padding:0;}
+.notif-filter{display:flex;gap:var(--s2);padding:var(--s3) var(--s4);overflow-x:auto;-webkit-overflow-scrolling:touch;}
+.notif-filter::-webkit-scrollbar{display:none;}
+.chip{padding:5px var(--s3);border-radius:100px;font-size:11px;font-weight:700;cursor:pointer;white-space:nowrap;border:1px solid var(--border);background:var(--bg-card);color:var(--text-3);flex-shrink:0;transition:var(--t-fast);}
+.chip.active{background:var(--navy);color:white;border-color:var(--navy);}
+.notif-item{background:var(--bg-card);margin:0 var(--s4) var(--s2);border-radius:var(--r-md);border:1px solid var(--border);padding:var(--s4);display:flex;gap:var(--s3);cursor:pointer;position:relative;box-shadow:var(--shadow-card);}
+.notif-item.unread{border-left:3px solid var(--teal);}
+.notif-item.urgent{border-left:3px solid var(--orange);}
+.notif-icon{width:38px;height:38px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:17px;flex-shrink:0;}
+.notif-content{flex:1;}
+.notif-title{font-size:13px;font-weight:700;color:var(--text-1);margin-bottom:2px;}
+.notif-text{font-size:12px;color:var(--text-3);line-height:1.4;}
+.notif-time{font-size:10px;color:var(--text-3);margin-top:4px;font-weight:500;}
+.notif-cta{margin-top:var(--s1);font-size:12px;font-weight:700;color:var(--teal-text);cursor:pointer;}
+.unread-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);position:absolute;top:14px;right:14px;}
+.mark-all{font-size:12px;color:var(--teal-text);font-weight:500;cursor:pointer;padding:0 var(--s4) var(--s2);display:block;text-align:right;}
+.group-label{padding:var(--s2) var(--s4) 3px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-3);}
+
+/* PROFILE */
+.profile-body{flex:1;padding:var(--s4);}
+
+
+
+
+
+.profile-section{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:var(--s3);box-shadow:var(--shadow-card);}
+.profile-row{display:flex;align-items:center;justify-content:space-between;padding:var(--s3) var(--s4);border-bottom:1px solid var(--border);cursor:pointer;transition:var(--t-fast);}
+.profile-row:last-child{border-bottom:none;}
+.profile-row:active{background:var(--bg-card-hover);}
+.profile-row-left{display:flex;align-items:center;gap:var(--s3);}
+.pr-icon{width:30px;height:30px;border-radius:var(--r-sm);display:flex;align-items:center;justify-content:center;font-size:14px;}
+.pr-label{font-size:13px;font-weight:700;color:var(--text-1);}
+.pr-val{font-size:11px;color:var(--text-3);}
+
+/* BUDGET */
+
+/* BOTTOM NAV - matches Manager App exactly */
+.bottom-nav{background:var(--bg-card);border-top:1px solid var(--border);display:grid;grid-template-columns:repeat(5,1fr);padding:var(--s2) 0 18px;flex-shrink:0;box-shadow:0 -1px 0 var(--border);}
+.nav-item{display:flex;flex-direction:column;align-items:center;gap:3px;cursor:pointer;padding:4px;transition:var(--t-fast);position:relative;}
+.nav-item svg{width:22px;height:22px;stroke:var(--text-3);}
+.nav-item span{font-size:9px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.3px;}
+.nav-item.active svg{stroke:var(--teal);}
+.nav-item.active span{color:var(--teal-text);}
+.nav-badge{position:absolute;top:2px;right:14px;min-width:15px;height:15px;border-radius:100px;background:var(--red);font-size:9px;font-weight:700;color:white;display:flex;align-items:center;justify-content:center;padding:0 3px;border:2px solid var(--bg-card);}
+
+/* LIGHT HEADERS - matching Employee App */
+.dark-header{background:var(--bg-page);padding:var(--s3) var(--s4) var(--s3);border-bottom:1px solid var(--border);}
+.dark-header-sm{background:var(--bg-page);padding:var(--s3) var(--s4) var(--s3);border-bottom:1px solid var(--border);}
+.home-header{background:var(--bg-page);padding:var(--s4) var(--s4) var(--s3);}
+.home-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--s4);}
+.brand-logo{font-size:17px;font-weight:700;color:var(--text-1);display:flex;align-items:center;gap:var(--s2);letter-spacing:-0.3px;}
+.brand-mark{width:28px;height:28px;border-radius:var(--r-sm);background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:white;}
+.icon-btn{width:32px;height:32px;border-radius:50%;background:var(--bg-page);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;color:var(--text-2);font-size:18px;position:relative;transition:var(--t-fast);}
+.icon-btn:active{background:var(--bg-card-hover);}
+.notif-badge{position:absolute;top:4px;right:4px;width:7px;height:7px;background:var(--red);border-radius:50%;border:1.5px solid var(--bg-page);}
+.avatar{width:32px;height:32px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;color:white;cursor:pointer;border:none;}
+.greeting{font-size:12px;color:var(--text-3);margin-bottom:1px;font-weight:500;}
+.greeting-name{font-size:20px;font-weight:700;color:var(--text-1);letter-spacing:-0.4px;}
+
+/* PAY CARD - white card on grey bg like Employee App */
+.pay-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5);margin:0 0 0;box-shadow:var(--shadow-card);}
+.pay-card-label{font-size:10px;font-weight:700;letter-spacing:0.8px;text-transform:uppercase;color:var(--text-3);margin-bottom:var(--s1);}
+.pay-card-amount{font-size:36px;font-weight:700;color:var(--text-1);line-height:1;margin-bottom:3px;letter-spacing:-1px;}
+.pay-card-amount sup{font-size:18px;vertical-align:top;margin-top:5px;color:var(--text-3);}
+.pay-card-sub{font-size:12px;color:var(--text-3);margin-bottom:var(--s4);}
+.pay-card-meta{display:grid;grid-template-columns:1fr 1fr;gap:var(--s2);}
+.pay-meta-item{background:var(--bg-page);border:1px solid var(--border);border-radius:var(--r-md);padding:var(--s3);}
+.pay-meta-label{font-size:9px;color:var(--text-3);font-weight:700;letter-spacing:0.8px;text-transform:uppercase;margin-bottom:3px;}
+.pay-meta-val{font-size:13px;font-weight:700;color:var(--text-1);}
+.pay-meta-val.teal{color:var(--teal-text);}
+
+/* AVAIL BANNER - light style */
+.avail-banner{background:var(--teal-tint);border:1px solid var(--teal-border);border-radius:var(--r-md);padding:var(--s4);text-align:center;margin-top:0;}
+.avail-label{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;font-weight:700;color:var(--text-3);margin-bottom:3px;}
+.avail-amt{font-size:32px;font-weight:700;color:var(--teal-text);letter-spacing:-0.5px;}
+.limit-warn{background:var(--orange-tint);border:1px solid var(--orange-border);border-radius:var(--r-md);padding:var(--s3) var(--s4);margin-top:var(--s2);display:flex;align-items:center;gap:var(--s2);font-size:12px;color:var(--orange-text);}
+
+/* SAVE HERO - white card */
+.save-hero{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5);margin-bottom:var(--s4);text-align:center;box-shadow:var(--shadow-card);}
+.save-hero-label{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-3);margin-bottom:3px;font-weight:700;}
+.save-hero-amount{font-size:32px;font-weight:700;color:var(--text-1);letter-spacing:-0.5px;margin-bottom:4px;}
+.save-hero-rate{font-size:12px;color:var(--teal-text);font-weight:500;}
+
+/* LOAN CARD HEADER - navy accent strip */
+.loan-card-header{background:var(--navy);padding:var(--s4);color:white;border-radius:var(--r-lg) var(--r-lg) 0 0;}
+.loan-type{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--on-dark-3);font-weight:700;margin-bottom:3px;}
+.loan-amount{font-size:26px;font-weight:700;color:white;letter-spacing:-0.5px;}
+
+/* BENEFITS BANNER - white card with teal accent */
+.benefits-banner{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5);margin-bottom:var(--s4);box-shadow:var(--shadow-card);}
+.benefits-banner-label{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-3);font-weight:700;margin-bottom:3px;}
+.benefits-banner-val{font-size:26px;font-weight:700;color:var(--text-1);letter-spacing:-0.3px;margin-bottom:4px;}
+.benefits-banner-sub{font-size:12px;color:var(--text-3);}
+
+/* PENSION HERO - white card */
+.pension-hero{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5);margin-bottom:var(--s4);box-shadow:var(--shadow-card);}
+.pension-label{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-3);font-weight:700;margin-bottom:3px;}
+.pension-val{font-size:32px;font-weight:700;color:var(--text-1);letter-spacing:-0.5px;margin-bottom:2px;}
+.pension-sub{font-size:12px;color:var(--text-3);}
+
+/* SPEND HERO - white card */
+.spend-hero{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5);margin-bottom:var(--s4);box-shadow:var(--shadow-card);}
+.spend-hero-label{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-3);font-weight:700;margin-bottom:3px;}
+.spend-hero-amount{font-size:32px;font-weight:700;color:var(--text-1);letter-spacing:-0.5px;margin-bottom:2px;}
+.spend-hero-sub{font-size:12px;color:var(--text-3);}
+
+/* SCORE CARD - white card with teal ring */
+.score-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5);margin-bottom:var(--s4);box-shadow:var(--shadow-card);}
+.score-label{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-3);font-weight:700;margin-bottom:3px;}
+.score-value{font-size:42px;font-weight:700;color:var(--text-1);line-height:1;letter-spacing:-1px;}
+.score-max{font-size:14px;color:var(--text-3);}
+.score-track{stroke:var(--border);}
+.score-fill{stroke:var(--teal);stroke-linecap:round;stroke-dasharray:201;stroke-dashoffset:54;}
+
+/* CONTROLS HERO - white card */
+.controls-hero{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5);margin-bottom:var(--s4);text-align:center;box-shadow:var(--shadow-card);}
+.controls-hero-label{font-size:10px;text-transform:uppercase;letter-spacing:0.8px;color:var(--text-3);margin-bottom:3px;font-weight:700;}
+.controls-hero-val{font-size:24px;font-weight:700;color:var(--text-1);letter-spacing:-0.3px;margin-bottom:2px;}
+.controls-hero-sub{font-size:12px;color:var(--text-3);}
+
+/* COACH - light bg */
+.coach-header{background:var(--bg-page);padding:var(--s3) var(--s4);border-bottom:1px solid var(--border);}
+.msg.user .msg-bubble{background:var(--navy-deep);color:white;border-bottom-right-radius:var(--r-sm);}
+
+/* BACK BTN and SCREEN TITLE - dark on light */
+.back-btn{width:32px;height:32px;border-radius:50%;background:var(--bg-card);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:var(--t-fast);}
+.back-btn:active{background:var(--bg-card-hover);}
+.back-btn svg{width:18px;height:18px;stroke:var(--text-1);}
+.screen-title{font-size:16px;font-weight:700;color:var(--text-1);letter-spacing:-0.2px;}
+.icon-btn svg{width:16px;height:16px;stroke:var(--text-2);}
+
+/* PROFILE - light */
+.profile-hero{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5);margin-bottom:var(--s3);text-align:center;box-shadow:var(--shadow-card);}
+.profile-avatar{width:60px;height:60px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:white;margin:0 auto var(--s3);}
+.profile-name{font-size:17px;font-weight:700;color:var(--text-1);letter-spacing:-0.3px;margin-bottom:2px;}
+.profile-role{font-size:12px;color:var(--text-3);}
+.profile-employer{font-size:12px;color:var(--teal-text);font-weight:500;margin-top:2px;}
+
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <div class="status-bar">
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:24px;height:24px;border-radius:5px;background:var(--teal);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:white;">F</div>
+      <span style="font-size:15px;font-weight:700;color:white;letter-spacing:-0.2px;">Fourth</span>
+    </div>
+    <div class="status-icons">
+      <span id="clock" style="font-size:13px;font-weight:500;color:rgba(255,255,255,0.7);">9:41</span>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 18l.01 0"/><path d="M9.172 15.172a4 4 0 0 1 5.656 0"/><path d="M6.343 12.343a8 8 0 0 1 11.314 0"/><path d="M3.515 9.515c4.686 -4.687 12.284 -4.687 16.97 0"/></svg>
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M6 7h11a2 2 0 0 1 2 2v.5a.5 .5 0 0 0 .5 .5a.5 .5 0 0 1 .5 .5v3a.5 .5 0 0 1 -.5 .5a.5 .5 0 0 0 -.5 .5v.5a2 2 0 0 1 -2 2h-11a2 2 0 0 1 -2 -2v-6a2 2 0 0 1 2 -2"/><path d="M7 10v4"/><path d="M10 10v4"/></svg>
+    </div>
+  </div>
+
+  <div class="scroll-area" id="scroll-area">
+
+  <!-- ═══ HOME ═══ -->
+  <div class="screen active" id="screen-home">
+    <!-- Greeting row — light bg, dark text, matches Employee App -->
+    <div style="padding:var(--s4) var(--s4) var(--s3);display:flex;align-items:center;justify-content:space-between;">
+      <div style="display:flex;align-items:center;gap:var(--s3);">
+        <div style="width:38px;height:38px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:white;flex-shrink:0;">JH</div>
+        <div>
+          <div style="font-size:17px;font-weight:700;color:var(--text-1);letter-spacing:-0.3px;">Good morning, Jordan</div>
+          <div style="font-size:12px;color:var(--text-3);margin-top:1px;">Pay day in 10 days · Everything's on track</div>
+        </div>
+      </div>
+      <div style="display:flex;align-items:center;gap:var(--s2);">
+        <button class="icon-btn" onclick="go('notifications')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg><div class="notif-badge" id="notif-badge"></div></button>
+      </div>
+    </div>
+
+    <!-- Pay card — white card on grey, like Employee App "This Period" card -->
+    <div style="padding:0 var(--s4) var(--s3);">
+      <div class="pay-card">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:var(--s4);">
+          <div>
+            <div class="pay-card-label">This period</div>
+            <div style="font-size:10px;color:var(--teal-text);font-weight:700;text-transform:uppercase;letter-spacing:0.5px;margin-top:2px;">Updated just now</div>
+          </div>
+          <button onclick="go('stream')" style="background:var(--navy);color:white;border:none;border-radius:var(--r-sm);padding:6px 12px;font-size:11px;font-weight:700;cursor:pointer;font-family:var(--font);">Get paid now →</button>
+        </div>
+        <div class="pay-card-meta" style="margin-bottom:var(--s4);">
+          <div class="pay-meta-item">
+            <div class="pay-meta-label">Available</div>
+            <div class="pay-meta-val" style="font-size:20px;letter-spacing:-0.5px;color:var(--teal-text);">£312.50</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:1px;">of £625 earned</div>
+          </div>
+          <div class="pay-meta-item">
+            <div class="pay-meta-label">Next payday</div>
+            <div class="pay-meta-val" style="font-size:20px;letter-spacing:-0.5px;">10 days</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:1px;">6 Jun 2026</div>
+          </div>
+          <div class="pay-meta-item">
+            <div class="pay-meta-label">This week</div>
+            <div class="pay-meta-val" style="font-size:20px;letter-spacing:-0.5px;">24h</div>
+            <div style="font-size:10px;color:var(--teal-text);font-weight:600;margin-top:1px;">+8% vs last week</div>
+          </div>
+          <div class="pay-meta-item">
+            <div class="pay-meta-label">This month</div>
+            <div class="pay-meta-val" style="font-size:20px;letter-spacing:-0.5px;">£625</div>
+            <div style="font-size:10px;color:var(--teal-text);font-weight:600;margin-top:1px;">+15% vs last month</div>
+          </div>
+        </div>
+        <!-- Pay period progress bar -->
+        <div>
+          <div class="prog-label"><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-3);">Pay cycle · Day 17 of 31</span><span style="font-size:11px;color:var(--teal-text);font-weight:700;">£312.50 earned</span></div>
+          <div class="prog-track" style="margin-top:4px;"><div class="prog-fill" style="width:55%;"></div></div>
+        </div>
+      </div>
+
+      <!-- iQ Insight strip — matches Employee App exactly -->
+      <div style="background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s4);margin-top:var(--s3);box-shadow:var(--shadow-card);">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:var(--s2);">
+          <div style="font-size:12px;font-weight:700;color:var(--text-1);">✦ iQ Insight</div>
+          <div style="font-size:10px;font-weight:700;color:var(--teal-text);text-transform:uppercase;letter-spacing:0.5px;">94% confidence</div>
+        </div>
+        <div style="font-size:13px;color:var(--text-2);line-height:1.5;margin-bottom:var(--s3);">You've accessed pay 3 times this period — consider a savings rule to build a buffer before your next payday.</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s2);">
+          <button onclick="go('save')" style="background:var(--bg-page);border:1px solid var(--border);border-radius:var(--r-sm);padding:var(--s2) var(--s3);font-size:12px;font-weight:700;color:var(--text-1);cursor:pointer;font-family:var(--font);">Set up saving</button>
+          <button onclick="go('payslip')" style="background:var(--bg-page);border:1px solid var(--border);border-radius:var(--r-sm);padding:var(--s2) var(--s3);font-size:12px;font-weight:700;color:var(--text-1);cursor:pointer;font-family:var(--font);">View payslip</button>
+        </div>
+      </div>
+    </div>
+    <div class="section-header"><div class="section-title">Quick actions</div></div>
+    <div class="quick-actions">
+      <div class="qa-btn" onclick="go('stream')"><div class="qa-icon" style="background:var(--teal-tint);color:var(--teal);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg></div><span class="qa-label">Get paid now</span><span class="qa-sub">Instant transfer</span></div>
+      <div class="qa-btn" onclick="go('track')"><div class="qa-icon" style="background:rgba(0,39,71,0.08);color:var(--navy);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><polyline points="4 19 8 15 12 19 16 13 20 19"/><line x1="4" y1="15" x2="20" y2="15"/></svg></div><span class="qa-label">Track earnings</span><span class="qa-sub">Shifts & pay</span></div>
+      <div class="qa-btn" onclick="go('spend')"><div class="qa-icon" style="background:#e8f4fd;color:#1a7abf;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 8v-3a1 1 0 0 0 -1 -1h-10a2 2 0 0 0 0 4h12a1 1 0 0 1 1 1v3m0 4v3a1 1 0 0 1 -1 1h-12a2 2 0 0 1 -2 -2v-12"/><path d="M20 12v4h-4a2 2 0 0 1 0 -4h4"/></svg></div><span class="qa-label">Spending</span><span class="qa-sub">All accounts</span></div>
+      <div class="qa-btn" onclick="go('save')"><div class="qa-icon" style="background:var(--orange-tint);color:var(--orange);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 8v-1a5 5 0 0 0 -10 0v1"/><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0"/><path d="M5 8h14a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-1l-1 3h-8l-1 -3h-1a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1z"/><path d="M19 12h2"/></svg></div><span class="qa-label">Save</span><span class="qa-sub">Build your pot</span></div>
+      <div class="qa-btn" onclick="go('loans')"><div class="qa-icon" style="background:#e8f8f4;color:#00937f;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><path d="M14.8 9a2 2 0 0 0 -1.8 -1h-2a2 2 0 1 0 0 4h2a2 2 0 1 0 0 4h-2a2 2 0 0 1 -1.8 -1"/><path d="M12 7v10"/></svg></div><span class="qa-label">Borrow</span><span class="qa-sub">Workplace loans</span></div>
+      <div class="qa-btn" onclick="go('benefits')"><div class="qa-icon" style="background:var(--red-tint);color:var(--red-text);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12l2 2l4 -4"/><path d="M9 17l2 2l4 -4"/></svg></div><span class="qa-label">Benefits</span><span class="qa-sub">What you're owed</span></div>
+      <div class="qa-btn" onclick="go('pension')"><div class="qa-icon" style="background:#f3e8ff;color:#8b5cf6;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 3.2a9 9 0 1 0 10.8 10.8a1 1 0 0 0 -1 -1h-6.8a2 2 0 0 1 -2 -2v-7a.9 .9 0 0 0 -1 -.8"/><path d="M15 3.5a9 9 0 0 1 5.5 5.5h-4.5a1 1 0 0 1 -1 -1v-4.5"/></svg></div><span class="qa-label">Pension</span><span class="qa-sub">Find & combine</span></div>
+      <div class="qa-btn" onclick="go('coach')"><div class="qa-icon" style="background:rgba(250,165,26,0.15);color:var(--orange);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="3" y="9" width="18" height="12" rx="3"/><path d="M15 9v-4a3 3 0 0 0 -6 0v4"/><circle cx="9" cy="14" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1.5" fill="currentColor" stroke="none"/><path d="M12 3l0 .01"/></svg></div><span class="qa-label">Money coach</span><span class="qa-sub">AI-powered help</span></div>
+      <div class="qa-btn" onclick="go('budget')"><div class="qa-icon" style="background:#e8f4fd;color:#1a7abf;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 7h8"/><path d="M8 11h3"/><path d="M13 11h3"/><path d="M8 15h3"/><path d="M13 15h3"/><path d="M8 19h3"/><path d="M13 19h3"/></svg></div><span class="qa-label">Budget</span><span class="qa-sub">Set a plan</span></div>
+      <div class="qa-btn" onclick="go('learn')"><div class="qa-icon" style="background:#f3e8ff;color:#8b5cf6;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M22 9l-10 -4l-10 4l10 4z"/><path d="M6 10.6v4.4a6 6 0 0 0 12 0v-4.4"/><path d="M22 9v6"/></svg></div><span class="qa-label">Learn</span><span class="qa-sub">Financial guides</span></div>
+    </div>
+    <div class="section-header"><div class="section-title">Recent activity</div><div class="section-link" onclick="go('track')">See all</div></div>
+    <div class="activity-list">
+      <div class="activity-item"><div class="a-icon" style="background:var(--teal-tint);color:var(--teal);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg></div><div class="a-body"><div class="a-title">Pay access</div><div class="a-date">24 May · Monzo</div></div><div class="a-amount out">+£80.00</div></div>
+      <div class="activity-item"><div class="a-icon" style="background:var(--orange-tint);color:var(--orange);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 8v-1a5 5 0 0 0 -10 0v1"/><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0"/><path d="M5 8h14a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-1l-1 3h-8l-1 -3h-1a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1z"/><path d="M19 12h2"/></svg></div><div class="a-body"><div class="a-title">Auto-save</div><div class="a-date">23 May · Emergency pot</div></div><div class="a-amount neutral">£15.00 saved</div></div>
+      <div class="activity-item"><div class="a-icon" style="background:#f3e8ff;color:#8b5cf6;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg></div><div class="a-body"><div class="a-title">Pay access</div><div class="a-date">18 May · Monzo</div></div><div class="a-amount out">+£50.00</div></div>
+    </div>
+    <div style="height:16px;"></div>
+  </div>
+
+  <!-- ═══ STREAM ═══ -->
+  <div class="screen" id="screen-stream">
+    <div class="dark-header">
+      <div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Get paid now</div></div>
+    </div>
+    <div class="stream-body">
+      <div class="avail-banner" style="margin-bottom:var(--s3);"><div class="avail-label">Available to access</div><div class="avail-amt">£312.50</div></div>
+      <div class="limit-warn" style="margin-bottom:var(--s3);"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--orange-text);flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><path d="M12 8v1"/><path d="M11 12h1v4h1"/></svg><span>Monthly limit £200. Used £130 so far — £70 remaining.</span></div>
+      <div class="amount-card">
+        <label>How much do you need?</label>
+        <div class="amount-row"><div class="amt-prefix">£</div><input class="amt-input" id="s-amount" type="number" value="70" min="10" max="70" oninput="updateStream()"></div>
+        <input type="range" min="10" max="70" value="70" step="5" id="s-slider" oninput="document.getElementById('s-amount').value=this.value;updateStream()">
+        <div style="display:flex;justify-content:space-between;font-size:11px;color:var(--text-3);margin-top:4px;"><span>£10</span><span>£70 remaining</span></div>
+      </div>
+      <div class="presets">
+        <div class="preset" onclick="setAmt(20)">£20</div>
+        <div class="preset" onclick="setAmt(30)">£30</div>
+        <div class="preset" onclick="setAmt(50)">£50</div>
+        <div class="preset sel" onclick="setAmt(70)">£70</div>
+      </div>
+      <div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;margin-bottom:12px;">
+        <div style="font-size:12px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.6px;margin-bottom:10px;">Transfer speed</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
+          <div id="speed-instant" onclick="setSpeed('instant')" style="border:2px solid var(--teal);border-radius:8px;padding:10px;cursor:pointer;background:var(--teal-tint);">
+            <div style="font-size:13px;font-weight:700;color:var(--text-1);">⚡ Instant</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:2px;">Within minutes</div>
+            <div style="font-size:12px;font-weight:800;color:var(--teal);margin-top:4px;" id="instant-fee-label">£1.95 fee</div>
+          </div>
+          <div id="speed-standard" onclick="setSpeed('standard')" style="border:1px solid var(--border);border-radius:8px;padding:10px;cursor:pointer;background:white;">
+            <div style="font-size:13px;font-weight:700;color:var(--text-1);">🕐 Standard</div>
+            <div style="font-size:11px;color:var(--text-3);margin-top:2px;">1–3 working days</div>
+            <div style="font-size:12px;font-weight:800;color:var(--teal);margin-top:4px;">Free</div>
+          </div>
+        </div>
+      </div>
+      <div id="subsidy-banner" style="background:var(--teal-tint);border:1px solid rgba(0,182,159,0.25);border-radius:var(--r-sm);padding:11px 14px;margin-bottom:12px;display:flex;align-items:center;gap:10px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--teal-text);flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21l18 0"/><path d="M9 8h1"/><path d="M9 12h1"/><path d="M9 16h1"/><path d="M14 8h1"/><path d="M14 12h1"/><path d="M14 16h1"/><path d="M5 21v-16a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v16"/></svg>
+        <div style="flex:1;">
+          <div style="font-size:12px;font-weight:700;color:var(--teal-text);">Your employer covers the fee</div>
+          <div style="font-size:11px;color:var(--teal-text);opacity:0.8;">The Crown Pub Group pays the £1.95 instant fee for you</div>
+        </div>
+        <div class="toggle on" id="tog-subsidy" onclick="toggleSubsidy()" style="flex-shrink:0;"><div class="toggle-thumb"></div></div>
+      </div>
+      <div class="info-row"><span class="info-label">Transaction fee</span><span class="info-val" id="s-fee" style="color:var(--teal);">Free (employer pays)</span></div>
+      <div class="info-row"><span class="info-label">Monthly limit remaining after</span><span class="info-val orange" id="s-remain">£0.00</span></div>
+      <div class="bank-row"><div style="display:flex;align-items:center;gap:10px;"><div class="bank-logo">M</div><div><div class="bank-name">Monzo</div><div class="bank-num">•••• 4891</div></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+      <div class="receive-row"><span style="font-size:12px;font-weight:700;color:var(--teal-text);">You'll receive</span><span style="font-size:16px;font-weight:800;color:var(--text-1);" id="s-receive">£70.00</span></div>
+      <button class="btn btn-teal" id="stream-cta-btn" onclick="go('confirm')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg> Access pay instantly</button>
+      <p style="text-align:center;font-size:11px;color:var(--text-3);margin-top:10px;">FCA regulated · <span id="stream-speed-note">Arrives within minutes</span> · <span style="color:var(--teal);font-weight:700;cursor:pointer;" onclick="go('controls')">Manage limits →</span></p>
+    </div>
+  </div>
+
+  <!-- ═══ CONFIRM ═══ -->
+  <div class="screen" id="screen-confirm">
+    <div class="confirm-body">
+      <div class="confirm-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg></div>
+      <div class="confirm-title">Transfer confirmed!</div>
+      <div class="confirm-sub">On its way to your Monzo account</div>
+      <div class="confirm-big" id="c-amount">£68.25</div>
+      <div class="confirm-detail">
+        <div class="c-row"><span class="c-label">Requested</span><span class="c-val">£70.00</span></div>
+        <div class="c-row"><span class="c-label">Fee</span><span class="c-val" id="c-fee">£1.95</span></div>
+        <div class="c-row"><span class="c-label">Account</span><span class="c-val">Monzo •••• 4891</span></div>
+        <div class="c-row"><span class="c-label">Arrives</span><span class="c-val" style="color:var(--teal);">Within minutes</span></div>
+        <div class="c-row"><span class="c-label">Monthly limit used</span><span class="c-val" style="color:var(--orange);">£200/£200</span></div>
+      </div>
+      <button class="btn btn-navy" onclick="go('home')" style="margin-bottom:10px;">Back to home</button>
+      <button class="btn btn-ghost" onclick="go('track')">View history</button>
+    </div>
+  </div>
+
+  <!-- ═══ TRACK ═══ -->
+  <div class="screen" id="screen-track">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Earnings tracker</div></div></div>
+    <div class="track-body">
+      <div class="period-card">
+        <div class="period-top"><div class="section-title" style="font-size:13px;">May 2026</div><div class="badge badge-teal">In progress</div></div>
+        <div class="period-dates">1 May – 31 May 2026 · Pay day 6 Jun</div>
+        <div class="stats-grid">
+          <div class="stat"><div class="stat-val">£625</div><div class="stat-label">Earned</div></div>
+          <div class="stat"><div class="stat-val" style="color:var(--teal);">£312</div><div class="stat-label">Available</div></div>
+          <div class="stat"><div class="stat-val">£130</div><div class="stat-label">Accessed</div></div>
+        </div>
+      </div>
+      <div class="section-title" style="padding:0 0 10px;font-size:13px;">Shifts this period</div>
+      <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">MON</div><div class="shift-num">27</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">09:00–17:00 · 8h</div></div></div><div class="shift-earn">£96.00</div></div>
+      <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">SUN</div><div class="shift-num">26</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">11:00–19:00 · 8h</div></div></div><div class="shift-earn">£96.00</div></div>
+      <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">FRI</div><div class="shift-num">23</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">17:00–23:00 · 6h</div></div></div><div class="shift-earn">£72.00</div></div>
+      <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">THU</div><div class="shift-num">22</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">09:00–17:00 · 8h</div></div></div><div class="shift-earn">£96.00</div></div>
+      <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">TUE</div><div class="shift-num">20</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">09:00–15:00 · 6h</div></div></div><div class="shift-earn">£72.00</div></div>
+    </div>
+  </div>
+
+  <!-- ═══ SPENDING / OPEN BANKING ═══ -->
+  <div class="screen" id="screen-spend">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Spending tracker</div></div></div>
+    <div class="spend-body">
+      <div class="spend-hero">
+        <div class="spend-hero-label">Total spent this month</div>
+        <div class="spend-hero-amount">£847.20</div>
+        <div class="spend-hero-sub">Across 2 linked accounts</div>
+        <div class="bar-chart" id="spend-chart"></div>
+      </div>
+      <div class="section-header" style="padding:16px 0 8px;"><div class="section-title">Linked accounts</div><div class="section-link">+ Add account</div></div>
+      <div class="account-item">
+        <div class="account-left"><div class="account-logo" style="background:var(--navy-deep);color:white;">M</div><div><div class="account-name">Monzo</div><div class="account-type">Current account</div></div></div>
+        <div><div class="account-bal">£1,243.80</div><div class="account-change" style="color:var(--teal);">+£312.50 today</div></div>
+      </div>
+      <div class="account-item">
+        <div class="account-left"><div class="account-logo" style="background:#eb1801;color:white;">S</div><div><div class="account-name">Santander</div><div class="account-type">Savings account</div></div></div>
+        <div><div class="account-bal">£4,120.00</div><div class="account-change" style="color:var(--text-3);">4.5% AER</div></div>
+      </div>
+      <div class="section-header" style="padding:16px 0 8px;"><div class="section-title">Spending by category</div></div>
+      <div class="cat-list">
+        <div class="cat-item"><div class="cat-top"><span class="cat-name">🛒 Groceries</span><span class="cat-amt">£214.30</span></div><div class="cat-bar-track"><div class="cat-bar-fill" style="width:68%;background:#00b59e;"></div></div><div class="cat-pct">25% of spending</div></div>
+        <div class="cat-item"><div class="cat-top"><span class="cat-name">🏠 Rent & bills</span><span class="cat-amt">£380.00</span></div><div class="cat-bar-track"><div class="cat-bar-fill" style="width:100%;background:#002747;"></div></div><div class="cat-pct">45% of spending</div></div>
+        <div class="cat-item"><div class="cat-top"><span class="cat-name">🍽️ Eating out</span><span class="cat-amt">£96.40</span></div><div class="cat-bar-track"><div class="cat-bar-fill" style="width:30%;background:#FAA51A;"></div></div><div class="cat-pct">11% of spending</div></div>
+        <div class="cat-item"><div class="cat-top"><span class="cat-name">🚌 Transport</span><span class="cat-amt">£58.50</span></div><div class="cat-bar-track"><div class="cat-bar-fill" style="width:18%;background:#8b5cf6;"></div></div><div class="cat-pct">7% of spending</div></div>
+        <div class="cat-item"><div class="cat-top"><span class="cat-name">🎮 Entertainment</span><span class="cat-amt">£98.00</span></div><div class="cat-bar-track"><div class="cat-bar-fill" style="width:32%;background:#e24b4a;"></div></div><div class="cat-pct">12% of spending</div></div>
+      </div>
+      <div class="section-header" style="padding:16px 0 8px;"><div class="section-title">Bill reminders</div><div class="section-link" onclick="addBill()">+ Add bill</div></div>
+      <div id="bills-list" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;">
+        <div class="account-item" style="flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:36px;height:36px;border-radius:10px;background:#e8f4fd;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">🏠</div>
+              <div><div style="font-size:13px;font-weight:700;color:var(--text-1);">Rent</div><div style="font-size:11px;color:var(--text-3);">Due 1 Jun · Monthly</div></div>
+            </div>
+            <div style="text-align:right;"><div style="font-size:14px;font-weight:800;color:var(--text-1);">£650.00</div><div style="font-size:10px;color:var(--text-3);">5 days away</div></div>
+          </div>
+          <div style="height:3px;background:var(--bg-page);"><div style="width:80%;height:100%;background:var(--orange);border-radius:0 100px 100px 0;"></div></div>
+        </div>
+        <div class="account-item" style="flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:36px;height:36px;border-radius:10px;background:var(--teal-tint);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">⚡</div>
+              <div><div style="font-size:13px;font-weight:700;color:var(--text-1);">Gas & electric</div><div style="font-size:11px;color:var(--text-3);">Due 12 Jun · Monthly</div></div>
+            </div>
+            <div style="text-align:right;"><div style="font-size:14px;font-weight:800;color:var(--text-1);">£94.00</div><div style="font-size:10px;color:var(--teal);">16 days away</div></div>
+          </div>
+          <div style="height:3px;background:var(--bg-page);"><div style="width:30%;height:100%;background:var(--teal);border-radius:0 100px 100px 0;"></div></div>
+        </div>
+        <div class="account-item" style="flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:36px;height:36px;border-radius:10px;background:#f3e8ff;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📱</div>
+              <div><div style="font-size:13px;font-weight:700;color:var(--text-1);">Mobile phone</div><div style="font-size:11px;color:var(--text-3);">Due 15 Jun · Monthly</div></div>
+            </div>
+            <div style="text-align:right;"><div style="font-size:14px;font-weight:800;color:var(--text-1);">£28.00</div><div style="font-size:10px;color:var(--teal);">19 days away</div></div>
+          </div>
+          <div style="height:3px;background:var(--bg-page);"><div style="width:15%;height:100%;background:var(--teal);border-radius:0 100px 100px 0;"></div></div>
+        </div>
+        <div class="account-item" style="border:1px solid var(--red);background:var(--red-tint);flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;">
+            <div style="display:flex;align-items:center;gap:10px;">
+              <div style="width:36px;height:36px;border-radius:10px;background:var(--red-tint);border:1px solid var(--red-border);display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;">📺</div>
+              <div><div style="font-size:13px;font-weight:700;color:var(--red-text);">Internet</div><div style="font-size:11px;color:var(--red-text);opacity:0.7;">Due TODAY · Monthly</div></div>
+            </div>
+            <div style="text-align:right;"><div style="font-size:14px;font-weight:800;color:var(--red-text);">£32.00</div><div style="font-size:10px;font-weight:700;color:var(--red-text);">⚠️ Due now</div></div>
+          </div>
+          <div style="height:3px;background:var(--red);"></div>
+        </div>
+      </div>
+      <div style="background:var(--bg-page);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:16px;display:flex;align-items:center;gap:10px;">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--teal);flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg>
+        <div style="flex:1;font-size:12px;color:var(--text-3);">Bill reminders are sent 3 days before each due date. <span style="color:var(--teal);font-weight:700;">Change reminder timing →</span></div>
+      </div>
+      <div style="height:16px;"></div>
+    </div><!-- end spend-body -->
+  </div><!-- end screen-spend -->
+
+  <div class="screen" id="screen-save">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Save & budget</div></div></div>
+    <div class="save-body">
+      <div class="save-hero"><div class="save-hero-label">Total savings</div><div class="save-hero-amount">£247.50</div><div class="save-hero-rate">4.5% AER · FSCS protected up to £85,000</div></div>
+      <div class="section-title" style="padding:0 0 10px;font-size:13px;">Your pots</div>
+      <div class="list-item">
+        <div class="list-item-left"><div class="list-icon" style="background:var(--teal-tint);">🆘</div><div><div class="list-title">Emergency fund</div><div class="pot-bar-wrap"><div class="pot-prog"><div class="pot-prog-fill" style="width:100%;"></div></div><div class="pot-prog-label"><span>£147.50</span><span>No limit</span></div></div></div></div>
+        <span class="badge badge-teal">Active</span>
+      </div>
+      <div class="list-item">
+        <div class="list-item-left"><div class="list-icon" style="background:var(--orange-tint);">✈️</div><div><div class="list-title">Holiday fund</div><div class="pot-bar-wrap"><div class="pot-prog"><div class="pot-prog-fill" style="width:20%;"></div></div><div class="pot-prog-label"><span>£100.00</span><span>Goal £500</span></div></div></div></div>
+        <span class="badge badge-orange">20%</span>
+      </div>
+      <div style="margin-bottom:16px;"><button class="btn btn-orange" style="margin-bottom:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 5v14"/><path d="M5 12h14"/></svg> Create new pot</button></div>
+      <div class="section-title" style="padding:0 0 10px;font-size:13px;">Saving rules</div>
+      <div style="background:white;border:1px solid var(--border);border-radius:var(--r-lg);padding:16px;margin-bottom:16px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+          <div><div style="font-size:14px;font-weight:700;color:var(--text-1);">Round-up saving</div><div style="font-size:12px;color:var(--text-3);margin-top:2px;">Round each shift's pay down to the nearest £1 and save the difference automatically</div></div>
+          <div class="toggle off" id="tog-roundup" onclick="togRoundup()" style="margin-left:12px;flex-shrink:0;"><div class="toggle-thumb"></div></div>
+        </div>
+        <div id="roundup-detail" style="display:none;background:var(--teal-tint);border-radius:8px;padding:10px 12px;margin-top:10px;">
+          <div style="font-size:12px;font-weight:700;color:var(--teal-text);">Save to which pot?</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:8px;">
+            <div onclick="selectRoundupPot(this)" style="background:white;border:2px solid var(--teal);border-radius:8px;padding:8px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-1);">🆘 Emergency fund</div>
+            <div onclick="selectRoundupPot(this)" style="background:white;border:1px solid var(--border);border-radius:8px;padding:8px;cursor:pointer;font-size:12px;font-weight:700;color:var(--text-3);">✈️ Holiday fund</div>
+          </div>
+          <div style="font-size:11px;color:var(--teal-text);margin-top:8px;">Est. saving: ~£4–12 per pay period based on your shifts</div>
+        </div>
+      </div>
+      <div class="section-title" style="padding:0 0 10px;font-size:13px;">Money tools</div>
+      <div class="list-item"><div class="list-item-left"><div class="list-icon" style="background:rgba(0,39,71,0.08);">📋</div><div><div class="list-title">Benefits checker</div><div class="list-sub">Find unclaimed government support</div></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+      <div class="list-item" onclick="go('coach')"><div class="list-item-left"><div class="list-icon" style="background:rgba(250,165,26,0.15);">🤖</div><div><div class="list-title">Financial coaching</div><div class="list-sub">Free AI money coach</div></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+    </div>
+  </div>
+
+  <!-- ═══ LOANS ═══ -->
+  <div class="screen" id="screen-loans">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Workplace loans</div></div></div>
+    <div class="loans-body">
+      <div class="loan-card">
+        <div class="loan-card-header"><div class="loan-type">Active loan</div><div class="loan-amount">£500.00</div></div>
+        <div class="loan-details">
+          <div class="loan-row"><span class="loan-label">Interest rate</span><span class="loan-val" style="color:var(--teal);">9.9% APR</span></div>
+          <div class="loan-row"><span class="loan-label">Monthly repayment</span><span class="loan-val">£43.75</span></div>
+          <div class="loan-row"><span class="loan-label">Repaid from</span><span class="loan-val">Salary (auto)</span></div>
+          <div class="loan-row"><span class="loan-label">Remaining</span><span class="loan-val">£325.00</span></div>
+          <div class="loan-row"><span class="loan-label">Final payment</span><span class="loan-val">Nov 2026</span></div>
+        </div>
+        <div class="repay-progress">
+          <div class="repay-label"><span>Repayment progress</span><span style="color:var(--teal);">35% paid</span></div>
+          <div class="prog-track"><div class="prog-fill" style="width:35%;"></div></div>
+        </div>
+      </div>
+      <div class="section-title" style="padding:0 0 12px;font-size:13px;">Apply for a new loan</div>
+      <div class="loan-option">
+        <div class="loan-opt-header">
+          <div><div class="loan-opt-name">Emergency loan</div><div style="font-size:11px;color:var(--text-3);">Up to £500 · Fast approval</div></div>
+          <div class="loan-opt-rate">9.9%<span> APR</span></div>
+        </div>
+        <div class="eligibility-tag"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg>You're eligible</div>
+        <div class="loan-opt-body">For unexpected costs. Repaid from salary over 3–12 months. No credit check. Decision in minutes.</div>
+        <button class="btn btn-teal btn-sm">Apply now</button>
+      </div>
+      <div class="loan-option">
+        <div class="loan-opt-header">
+          <div><div class="loan-opt-name">Debt consolidation</div><div style="font-size:11px;color:var(--text-3);">Up to £2,000 · Lower your payments</div></div>
+          <div class="loan-opt-rate">12.9%<span> APR</span></div>
+        </div>
+        <div class="eligibility-tag" style="background:rgba(0,39,71,0.06);color:var(--navy);"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg>3 months tenure needed</div>
+        <div class="loan-opt-body">Consolidate existing debt at a lower rate. Repaid from salary. Salary-linked repayment keeps it affordable.</div>
+        <button class="btn btn-ghost btn-sm">Learn more</button>
+      </div>
+      <div style="height:16px;"></div>
+    </div>
+  </div>
+
+  <!-- ═══ BENEFITS CHECKER ═══ -->
+  <div class="screen" id="screen-benefits">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Benefits checker</div></div></div>
+    <div class="benefits-body">
+      <div class="benefits-banner">
+        <div class="benefits-banner-label">Estimated unclaimed benefits</div>
+        <div class="benefits-banner-val">£1,240/year</div>
+        <div class="benefits-banner-sub">Based on your profile · Check each benefit below</div>
+      </div>
+      <div class="section-title" style="padding:0 0 10px;font-size:13px;">Benefits you may be entitled to</div>
+      <div class="benefit-item">
+        <div class="benefit-icon" style="background:#e8f8f4;">💰</div>
+        <div><div class="benefit-name">Working Tax Credit</div><div class="benefit-desc">Low income working households</div></div>
+        <div class="benefit-right"><div class="benefit-val">£640/yr</div><div class="benefit-status">Likely eligible</div></div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon" style="background:rgba(0,39,71,0.06);">🏠</div>
+        <div><div class="benefit-name">Council Tax Support</div><div class="benefit-desc">Reduction on your council tax bill</div></div>
+        <div class="benefit-right"><div class="benefit-val">£200/yr</div><div class="benefit-status">Check eligibility</div></div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon" style="background:var(--orange-tint);">🍽️</div>
+        <div><div class="benefit-name">Free School Meals</div><div class="benefit-desc">If you have school-age children</div></div>
+        <div class="benefit-right"><div class="benefit-val">£400/yr</div><div class="benefit-status">Check eligibility</div></div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon" style="background:var(--red-tint);">💊</div>
+        <div><div class="benefit-name">NHS Prescription Prepay</div><div class="benefit-desc">Pay once for unlimited prescriptions</div></div>
+        <div class="benefit-right"><div class="benefit-val">Saves £78/yr</div><div class="benefit-status">Probably eligible</div></div>
+      </div>
+      <div class="benefit-item">
+        <div class="benefit-icon" style="background:#e8f4fd;">🚌</div>
+        <div><div class="benefit-name">Free bus pass</div><div class="benefit-desc">Concessionary travel in your area</div></div>
+        <div class="benefit-right"><div class="benefit-val">Variable</div><div class="benefit-status">Check eligibility</div></div>
+      </div>
+      <div style="height:8px;"></div>
+      <button class="btn btn-navy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12l2 2l4 -4"/><path d="M9 17l2 2l4 -4"/></svg> Run full benefits check</button>
+      <div style="height:16px;"></div>
+    </div>
+  </div>
+
+  <!-- ═══ PENSION ═══ -->
+  <div class="screen" id="screen-pension">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">My pension</div></div></div>
+    <div class="pension-body">
+      <div class="pension-hero">
+        <div class="pension-label">Total pension pot</div>
+        <div class="pension-val">£14,820.00</div>
+        <div class="pension-sub">Across 2 pots · Growing at ~6% pa</div>
+      </div>
+      <div class="section-title" style="padding:0 0 10px;font-size:13px;">Your pots</div>
+      <div class="pension-pots">
+        <div class="pension-pot">
+          <div class="pension-pot-header">
+            <div><div class="pension-pot-name">Current employer</div><div class="pension-pot-provider">The Crown Pub Group · Nest</div></div>
+            <div style="text-align:right;"><div class="pension-pot-val">£3,240.00</div><div class="pension-pot-growth">+£120 this month</div></div>
+          </div>
+          <div class="loan-row"><span class="loan-label">Employee contribution</span><span class="loan-val">5% (£62/mo)</span></div>
+          <div class="loan-row"><span class="loan-label">Employer contribution</span><span class="loan-val">3% (£37/mo)</span></div>
+          <div class="loan-row" style="border:none;"><span class="loan-label">Fund</span><span class="loan-val">Nest Retirement Date 2055</span></div>
+        </div>
+        <div class="pension-pot">
+          <div class="pension-pot-header">
+            <div><div class="pension-pot-name">Previous employer</div><div class="pension-pot-provider">Mitchells & Butlers · Aviva</div></div>
+            <div style="text-align:right;"><div class="pension-pot-val">£11,580.00</div><div class="pension-pot-growth">+£580 this year</div></div>
+          </div>
+          <div class="loan-row"><span class="loan-label">Status</span><span class="loan-val" style="color:var(--orange);">Deferred · Consolidate?</span></div>
+          <div class="loan-row" style="border:none;"><span class="loan-label">Found by</span><span class="loan-val">Fourth Pay pension finder</span></div>
+        </div>
+      </div>
+      <div class="section-title" style="padding:0 0 10px;font-size:13px;">Retirement forecast</div>
+      <div class="forecast-card">
+        <div class="forecast-row"><span class="forecast-label">Estimated retirement age</span><span class="forecast-val">67 (2056)</span></div>
+        <div class="forecast-row"><span class="forecast-label">Projected pot at retirement</span><span class="forecast-val" style="color:var(--teal);">£89,400</span></div>
+        <div class="forecast-row"><span class="forecast-label">Estimated monthly income</span><span class="forecast-val">£620/mo</span></div>
+        <div class="forecast-row"><span class="forecast-label">State pension (estimated)</span><span class="forecast-val">£221/wk</span></div>
+      </div>
+      <button class="btn btn-teal" style="margin-bottom:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7l5 5l-5 5"/><path d="M21 12h-13"/><path d="M14 7l7 5l-7 5"/></svg> Consolidate Aviva pot</button>
+      <button class="btn btn-ghost"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="10" cy="10" r="7"/><path d="M21 21l-6 -6"/></svg> Find more lost pensions</button>
+      <div style="height:16px;"></div>
+    </div>
+  </div>
+
+  <!-- ═══ AI MONEY COACH ═══ -->
+  <div class="screen" id="screen-coach">
+    <div class="dark-header-sm">
+      <div class="screen-title-row" style="justify-content:space-between;">
+        <div style="display:flex;align-items:center;gap:12px;"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Money coach</div></div>
+        <div style="display:flex;align-items:center;gap:6px;"><div style="width:8px;height:8px;border-radius:50%;background:var(--teal);"></div><span style="font-size:11px;color:rgba(255,255,255,0.6);font-weight:600;">AI · Online</span></div>
+      </div>
+    </div>
+    <div class="coach-messages" id="chat-messages">
+      <div style="text-align:center;padding:8px 0;"><span style="font-size:11px;color:var(--text-3);font-weight:600;">Today</span></div>
+      <div class="msg bot">
+        <div class="coach-bot-icon">AI</div>
+        <div class="msg-bubble">Hi Jordan! I'm your Fourth Pay money coach 👋<br><br>I can see your finances in one place and I'm here to give you personalised, unbiased guidance. What can I help you with today?</div>
+        <div class="msg-time">9:30 AM</div>
+      </div>
+      <div class="msg bot">
+        <div class="msg-bubble">💡 <strong>Heads up:</strong> You've accessed £130 this month — more than last month. Want me to help you work out a budget so you rely on pay access less?</div>
+        <div class="msg-time">9:30 AM</div>
+      </div>
+      <div class="msg user">
+        <div class="msg-bubble">Yes please, help me build a budget</div>
+        <div class="msg-time">9:41 AM</div>
+      </div>
+      <div class="msg bot">
+        <div class="coach-bot-icon">AI</div>
+        <div class="msg-bubble">Great! Based on your shifts and pay, here's what I suggest:<br><br>📊 <strong>Monthly income:</strong> ~£1,876 gross / ~£1,247 net<br><br>I'd recommend the 50/30/20 rule:<br>• <strong>50%</strong> Needs (rent, bills, food) → £624<br>• <strong>30%</strong> Wants (eating out, fun) → £374<br>• <strong>20%</strong> Save/debt → £249<br><br>Your current spending looks like 55% needs and 34% wants — slightly high on both. Want me to look at where you could cut back?</div>
+        <div class="msg-time">9:41 AM</div>
+      </div>
+    </div>
+    <div class="quick-prompts">
+      <div class="quick-prompt" onclick="sendPromptMsg('How do I save for a holiday?')">Save for holiday ✈️</div>
+      <div class="quick-prompt" onclick="sendPromptMsg('Am I on track for retirement?')">Pension check 🏦</div>
+      <div class="quick-prompt" onclick="sendPromptMsg('What benefits am I missing?')">Benefits I\'m owed 💰</div>
+      <div class="quick-prompt" onclick="sendPromptMsg('Help me pay off my loan faster')">Pay off loan 📉</div>
+    </div>
+    <div class="chat-input-row">
+      <input class="chat-input" id="chat-input" type="text" placeholder="Ask me anything about money…" onkeydown="if(event.key==='Enter')sendChat()">
+      <button class="chat-send" onclick="sendChat()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 14l11 -11"/><path d="M21 3l-6.5 18a.55 .55 0 0 1 -1 0l-3.5 -7l-7 -3.5a.55 .55 0 0 1 0 -1l18 -6.5"/></svg></button>
+    </div>
+  </div>
+
+  <!-- ═══ WELLBEING ═══ -->
+  <div class="screen" id="screen-wellbeing">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Financial wellbeing</div></div></div>
+    <div class="wellbeing-body">
+      <div class="score-card">
+        <div class="score-label">Wellbeing score</div>
+        <div class="score-row">
+          <div><div class="score-value">74<span class="score-max">/100</span></div><div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">Good · Up 8 pts this month</div></div>
+          <div class="score-ring"><svg viewBox="0 0 72 72"><circle class="score-track" cx="36" cy="36" r="32"/><circle class="score-fill" cx="36" cy="36" r="32"/></svg></div>
+        </div>
+      </div>
+      <div class="section-title" style="padding:0 0 10px;">Insights</div>
+      <div class="insight-card"><div class="insight-header"><span>📊</span><div class="insight-title">Streaming more than last month</div></div><div class="insight-body">You've accessed £130 vs £80 last month. Setting a limit can help you build a buffer instead.</div><span class="insight-action" onclick="go('controls')">Set a limit →</span></div>
+      <div class="insight-card"><div class="insight-header"><span>💡</span><div class="insight-title">£1,240/year in unclaimed benefits</div></div><div class="insight-body">Based on your profile, you may be entitled to Working Tax Credit, Council Tax Support, and more.</div><span class="insight-action" onclick="go('benefits')">Check now →</span></div>
+      <div class="insight-card"><div class="insight-header"><span>🎯</span><div class="insight-title">Holiday pot on track</div></div><div class="insight-body">At your current save rate you'll hit your £500 holiday goal by October 2026. Keep going!</div><span class="insight-action" onclick="go('save')">View pot →</span></div>
+      <div class="insight-card"><div class="insight-header"><span>🏦</span><div class="insight-title">Lost pension found</div></div><div class="insight-body">We found a £11,580 deferred pot from Mitchells & Butlers. You could consolidate it now to grow it faster.</div><span class="insight-action" onclick="go('pension')">View pension →</span></div>
+      <div class="insight-card"><div class="insight-header"><span>📚</span><div class="insight-title">Your learning plan: 50% done</div></div><div class="insight-body">Next up: "How to budget on a shift-based income" — a 5-minute guide built for people with variable hours.</div><span class="insight-action" onclick="go('learn')">Continue learning →</span></div>
+      <button class="btn btn-navy" style="margin-top:6px;" onclick="go('coach')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="3" y="9" width="18" height="12" rx="3"/><path d="M15 9v-4a3 3 0 0 0 -6 0v4"/><circle cx="9" cy="14" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1.5" fill="currentColor" stroke="none"/><path d="M12 3l0 .01"/></svg> Talk to your money coach</button>
+      <div style="height:16px;"></div>
+    </div>
+  </div>
+
+  <!-- ═══ DISCOUNTS ═══ -->
+  <div class="screen" id="screen-discounts">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Discounts & perks</div></div></div>
+    <div style="padding:16px 16px 0;"><div style="background:var(--teal-tint);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:4px;"><div style="font-size:12px;font-weight:700;color:var(--teal-text);">You've saved £34.20 in discounts this month 🎉</div></div></div>
+    <div class="section-header" style="padding-top:16px;"><div class="section-title">Supermarkets</div></div>
+    <div class="discount-grid">
+      <div class="discount-card"><div class="discount-img" style="background:#00539f;color:white;">Tesco</div><div class="discount-info"><div class="discount-name">Tesco</div><div class="discount-pct">5% off groceries</div></div></div>
+      <div class="discount-card"><div class="discount-img" style="background:#f0690f;color:white;">Sainsbury's</div><div class="discount-info"><div class="discount-name">Sainsbury's</div><div class="discount-pct">4% off groceries</div></div></div>
+      <div class="discount-card"><div class="discount-img" style="background:#78be20;color:white;">ASDA</div><div class="discount-info"><div class="discount-name">ASDA</div><div class="discount-pct">5% off groceries</div></div></div>
+      <div class="discount-card"><div class="discount-img" style="background:#ffd000;color:#1a1a1a;">Morrisons</div><div class="discount-info"><div class="discount-name">Morrisons</div><div class="discount-pct">4% off groceries</div></div></div>
+    </div>
+    <div class="section-header"><div class="section-title">Lifestyle</div></div>
+    <div class="activity-list" style="padding-bottom:16px;">
+      <div class="activity-item"><div class="a-icon" style="background:#e8f4fd;color:#1a7abf;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M11 6h2"/><path d="M12 17v.01"/></svg></div><div class="a-body"><div class="a-title">Sky Mobile</div><div class="a-date">Up to 10% off SIM plans</div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+      <div class="activity-item"><div class="a-icon" style="background:#f3e8ff;color:#8b5cf6;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M2 12h1"/><path d="M6 8h-2a1 1 0 0 0 -1 1v6a1 1 0 0 0 1 1h2"/><path d="M6 7v10a1 1 0 0 0 1 1h1a1 1 0 0 0 1 -1v-10a1 1 0 0 0 -1 -1h-1a1 1 0 0 0 -1 1z"/><path d="M15 7v10a1 1 0 0 0 1 1h1a1 1 0 0 0 1 -1v-10a1 1 0 0 0 -1 -1h-1a1 1 0 0 0 -1 1z"/><path d="M18 8h2a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-2"/><path d="M22 12h-1"/><path d="M9 12h6"/></svg></div><div class="a-body"><div class="a-title">PureGym</div><div class="a-date">£5/month off membership</div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+      <div class="activity-item"><div class="a-icon" style="background:#e8f8f4;color:#00937f;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 14c.83 .642 2.077 1.017 3.5 1c1.423 .017 2.67 -.358 3.5 -1c.83 -.642 2.077 -1.017 3.5 -1c1.423 -.017 2.67 .358 3.5 1"/><path d="M8 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2"/><path d="M12 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2"/><path d="M3 10h14v5a6 6 0 0 1 -6 6h-2a6 6 0 0 1 -6 -6v-5z"/><path d="M16.746 16.726a3 3 0 1 0 .252 -5.555"/></svg></div><div class="a-body"><div class="a-title">Costa Coffee</div><div class="a-date">20% off all drinks</div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+      <div class="activity-item"><div class="a-icon" style="background:var(--red-tint);color:var(--red-text);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21l18 0"/><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4"/><path d="M5 21l0 -10.15"/><path d="M19 21l0 -10.15"/><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4"/></svg></div><div class="a-body"><div class="a-title">Boots</div><div class="a-date">10% off health & beauty</div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+      <div class="activity-item"><div class="a-icon" style="background:var(--orange-tint);color:var(--orange);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3l-6 6"/><path d="M14 3l-7 7"/><path d="M20 4l-7 7"/><path d="M20 10l-3 3"/></svg></div><div class="a-body"><div class="a-title">Cineworld</div><div class="a-date">£3 off tickets</div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+    </div>
+  </div>
+
+  <!-- ═══ PAYSLIP ═══ -->
+  <div class="screen" id="screen-payslip">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">My payslips</div></div></div>
+    <div class="payslip-body">
+      <div class="payslip-tabs">
+        <div class="ptab active" onclick="switchPS('may')" id="ptab-may">May 2026</div>
+        <div class="ptab" onclick="switchPS('apr')" id="ptab-apr">Apr 2026</div>
+        <div class="ptab" onclick="switchPS('mar')" id="ptab-mar">Mar 2026</div>
+      </div>
+      <div id="ps-may">
+        <div class="payslip-card">
+          <div class="ps-header"><div class="ps-employer">The Crown Pub Group Ltd</div><div class="ps-period">1–31 May 2026</div><div class="ps-ref">Ref: PS-2026-05-4218 · NI: NJ 45 23 67 A</div></div>
+          <div class="ps-net"><div class="ps-net-label">Net pay</div><div class="ps-net-amount">£1,247.30</div><div class="ps-net-sub">Paid 6 Jun 2026 · Monzo •••• 4891</div></div>
+          <div class="ps-section"><div class="ps-section-title">Earnings</div>
+            <div class="ps-row"><span class="ps-row-label">Basic pay (147h)</span><span class="ps-row-val pos">£1,764.00</span></div>
+            <div class="ps-row"><span class="ps-row-label">Holiday pay</span><span class="ps-row-val pos">£88.20</span></div>
+            <div class="ps-row"><span class="ps-row-label">Sunday premium (8h)</span><span class="ps-row-val pos">£24.00</span></div>
+          </div>
+          <div class="ps-total"><span class="ps-total-label">Gross pay</span><span class="ps-total-val" style="color:var(--text-1);">£1,876.20</span></div>
+          <div class="ps-section"><div class="ps-section-title">Deductions</div>
+            <div class="ps-row"><span class="ps-row-label">Income Tax (20%)</span><span class="ps-row-val neg">-£262.24</span></div>
+            <div class="ps-row"><span class="ps-row-label">National Insurance</span><span class="ps-row-val neg">-£156.66</span></div>
+            <div class="ps-row"><span class="ps-row-label">Pension (5%)</span><span class="ps-row-val neg">-£80.00</span></div>
+            <div class="ps-row"><span class="ps-row-label">Fourth Pay advance</span><span class="ps-row-val neg">-£130.00</span></div>
+          </div>
+          <div class="ps-total" style="background:var(--teal-tint);"><span class="ps-total-label" style="color:var(--teal-text);">Net pay</span><span class="ps-total-val" style="color:var(--teal-text);font-size:18px;">£1,247.30</span></div>
+        </div>
+        <div class="section-title" style="padding:0 0 10px;font-size:13px;">Year to date 2026/27</div>
+        <div class="ytd-grid">
+          <div class="ytd-item"><div class="ytd-label">Gross earnings</div><div class="ytd-val">£9,381.00</div></div>
+          <div class="ytd-item"><div class="ytd-label">Income tax</div><div class="ytd-val">£1,311.20</div></div>
+          <div class="ytd-item"><div class="ytd-label">NI contributions</div><div class="ytd-val">£783.30</div></div>
+          <div class="ytd-item"><div class="ytd-label">Pension</div><div class="ytd-val">£400.00</div></div>
+        </div>
+        <button class="btn btn-navy" style="margin-bottom:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4v12"/></svg> Download PDF</button>
+        <button class="btn btn-ghost"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6l9 -6"/></svg> Email to me</button>
+        <div style="height:16px;"></div>
+      </div>
+      <div id="ps-apr" style="display:none;">
+        <div class="payslip-card">
+          <div class="ps-header"><div class="ps-employer">The Crown Pub Group Ltd</div><div class="ps-period">1–30 Apr 2026</div><div class="ps-ref">Ref: PS-2026-04-4019</div></div>
+          <div class="ps-net"><div class="ps-net-label">Net pay</div><div class="ps-net-amount">£1,183.40</div><div class="ps-net-sub">Paid 6 May 2026 · Monzo •••• 4891</div></div>
+          <div class="ps-section"><div class="ps-section-title">Earnings</div>
+            <div class="ps-row"><span class="ps-row-label">Basic pay (140h)</span><span class="ps-row-val pos">£1,680.00</span></div>
+            <div class="ps-row"><span class="ps-row-label">Holiday pay</span><span class="ps-row-val pos">£84.00</span></div>
+          </div>
+          <div class="ps-total"><span class="ps-total-label">Gross pay</span><span class="ps-total-val" style="color:var(--text-1);">£1,764.00</span></div>
+          <div class="ps-section"><div class="ps-section-title">Deductions</div>
+            <div class="ps-row"><span class="ps-row-label">Income Tax</span><span class="ps-row-val neg">-£246.40</span></div>
+            <div class="ps-row"><span class="ps-row-label">NI</span><span class="ps-row-val neg">-£147.20</span></div>
+            <div class="ps-row"><span class="ps-row-label">Pension</span><span class="ps-row-val neg">-£80.00</span></div>
+            <div class="ps-row"><span class="ps-row-label">Fourth Pay advance</span><span class="ps-row-val neg">-£107.00</span></div>
+          </div>
+          <div class="ps-total" style="background:var(--teal-tint);"><span class="ps-total-label" style="color:var(--teal-text);">Net pay</span><span class="ps-total-val" style="color:var(--teal-text);font-size:18px;">£1,183.40</span></div>
+        </div>
+        <button class="btn btn-navy" style="margin-bottom:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4v12"/></svg> Download PDF</button>
+        <div style="height:16px;"></div>
+      </div>
+      <div id="ps-mar" style="display:none;">
+        <div class="payslip-card">
+          <div class="ps-header"><div class="ps-employer">The Crown Pub Group Ltd</div><div class="ps-period">1–31 Mar 2026</div><div class="ps-ref">Ref: PS-2026-03-3801</div></div>
+          <div class="ps-net"><div class="ps-net-label">Net pay</div><div class="ps-net-amount">£1,209.80</div><div class="ps-net-sub">Paid 6 Apr 2026 · Monzo •••• 4891</div></div>
+          <div class="ps-section"><div class="ps-section-title">Earnings</div>
+            <div class="ps-row"><span class="ps-row-label">Basic pay (144h)</span><span class="ps-row-val pos">£1,728.00</span></div>
+            <div class="ps-row"><span class="ps-row-label">Holiday pay</span><span class="ps-row-val pos">£86.40</span></div>
+          </div>
+          <div class="ps-total"><span class="ps-total-label">Gross pay</span><span class="ps-total-val" style="color:var(--text-1);">£1,814.40</span></div>
+          <div class="ps-section"><div class="ps-section-title">Deductions</div>
+            <div class="ps-row"><span class="ps-row-label">Income Tax</span><span class="ps-row-val neg">-£256.00</span></div>
+            <div class="ps-row"><span class="ps-row-label">NI</span><span class="ps-row-val neg">-£152.60</span></div>
+            <div class="ps-row"><span class="ps-row-label">Pension</span><span class="ps-row-val neg">-£80.00</span></div>
+            <div class="ps-row"><span class="ps-row-label">Fourth Pay advance</span><span class="ps-row-val neg">-£116.00</span></div>
+          </div>
+          <div class="ps-total" style="background:var(--teal-tint);"><span class="ps-total-label" style="color:var(--teal-text);">Net pay</span><span class="ps-total-val" style="color:var(--teal-text);font-size:18px;">£1,209.80</span></div>
+        </div>
+        <button class="btn btn-navy" style="margin-bottom:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4v12"/></svg> Download PDF</button>
+        <div style="height:16px;"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ SELF-CONTROLS ═══ -->
+  <div class="screen" id="screen-controls">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Self-controls</div></div></div>
+    <div class="controls-body">
+      <div class="controls-hero">
+        <div class="controls-hero-label">This month's usage</div>
+        <div class="controls-hero-val">£130 of £200 limit</div>
+        <div class="controls-hero-sub">65% of your monthly cap</div>
+        <div class="prog-track" style="margin-top:12px;"><div class="prog-fill" style="width:65%;background:var(--orange);"></div></div>
+      </div>
+      <div class="control-card">
+        <div class="control-header"><div><div class="control-title">Monthly access limit</div><div class="control-sub">Cap total per pay period</div></div><div class="toggle on" id="tog-limit" onclick="togCtrl('limit')"><div class="toggle-thumb"></div></div></div>
+        <div class="ctrl-slider-wrap" id="wrap-limit">
+          <div class="ctrl-slider-label"><span>Monthly cap</span><span id="val-limit">£200</span></div>
+          <input type="range" min="50" max="312" value="200" step="10" oninput="document.getElementById('val-limit').textContent='£'+this.value">
+          <div class="ctrl-range-labels"><span>£50</span><span>£312 (50% max)</span></div>
+        </div>
+      </div>
+      <div class="control-card">
+        <div class="control-header"><div><div class="control-title">Per-transfer limit</div><div class="control-sub">Maximum single transaction</div></div><div class="toggle on" id="tog-txn" onclick="togCtrl('txn')"><div class="toggle-thumb"></div></div></div>
+        <div class="ctrl-slider-wrap" id="wrap-txn">
+          <div class="ctrl-slider-label"><span>Max per transfer</span><span id="val-txn">£100</span></div>
+          <input type="range" min="10" max="312" value="100" step="10" oninput="document.getElementById('val-txn').textContent='£'+this.value">
+          <div class="ctrl-range-labels"><span>£10</span><span>£312</span></div>
+        </div>
+      </div>
+      <div class="control-card">
+        <div class="control-header"><div><div class="control-title">Cooling-off period</div><div class="control-sub">Minimum time between transfers</div></div><div class="toggle off" id="tog-cool" onclick="togCtrl('cool')"><div class="toggle-thumb"></div></div></div>
+        <div id="wrap-cool" style="display:none;"><div style="font-size:12px;color:var(--text-3);margin-bottom:6px;">Minimum wait between transfers</div><div class="cooldown-opts"><div class="cooldown-opt" onclick="setCooldown(this)">24h</div><div class="cooldown-opt active" onclick="setCooldown(this)">48h</div><div class="cooldown-opt" onclick="setCooldown(this)">7 days</div></div></div>
+      </div>
+      <div class="control-card">
+        <div class="control-header"><div><div class="control-title">Auto-save on access</div><div class="control-sub">Save a % each time you access pay</div></div><div class="toggle off" id="tog-autosave" onclick="togCtrl('autosave')"><div class="toggle-thumb"></div></div></div>
+        <div class="ctrl-slider-wrap" id="wrap-autosave" style="display:none;">
+          <div class="ctrl-slider-label"><span>Auto-save rate</span><span id="val-autosave">10%</span></div>
+          <input type="range" min="5" max="30" value="10" step="5" oninput="document.getElementById('val-autosave').textContent=this.value+'%'">
+          <div class="ctrl-range-labels"><span>5%</span><span>30%</span></div>
+        </div>
+      </div>
+      <div class="control-card">
+        <div class="control-header"><div><div class="control-title">Wellbeing nudges</div><div class="control-sub">Helpful alerts when usage is high</div></div><div class="toggle on" id="tog-nudge" onclick="togCtrl('nudge')"><div class="toggle-thumb"></div></div></div>
+      </div>
+      <button class="btn btn-danger-ghost" style="margin-bottom:10px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg> Pause all access for 30 days</button>
+      <p style="font-size:11px;color:var(--text-3);text-align:center;margin-bottom:16px;">Your limits are yours to set. Changes take effect immediately. <span style="color:var(--teal);font-weight:700;cursor:pointer;" onclick="go('coach')">Talk to a money coach</span> if you need support.</p>
+    </div>
+  </div>
+
+  <!-- ═══ NOTIFICATIONS ═══ -->
+  <div class="screen" id="screen-notifications">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Notifications</div></div></div>
+    <div class="notif-body">
+      <div class="notif-filter">
+        <div class="chip active" id="chip-all" onclick="filterN('all')">All (7)</div>
+        <div class="chip" id="chip-pay" onclick="filterN('pay')">Pay & bills</div>
+        <div class="chip" id="chip-savings" onclick="filterN('savings')">Savings</div>
+        <div class="chip" id="chip-payslip" onclick="filterN('payslip')">Payslips</div>
+        <div class="chip" id="chip-wellbeing" onclick="filterN('wellbeing')">Wellbeing</div>
+        <div class="chip" id="chip-pension" onclick="filterN('pension')">Pension</div>
+      </div>
+      <span class="mark-all" onclick="markRead()">Mark all as read</span>
+      <div class="notif-item urgent" data-cat="pay"><div class="notif-icon" style="background:var(--red-tint);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--red-text);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16v.01"/></svg></div><div class="notif-content"><div class="notif-title">Bill due today — Internet £32.00</div><div class="notif-text">Your internet direct debit is due today. Make sure you have enough in your Monzo account.</div><div class="notif-cta" onclick="go('spend')">View bill reminders →</div><div class="notif-time">7:00 AM · Today</div></div><div class="notif-unread-dot" style="background:var(--red);"></div></div>
+      <div class="group-label">Today</div>
+      <div class="notif-item unread" data-cat="pay"><div class="notif-icon" style="background:var(--teal-tint);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--teal);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg></div><div class="notif-content"><div class="notif-title">Pay access confirmed ✓</div><div class="notif-text">£80.00 sent to Monzo •••• 4891. Should arrive within minutes.</div><div class="notif-time">9:14 AM · Today</div></div><div class="unread-dot"></div></div>
+      <div class="notif-item urgent" data-cat="wellbeing"><div class="notif-icon" style="background:var(--orange-tint);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--orange);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 9v4"/><path d="M10.363 3.591l-8.106 13.534a1.914 1.914 0 0 0 1.636 2.871h16.214a1.914 1.914 0 0 0 1.636 -2.87l-8.106 -13.536a1.914 1.914 0 0 0 -3.274 0z"/><path d="M12 16v.01"/></svg></div><div class="notif-content"><div class="notif-title">65% of monthly limit reached</div><div class="notif-text">You've used £130 of your £200 cap. £70 remaining this period.</div><div class="notif-cta" onclick="go('controls')">Review limits →</div><div class="notif-time">8:30 AM · Today</div></div><div class="unread-dot" style="background:var(--orange);"></div></div>
+      <div class="group-label">Yesterday</div>
+      <div class="notif-item unread" data-cat="savings"><div class="notif-icon" style="background:var(--orange-tint);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--orange);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 8v-1a5 5 0 0 0 -10 0v1"/><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0"/><path d="M5 8h14a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-1l-1 3h-8l-1 -3h-1a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1z"/><path d="M19 12h2"/></svg></div><div class="notif-content"><div class="notif-title">Auto-save completed</div><div class="notif-text">£15.00 moved to your Emergency fund. Total: £147.50.</div><div class="notif-time">6:00 AM · Yesterday</div></div><div class="unread-dot"></div></div>
+      <div class="group-label">This week</div>
+      <div class="notif-item" data-cat="payslip"><div class="notif-icon" style="background:rgba(0,39,71,0.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--navy);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/><path d="M9 9h1"/><path d="M9 13h6"/><path d="M9 17h6"/></svg></div><div class="notif-content"><div class="notif-title">May payslip is ready</div><div class="notif-text">Net pay £1,247.30 for May 2026. Tap to view or download.</div><div class="notif-cta" onclick="go('payslip')">View payslip →</div><div class="notif-time">22 May</div></div></div>
+      <div class="notif-item unread" data-cat="pension"><div class="notif-icon" style="background:#f3e8ff;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:#8b5cf6;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 3.2a9 9 0 1 0 10.8 10.8a1 1 0 0 0 -1 -1h-6.8a2 2 0 0 1 -2 -2v-7a.9 .9 0 0 0 -1 -.8"/><path d="M15 3.5a9 9 0 0 1 5.5 5.5h-4.5a1 1 0 0 1 -1 -1v-4.5"/></svg></div><div class="notif-content"><div class="notif-title">Lost pension found! 🎉</div><div class="notif-text">We found a £11,580 deferred pension pot from Mitchells & Butlers. Want to consolidate it?</div><div class="notif-cta" onclick="go('pension')">View pension →</div><div class="notif-time">20 May</div></div><div class="unread-dot" style="background:#8b5cf6;"></div></div>
+      <div class="notif-item" data-cat="wellbeing"><div class="notif-icon" style="background:#e8f8f4;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:#00937f;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.566"/></svg></div><div class="notif-content"><div class="notif-title">Wellbeing score up 8 points 🎉</div><div class="notif-text">Your financial wellbeing is at 74/100. You're building great habits.</div><div class="notif-time">20 May</div></div></div>
+      <div style="height:8px;"></div>
+    </div>
+  </div>
+
+  <!-- ═══ PROFILE ═══ -->
+  <div class="screen" id="screen-profile">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">My profile</div></div></div>
+    <div class="profile-body">
+      <div class="profile-hero"><div class="profile-avatar">JH</div><div class="profile-name">Jordan Harris</div><div class="profile-role">Bar Supervisor</div><div class="profile-employer">The Crown Pub Group Ltd</div></div>
+      <div class="profile-section">
+        <div class="profile-row"><div class="profile-row-left"><div class="pr-icon" style="background:var(--teal-tint);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--teal);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21l18 0"/><path d="M3 10l18 0"/><path d="M5 6l7 -3l7 3"/><path d="M4 10l0 11"/><path d="M20 10l0 11"/><path d="M8 14l0 3"/><path d="M12 14l0 3"/><path d="M16 14l0 3"/></svg></div><div><div class="pr-label">Bank account</div><div class="pr-val">Monzo •••• 4891</div></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+        <div class="profile-row" onclick="go('controls')"><div class="profile-row-left"><div class="pr-icon" style="background:var(--red-tint);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--red-text);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="6" cy="10" r="2"/><path d="M6 4v4m0 4v8"/><circle cx="12" cy="6" r="2"/><path d="M12 4v0m0 4v14"/><circle cx="18" cy="14" r="2"/><path d="M18 4v8m0 4v4"/></svg></div><div><div class="pr-label">Self-controls</div><div class="pr-val">Monthly limit: £200</div></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+        <div class="profile-row" onclick="go('notifications')"><div class="profile-row-left"><div class="pr-icon" style="background:var(--orange-tint);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--orange);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 5a2 2 0 1 1 4 0a7 7 0 0 1 4 6v3a4 4 0 0 0 2 3h-16a4 4 0 0 0 2 -3v-3a7 7 0 0 1 4 -6"/><path d="M9 17v1a3 3 0 0 0 6 0v-1"/></svg></div><div><div class="pr-label">Notifications</div><div class="pr-val">All enabled</div></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+      </div>
+      <div class="profile-section">
+        <div class="profile-row"><div class="profile-row-left"><div class="pr-icon" style="background:rgba(0,39,71,0.08);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--navy);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 3a12 12 0 0 0 8.5 3a12 12 0 0 1 -8.5 15a12 12 0 0 1 -8.5 -15a12 12 0 0 0 8.5 -3"/></svg></div><div><div class="pr-label">Privacy & security</div><div class="pr-val">Face ID enabled</div></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+        <div class="profile-row"><div class="profile-row-left"><div class="pr-icon" style="background:#e8f4fd;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:#1a7abf;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/><path d="M9 17h6"/><path d="M9 13h6"/></svg></div><div><div class="pr-label">FCA regulatory info</div><div class="pr-val">Authorised & regulated</div></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+        <div class="profile-row"><div class="profile-row-left"><div class="pr-icon" style="background:#f3e8ff;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:#8b5cf6;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M4 14v-3a8 8 0 1 1 16 0v3"/><path d="M18 19c0 1.657 -2.686 3 -6 3"/><rect x="2" y="14" width="4" height="6" rx="2"/><rect x="18" y="14" width="4" height="6" rx="2"/></svg></div><div><div class="pr-label">Help & support</div><div class="pr-val">Chat, email or call</div></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+        <div class="profile-row"><div class="profile-row-left"><div class="pr-icon" style="background:#e8f8f4;"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:#00937f;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="9" cy="7" r="4"/><path d="M3 21v-2a4 4 0 0 1 4 -4h4a4 4 0 0 1 4 4v2"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/><path d="M21 21v-2a4 4 0 0 0 -3 -3.85"/></svg></div><div><div class="pr-label">Refer a colleague</div><div class="pr-val">You'll both get £5</div></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+      </div>
+      <button class="btn btn-ghost" style="color:var(--red-text);border-color:rgba(226,75,74,0.3);">Sign out</button>
+      <div style="height:16px;"></div>
+    </div>
+  </div>
+
+  <!-- ═══ BUDGET ═══ -->
+  <div class="screen" id="screen-budget">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Budget planner</div></div></div>
+    <div style="flex:1;padding:16px;">
+      <div style="background:var(--navy-deep);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;color:white;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:rgba(255,255,255,0.4);font-weight:700;margin-bottom:6px;">May budget</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;">
+          <div style="text-align:center;"><div style="font-family:var(--font);font-size:17px;font-weight:700;color:white;">£1,247</div><div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;font-weight:700;letter-spacing:0.4px;margin-top:2px;">Income</div></div>
+          <div style="text-align:center;"><div style="font-family:var(--font);font-size:17px;font-weight:700;color:var(--orange);">£847</div><div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;font-weight:700;letter-spacing:0.4px;margin-top:2px;">Spent</div></div>
+          <div style="text-align:center;"><div style="font-family:var(--font);font-size:17px;font-weight:700;color:var(--teal);">£400</div><div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;font-weight:700;letter-spacing:0.4px;margin-top:2px;">Left</div></div>
+        </div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:100px;height:8px;overflow:hidden;"><div style="width:68%;height:100%;border-radius:100px;background:var(--orange);"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px;"><span>68% of budget used</span><span>17 days left</span></div>
+      </div>
+
+      <div style="font-family:var(--font);font-size:15px;font-weight:600;color:var(--text-1);margin-bottom:10px;">Category budgets</div>
+      <div id="budget-cats" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
+
+      <div style="font-family:var(--font);font-size:15px;font-weight:600;color:var(--text-1);margin-bottom:10px;">Budget method</div>
+      <div style="background:white;border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;margin-bottom:16px;">
+        <div id="bm-5030" onclick="setBudgetMethod('5030')" style="padding:14px 16px;border-bottom:1px solid var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:13px;font-weight:700;color:var(--text-1);">50 / 30 / 20 rule</div><div style="font-size:11px;color:var(--text-3);">Needs · Wants · Save/debt</div></div>
+          <div style="width:18px;height:18px;border-radius:50%;border:2px solid var(--teal);background:var(--teal);display:flex;align-items:center;justify-content:center;"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:white;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l5 5l10 -10"/></svg></div>
+        </div>
+        <div id="bm-zero" onclick="setBudgetMethod('zero')" style="padding:14px 16px;border-bottom:1px solid var(--surface2);cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:13px;font-weight:700;color:var(--text-1);">Zero-based budgeting</div><div style="font-size:11px;color:var(--text-3);">Assign every pound a job</div></div>
+          <div id="bm-zero-check" style="width:18px;height:18px;border-radius:50%;border:2px solid var(--border);"></div>
+        </div>
+        <div id="bm-custom" onclick="setBudgetMethod('custom')" style="padding:14px 16px;cursor:pointer;display:flex;align-items:center;justify-content:space-between;">
+          <div><div style="font-size:13px;font-weight:700;color:var(--text-1);">Custom</div><div style="font-size:11px;color:var(--text-3);">Set your own category limits</div></div>
+          <div id="bm-custom-check" style="width:18px;height:18px;border-radius:50%;border:2px solid var(--border);"></div>
+        </div>
+      </div>
+      <button class="btn btn-teal" onclick="go('spend')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 12a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M21 12c-2.4 4 -5.4 6 -9 6c-3.6 0 -6.6 -2 -9 -6c2.4 -4 5.4 -6 9 -6c3.6 0 6.6 2 9 6"/></svg> View spending breakdown</button>
+      <div style="height:16px;"></div>
+    </div>
+  </div>
+
+  <!-- ═══ LEARN ═══ -->
+  <div class="screen" id="screen-learn">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Learn</div></div></div>
+    <div style="flex:1;padding:16px;">
+
+      <div style="background:var(--navy-deep);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;color:white;">
+        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:rgba(255,255,255,0.4);font-weight:700;margin-bottom:6px;">Your learning plan</div>
+        <div style="font-family:var(--font);font-size:16px;font-weight:600;color:white;margin-bottom:4px;">Building financial resilience</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.5);margin-bottom:14px;">Personalised for your situation · 3 of 6 modules done</div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:100px;height:6px;overflow:hidden;margin-bottom:6px;"><div style="width:50%;height:100%;border-radius:100px;background:var(--teal);"></div></div>
+        <div style="font-size:11px;color:var(--teal);">50% complete · Est. 12 mins remaining</div>
+      </div>
+
+      <div style="font-family:var(--font);font-size:15px;font-weight:600;color:var(--text-1);margin-bottom:10px;">Continue your plan</div>
+      <div style="display:flex;flex-direction:column;gap:8px;margin-bottom:20px;">
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--teal-tint);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">✅</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--text-3);text-decoration:line-through;">What is earned wage access?</div><div style="font-size:11px;color:var(--text-3);">Completed</div></div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--teal);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2l4 -4"/></svg>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--teal-tint);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">✅</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--text-3);text-decoration:line-through;">Building an emergency fund</div><div style="font-size:11px;color:var(--text-3);">Completed · 4 min read</div></div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--teal);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2l4 -4"/></svg>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--teal-tint);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">✅</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--text-3);text-decoration:line-through;">Understanding your payslip</div><div style="font-size:11px;color:var(--text-3);">Completed · 3 min read</div></div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--teal);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><path d="M9 12l2 2l4 -4"/></svg>
+        </div>
+        <div style="background:white;border:2px solid var(--teal);border-radius:var(--r-sm);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--teal-tint);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">📊</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--text-1);">How to budget on a shift-based income</div><div style="font-size:11px;color:var(--teal);font-weight:700;">Up next · 5 min read</div></div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--teal);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;opacity:0.6;">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--bg-page);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🏦</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--text-1);">Pensions explained simply</div><div style="font-size:11px;color:var(--text-3);">6 min read · Locked</div></div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11v-4a4 4 0 0 1 8 0v4"/></svg>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;display:flex;align-items:center;gap:12px;cursor:pointer;opacity:0.6;">
+          <div style="width:40px;height:40px;border-radius:10px;background:var(--bg-page);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;">🎯</div>
+          <div style="flex:1;"><div style="font-size:13px;font-weight:700;color:var(--text-1);">Saving for a house deposit</div><div style="font-size:11px;color:var(--text-3);">7 min read · Locked</div></div>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11v-4a4 4 0 0 1 8 0v4"/></svg>
+        </div>
+      </div>
+
+      <div style="font-family:var(--font);font-size:15px;font-weight:600;color:var(--text-1);margin-bottom:10px;">Explore topics</div>
+      <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-bottom:16px;">
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;cursor:pointer;">
+          <div style="font-size:22px;margin-bottom:6px;">💰</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-1);">Budgeting basics</div>
+          <div style="font-size:11px;color:var(--text-3);">4 articles</div>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;cursor:pointer;">
+          <div style="font-size:22px;margin-bottom:6px;">🏠</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-1);">Housing & bills</div>
+          <div style="font-size:11px;color:var(--text-3);">6 articles</div>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;cursor:pointer;">
+          <div style="font-size:22px;margin-bottom:6px;">📈</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-1);">Saving & investing</div>
+          <div style="font-size:11px;color:var(--text-3);">8 articles</div>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;cursor:pointer;">
+          <div style="font-size:22px;margin-bottom:6px;">⚖️</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-1);">Debt & credit</div>
+          <div style="font-size:11px;color:var(--text-3);">5 articles</div>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;cursor:pointer;">
+          <div style="font-size:22px;margin-bottom:6px;">🏦</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-1);">Pensions</div>
+          <div style="font-size:11px;color:var(--text-3);">4 articles</div>
+        </div>
+        <div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:14px;cursor:pointer;" onclick="go('benefits')">
+          <div style="font-size:22px;margin-bottom:6px;">📋</div>
+          <div style="font-size:13px;font-weight:700;color:var(--text-1);">Benefits & grants</div>
+          <div style="font-size:11px;color:var(--text-3);">7 articles</div>
+        </div>
+      </div>
+      <button class="btn btn-navy" onclick="go('coach')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="3" y="9" width="18" height="12" rx="3"/><path d="M15 9v-4a3 3 0 0 0 -6 0v4"/><circle cx="9" cy="14" r="1.5" fill="currentColor" stroke="none"/><circle cx="15" cy="14" r="1.5" fill="currentColor" stroke="none"/><path d="M12 3l0 .01"/></svg> Ask your money coach</button>
+      <div style="height:16px;"></div>
+    </div>
+  </div>
+
+  </div><!-- end scroll-area -->
+
+  <!-- BOTTOM NAV - matches Employee App -->
+  <div class="bottom-nav" id="bottom-nav">
+    <div class="nav-item active" id="nav-home" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg><span>Home</span></div>
+    <div class="nav-item" id="nav-track" onclick="go('track')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/><path d="M11 15h1"/><path d="M12 15v3"/></svg><span>Shifts</span></div>
+    <div class="nav-item" id="nav-stream" onclick="go('stream')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg><span>Pay</span></div>
+    <div class="nav-item" id="nav-save" onclick="go('save')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><path d="M14.8 9a2 2 0 0 0 -1.8 -1h-2a2 2 0 1 0 0 4h2a2 2 0 1 0 0 4h-2a2 2 0 0 1 -1.8 -1"/><path d="M12 7v10"/></svg><span>Money</span></div>
+    <div class="nav-item" id="nav-wellbeing" onclick="go('wellbeing')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg><span>More</span></div>
+  </div>
+</div>
+
+<script>
+const noNav=['confirm','payslip','controls','notifications','profile','coach','pension','benefits','loans','discounts','spend','budget','learn'];
+const navMap={home:'home',track:'track',stream:'stream',confirm:'stream',save:'save',wellbeing:'wellbeing',spend:'home',discounts:'save',payslip:'home',controls:'home',notifications:'home',profile:'home',coach:'wellbeing',pension:'wellbeing',benefits:'wellbeing',loans:'save',budget:'home',learn:'wellbeing'};
+
+function go(name){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  const s=document.getElementById('screen-'+name);
+  if(s)s.classList.add('active');
+  const nav=document.getElementById('bottom-nav');
+  nav.style.display=noNav.includes(name)?'none':'grid';
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  const el=document.getElementById('nav-'+navMap[name]);
+  if(el)el.classList.add('active');
+  document.getElementById('scroll-area').scrollTop=0;
+}
+
+let transferSpeed='instant';
+let employerSubsidy=true;
+
+function toggleSubsidy(){
+  employerSubsidy=!employerSubsidy;
+  const t=document.getElementById('tog-subsidy');
+  t.classList.toggle('on',employerSubsidy);
+  t.classList.toggle('off',!employerSubsidy);
+  updateStream();
+}
+function setSpeed(s){
+  transferSpeed=s;
+  const inst=document.getElementById('speed-instant');
+  const std=document.getElementById('speed-standard');
+  const lbl=document.getElementById('instant-fee-label');
+  if(s==='instant'){
+    inst.style.border='2px solid var(--teal)';inst.style.background='var(--teal-tint)';
+    std.style.border='1px solid var(--border)';std.style.background='white';
+  } else {
+    std.style.border='2px solid var(--teal)';std.style.background='var(--teal-tint)';
+    inst.style.border='1px solid var(--border)';inst.style.background='white';
+  }
+  if(lbl) lbl.textContent=employerSubsidy&&s==='instant'?'Free (employer pays)':'£1.95 fee';
+  document.getElementById('stream-cta-btn').innerHTML=s==='instant'?'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg> Access pay instantly':'<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 3"/></svg> Request standard transfer';
+  document.getElementById('stream-speed-note').textContent=s==='instant'?'Arrives within minutes':'Arrives in 1–3 working days';
+  updateStream();
+}
+
+function updateStream(){
+  const a=parseFloat(document.getElementById('s-amount').value)||0;
+  const fee=transferSpeed==='instant'&&a>0?1.95:0;
+  const feeSubsidised=employerSubsidy&&transferSpeed==='instant';
+  const actualFee=feeSubsidised?0:fee;
+  document.getElementById('s-fee').textContent=actualFee===0?(feeSubsidised?'Free (employer pays)':'Free'):'£'+actualFee.toFixed(2);
+  document.getElementById('s-fee').style.color=actualFee===0?'var(--teal)':'var(--text-1)';
+  document.getElementById('s-receive').textContent='£'+(Math.max(0,a-actualFee)).toFixed(2);
+  document.getElementById('s-remain').textContent='£'+Math.max(0,70-a).toFixed(2);
+  document.getElementById('s-slider').value=a;
+  document.getElementById('c-amount').textContent='£'+(Math.max(0,a-actualFee)).toFixed(2);
+  const cFee=document.getElementById('c-fee');
+  if(cFee)cFee.textContent=actualFee===0?(feeSubsidised?'Free (employer pays)':'Free'):'£'+actualFee.toFixed(2);
+  document.querySelectorAll('.preset').forEach(b=>b.classList.toggle('sel',parseFloat(b.textContent.replace('£',''))===a));
+}
+function setAmt(v){document.getElementById('s-amount').value=v;updateStream();}
+
+function addBill(){
+  const name=prompt('Bill name (e.g. Council Tax):');
+  if(!name)return;
+  const amount=prompt('Monthly amount (£):');
+  if(!amount)return;
+  const day=prompt('Due day of month (e.g. 1):');
+  if(!day)return;
+  const list=document.getElementById('bills-list');
+  const item=document.createElement('div');
+  item.className='account-item';
+  item.style.cssText='flex-direction:column;align-items:stretch;gap:0;padding:0;overflow:hidden;';
+  item.innerHTML=`<div style="display:flex;align-items:center;justify-content:space-between;padding:12px 14px;">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <div style="width:36px;height:36px;border-radius:10px;background:var(--orange-tint);display:flex;align-items:center;justify-content:center;font-size:16px;">💳</div>
+      <div><div style="font-size:13px;font-weight:700;color:var(--text-1);">${name}</div><div style="font-size:11px;color:var(--text-3);">Due ${day} each month</div></div>
+    </div>
+    <div style="text-align:right;"><div style="font-size:14px;font-weight:800;color:var(--text-1);">£${parseFloat(amount).toFixed(2)}</div></div>
+  </div>
+  <div style="height:3px;background:var(--bg-page);"><div style="width:50%;height:100%;background:var(--teal);border-radius:0 100px 100px 0;"></div></div>`;
+  list.appendChild(item);
+}
+
+function togRoundup(){
+  const t=document.getElementById('tog-roundup');
+  const on=t.classList.contains('on');
+  t.classList.toggle('on',!on);t.classList.toggle('off',on);
+  document.getElementById('roundup-detail').style.display=on?'none':'block';
+}
+function selectRoundupPot(el){
+  el.parentNode.querySelectorAll('div').forEach(d=>{d.style.border='1px solid var(--border)';d.style.color='var(--text-3)';});
+  el.style.border='2px solid var(--teal)';el.style.color='var(--navy-deep)';
+}
+
+const budgetCats=[
+  {icon:'🏠',name:'Rent & bills',budget:500,spent:380,color:'#002747'},
+  {icon:'🛒',name:'Groceries',budget:250,spent:214,color:'#00B69F'},
+  {icon:'🍽️',name:'Eating out',budget:80,spent:96,color:'#e24b4a'},
+  {icon:'🚌',name:'Transport',budget:70,spent:58,color:'#8b5cf6'},
+  {icon:'🎮',name:'Entertainment',budget:80,spent:98,color:'#FAA51A'},
+  {icon:'💊',name:'Health',budget:30,spent:0,color:'#00937f'},
+];
+function renderBudgetCats(){
+  const c=document.getElementById('budget-cats');
+  if(!c)return;
+  c.innerHTML=budgetCats.map(cat=>{
+    const pct=Math.min(100,Math.round(cat.spent/cat.budget*100));
+    const over=cat.spent>cat.budget;
+    return `<div style="background:white;border:1px solid var(--border);border-radius:var(--r-sm);padding:12px 14px;">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;">
+        <div style="display:flex;align-items:center;gap:8px;"><span style="font-size:16px;">${cat.icon}</span><span style="font-size:13px;font-weight:700;color:var(--text-1);">${cat.name}</span></div>
+        <div style="text-align:right;"><div style="font-size:13px;font-weight:800;color:${over?'var(--red)':'var(--text-1)'};">£${cat.spent}</div><div style="font-size:10px;color:var(--text-3);">of £${cat.budget}</div></div>
+      </div>
+      <div style="background:var(--bg-page);border-radius:100px;height:6px;overflow:hidden;">
+        <div style="width:${pct}%;height:100%;border-radius:100px;background:${over?'var(--red)':cat.color};"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;font-size:10px;margin-top:3px;">
+        <span style="color:${over?'var(--red)':'var(--text-3)'};">${over?'Over budget by £'+(cat.spent-cat.budget):pct+'% used'}</span>
+        <span style="color:var(--text-3);">£${Math.max(0,cat.budget-cat.spent)} left</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+renderBudgetCats();
+
+let budgetMethod='5030';
+function setBudgetMethod(m){
+  budgetMethod=m;
+  ['5030','zero','custom'].forEach(id=>{
+    const check=document.getElementById('bm-'+id+'-check')||document.getElementById('bm-'+id)?.querySelector('div:last-child');
+    if(id==='5030'){
+      const el=document.getElementById('bm-'+id);
+      const ch=el?el.querySelector('div:last-child'):null;
+      if(ch)ch.style.background=m==='5030'?'var(--teal)':'transparent';
+    } else {
+      const ch=document.getElementById('bm-'+id+'-check');
+      if(ch){ch.style.background=m===id?'var(--teal)':'transparent';ch.style.borderColor=m===id?'var(--teal)':'var(--border)';}
+    }
+  });
+}
+
+function switchPS(tab){
+  ['may','apr','mar'].forEach(t=>{
+    document.getElementById('ps-'+t).style.display=t===tab?'block':'none';
+    document.getElementById('ptab-'+t).classList.toggle('active',t===tab);
+  });
+}
+
+function togCtrl(key){
+  const t=document.getElementById('tog-'+key);
+  const on=t.classList.contains('on');
+  t.classList.toggle('on',!on);t.classList.toggle('off',on);
+  const w=document.getElementById('wrap-'+key);
+  if(w)w.style.display=on?'none':'block';
+}
+function setCooldown(el){document.querySelectorAll('.cooldown-opt').forEach(o=>o.classList.remove('active'));el.classList.add('active');}
+
+function filterN(cat){
+  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
+  document.getElementById('chip-'+cat).classList.add('active');
+  document.querySelectorAll('.notif-item').forEach(n=>n.style.display=(cat==='all'||n.dataset.cat===cat)?'flex':'none');
+  document.querySelectorAll('.group-label').forEach(g=>g.style.display=cat==='all'?'block':'none');
+}
+function markRead(){
+  document.querySelectorAll('.notif-item').forEach(n=>{n.classList.remove('unread','urgent');});
+  document.querySelectorAll('.unread-dot').forEach(d=>d.remove());
+  document.getElementById('notif-badge').style.display='none';
+}
+
+function sendChat(){
+  const input=document.getElementById('chat-input');
+  const text=input.value.trim();
+  if(!text)return;
+  addMsg(text,'user');
+  input.value='';
+  setTimeout(()=>{
+    const replies=["Great question! Based on your earnings pattern, I'd suggest...", "Looking at your spending data, here's what I recommend...", "That's something I can definitely help you with. Let me analyse your situation...","Based on your financial profile, here are my thoughts..."];
+    addMsg(replies[Math.floor(Math.random()*replies.length)],'bot');
+  },800);
+}
+function sendPromptMsg(text){
+  document.getElementById('chat-input').value=text;
+  sendChat();
+}
+function addMsg(text,type){
+  const msgs=document.getElementById('chat-messages');
+  const d=document.createElement('div');
+  d.className='msg '+type;
+  const now=new Date();
+  const t=now.getHours()+':'+(now.getMinutes().toString().padStart(2,'0'));
+  d.innerHTML=(type==='bot'?'<div class="coach-bot-icon">AI</div>':'')+
+    '<div class="msg-bubble">'+text+'</div><div class="msg-time">'+t+'</div>';
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+}
+
+// Spending chart
+(function(){
+  const vals=[62,78,55,82,91,74,88,95,83,70,91,84,77,65,88,92,84,76,88,95,82,74,88,95,82,74,70];
+  const chart=document.getElementById('spend-chart');
+  if(!chart)return;
+  const max=Math.max(...vals);
+  vals.forEach((v,i)=>{
+    const w=document.createElement('div');
+    w.className='bar-wrap';
+    const b=document.createElement('div');
+    b.className='bar'+(i===vals.length-1?' active':'');
+    b.style.height=Math.round(v/max*72)+'px';
+    const l=document.createElement('div');
+    l.className='bar-label';
+    if(i%7===0)l.textContent=['1','8','15','22','27'][Math.floor(i/7)]||'';
+    w.appendChild(b);w.appendChild(l);
+    chart.appendChild(w);
+  });
+})();
+
+function updateClock(){
+  const n=new Date();
+  const el=document.getElementById('clock');
+  if(el) el.textContent=n.getHours().toString().padStart(2,'0')+':'+n.getMinutes().toString().padStart(2,'0');
+}
+updateClock();setInterval(updateClock,30000);
+updateStream();
+</script>
+</body>
+</html>
