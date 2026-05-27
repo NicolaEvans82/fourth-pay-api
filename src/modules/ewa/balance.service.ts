@@ -4,46 +4,25 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import {
+  EWA_TRANSFER_READER,
+  type EwaTransferReader,
+} from '../../database/ewa-transfer.store';
+import {
+  EMPLOYEE_ACCOUNT_READER,
+  type EmployeeAccountReader,
+} from '../../database/readers/employee-account.reader';
+import {
+  SELF_CONTROLS_READER,
+  type SelfControlsReader,
+  type SelfControlsRecord,
+} from '../../database/readers/self-controls.reader';
 import { HR_ADAPTER, type HrAdapter } from '../../integrations/hr/hr.adapter';
 import {
   PAYROLL_ADAPTER,
   type PayrollAdapter,
 } from '../../integrations/payroll/payroll.adapter';
 import { WFM_ADAPTER, type WfmAdapter } from '../../integrations/wfm/wfm.adapter';
-
-export const EMPLOYEE_ACCOUNT_READER = Symbol('EmployeeAccountReader');
-export const EWA_TRANSFER_READER = Symbol('EwaTransferReader');
-export const SELF_CONTROLS_READER = Symbol('SelfControlsReader');
-
-export interface EmployeeAccount {
-  id: string;
-  fourthEmployeeId: string;
-  fourthEmployerId: string;
-  status: 'active' | 'paused' | 'suspended' | 'closed';
-}
-
-export interface SelfControlsRecord {
-  employeeAccountId: string;
-  monthlyLimitEnabled: boolean;
-  monthlyLimitAmount: number | null;
-}
-
-export interface EmployeeAccountReader {
-  findByFourthEmployeeId(faid: string): Promise<EmployeeAccount | null>;
-}
-
-export interface EwaTransferReader {
-  sumAdvancesInPeriod(input: {
-    employeeAccountId: string;
-    payPeriodStart: Date;
-  }): Promise<number>;
-}
-
-export interface SelfControlsReader {
-  findByEmployeeAccountId(
-    employeeAccountId: string,
-  ): Promise<SelfControlsRecord | null>;
-}
 
 export interface EwaBalance {
   availableAmount: number;
