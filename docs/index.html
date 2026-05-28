@@ -928,38 +928,14 @@ input[type=range]{width:100%;accent-color:var(--teal);}
     <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Benefits checker</div></div></div>
     <div class="benefits-body">
       <div class="benefits-banner">
-        <div class="benefits-banner-label">Estimated unclaimed benefits</div>
-        <div class="benefits-banner-val">£1,240/year</div>
-        <div class="benefits-banner-sub">Based on your profile · Check each benefit below</div>
+        <div class="benefits-banner-label">Your statutory employment benefits</div>
+        <div id="benefits-banner-val" class="benefits-banner-val">—</div>
+        <div class="benefits-banner-sub">Calculated from your live HR + payroll data</div>
       </div>
-      <div class="section-title" style="padding:0 0 10px;font-size:13px;">Benefits you may be entitled to</div>
-      <div class="benefit-item">
-        <div class="benefit-icon" style="background:#e8f8f4;">💰</div>
-        <div><div class="benefit-name">Working Tax Credit</div><div class="benefit-desc">Low income working households</div></div>
-        <div class="benefit-right"><div class="benefit-val">£640/yr</div><div class="benefit-status">Likely eligible</div></div>
+      <div class="section-title" style="padding:0 0 10px;font-size:13px;">What you're entitled to</div>
+      <div id="benefits-list" style="display:flex;flex-direction:column;gap:8px;">
+        <div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px;">Loading…</div>
       </div>
-      <div class="benefit-item">
-        <div class="benefit-icon" style="background:rgba(0,39,71,0.06);">🏠</div>
-        <div><div class="benefit-name">Council Tax Support</div><div class="benefit-desc">Reduction on your council tax bill</div></div>
-        <div class="benefit-right"><div class="benefit-val">£200/yr</div><div class="benefit-status">Check eligibility</div></div>
-      </div>
-      <div class="benefit-item">
-        <div class="benefit-icon" style="background:var(--orange-tint);">🍽️</div>
-        <div><div class="benefit-name">Free School Meals</div><div class="benefit-desc">If you have school-age children</div></div>
-        <div class="benefit-right"><div class="benefit-val">£400/yr</div><div class="benefit-status">Check eligibility</div></div>
-      </div>
-      <div class="benefit-item">
-        <div class="benefit-icon" style="background:var(--red-tint);">💊</div>
-        <div><div class="benefit-name">NHS Prescription Prepay</div><div class="benefit-desc">Pay once for unlimited prescriptions</div></div>
-        <div class="benefit-right"><div class="benefit-val">Saves £78/yr</div><div class="benefit-status">Probably eligible</div></div>
-      </div>
-      <div class="benefit-item">
-        <div class="benefit-icon" style="background:#e8f4fd;">🚌</div>
-        <div><div class="benefit-name">Free bus pass</div><div class="benefit-desc">Concessionary travel in your area</div></div>
-        <div class="benefit-right"><div class="benefit-val">Variable</div><div class="benefit-status">Check eligibility</div></div>
-      </div>
-      <div style="height:8px;"></div>
-      <button class="btn btn-navy"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 5h-2a2 2 0 0 0 -2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-12a2 2 0 0 0 -2 -2h-2"/><rect x="9" y="3" width="6" height="4" rx="2"/><path d="M9 12l2 2l4 -4"/><path d="M9 17l2 2l4 -4"/></svg> Run full benefits check</button>
       <div style="height:16px;"></div>
     </div>
   </div>
@@ -1073,21 +1049,11 @@ input[type=range]{width:100%;accent-color:var(--teal);}
   <!-- ═══ DISCOUNTS ═══ -->
   <div class="screen" id="screen-discounts">
     <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Discounts & perks</div></div></div>
-    <div style="padding:16px 16px 0;"><div style="background:var(--teal-tint);border-radius:var(--r-sm);padding:12px 14px;margin-bottom:4px;"><div style="font-size:12px;font-weight:700;color:var(--teal-text);">You've saved £34.20 in discounts this month 🎉</div></div></div>
-    <div class="section-header" style="padding-top:16px;"><div class="section-title">Supermarkets</div></div>
-    <div class="discount-grid">
-      <div class="discount-card"><div class="discount-img" style="background:#00539f;color:white;">Tesco</div><div class="discount-info"><div class="discount-name">Tesco</div><div class="discount-pct">5% off groceries</div></div></div>
-      <div class="discount-card"><div class="discount-img" style="background:#f0690f;color:white;">Sainsbury's</div><div class="discount-info"><div class="discount-name">Sainsbury's</div><div class="discount-pct">4% off groceries</div></div></div>
-      <div class="discount-card"><div class="discount-img" style="background:#78be20;color:white;">ASDA</div><div class="discount-info"><div class="discount-name">ASDA</div><div class="discount-pct">5% off groceries</div></div></div>
-      <div class="discount-card"><div class="discount-img" style="background:#ffd000;color:#1a1a1a;">Morrisons</div><div class="discount-info"><div class="discount-name">Morrisons</div><div class="discount-pct">4% off groceries</div></div></div>
-    </div>
-    <div class="section-header"><div class="section-title">Lifestyle</div></div>
-    <div class="activity-list" style="padding-bottom:16px;">
-      <div class="activity-item"><div class="a-icon" style="background:#e8f4fd;color:#1a7abf;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="6" y="3" width="12" height="18" rx="2"/><path d="M11 6h2"/><path d="M12 17v.01"/></svg></div><div class="a-body"><div class="a-title">Sky Mobile</div><div class="a-date">Up to 10% off SIM plans</div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
-      <div class="activity-item"><div class="a-icon" style="background:#f3e8ff;color:#8b5cf6;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M2 12h1"/><path d="M6 8h-2a1 1 0 0 0 -1 1v6a1 1 0 0 0 1 1h2"/><path d="M6 7v10a1 1 0 0 0 1 1h1a1 1 0 0 0 1 -1v-10a1 1 0 0 0 -1 -1h-1a1 1 0 0 0 -1 1z"/><path d="M15 7v10a1 1 0 0 0 1 1h1a1 1 0 0 0 1 -1v-10a1 1 0 0 0 -1 -1h-1a1 1 0 0 0 -1 1z"/><path d="M18 8h2a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-2"/><path d="M22 12h-1"/><path d="M9 12h6"/></svg></div><div class="a-body"><div class="a-title">PureGym</div><div class="a-date">£5/month off membership</div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
-      <div class="activity-item"><div class="a-icon" style="background:#e8f8f4;color:#00937f;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 14c.83 .642 2.077 1.017 3.5 1c1.423 .017 2.67 -.358 3.5 -1c.83 -.642 2.077 -1.017 3.5 -1c1.423 -.017 2.67 .358 3.5 1"/><path d="M8 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2"/><path d="M12 3a2.4 2.4 0 0 0 -1 2a2.4 2.4 0 0 0 1 2"/><path d="M3 10h14v5a6 6 0 0 1 -6 6h-2a6 6 0 0 1 -6 -6v-5z"/><path d="M16.746 16.726a3 3 0 1 0 .252 -5.555"/></svg></div><div class="a-body"><div class="a-title">Costa Coffee</div><div class="a-date">20% off all drinks</div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
-      <div class="activity-item"><div class="a-icon" style="background:var(--red-tint);color:var(--red-text);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21l18 0"/><path d="M3 7v1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1m0 1a3 3 0 0 0 6 0v-1h-18l2 -4h14l2 4"/><path d="M5 21l0 -10.15"/><path d="M19 21l0 -10.15"/><path d="M9 21v-4a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v4"/></svg></div><div class="a-body"><div class="a-title">Boots</div><div class="a-date">10% off health & beauty</div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
-      <div class="activity-item"><div class="a-icon" style="background:var(--orange-tint);color:var(--orange);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3l-6 6"/><path d="M14 3l-7 7"/><path d="M20 4l-7 7"/><path d="M20 10l-3 3"/></svg></div><div class="a-body"><div class="a-title">Cineworld</div><div class="a-date">£3 off tickets</div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
+    <div style="padding:16px;">
+      <div id="discounts-employer-section"></div>
+      <div id="discounts-categories">
+        <div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px;">Loading…</div>
+      </div>
     </div>
   </div>
 
@@ -1756,6 +1722,8 @@ function switchPersona(key){
   loadShifts();
   loadBudget();
   loadWellbeing();
+  loadBenefits();
+  loadDiscounts();
 }
 
 function fmtGbp(n){
@@ -2027,6 +1995,122 @@ async function loadWellbeing(){
   }
 }
 
+const BENEFIT_META = {
+  holiday:            { icon: '🌴', label: 'Holiday entitlement' },
+  sickPay:            { icon: '🤒', label: 'Statutory sick pay' },
+  pension:            { icon: '🏦', label: 'Pension auto-enrolment' },
+  nmwCompliance:      { icon: '💷', label: 'National Minimum Wage' },
+  maternityPaternity: { icon: '👶', label: 'Maternity / paternity' },
+};
+
+function renderBenefit(key, b){
+  const meta = BENEFIT_META[key] || { icon: '✓', label: key };
+  let statusText, statusColor;
+  if (key === 'holiday') {
+    statusText = b.accruedDays + '/' + b.annualDays + ' days';
+    statusColor = 'var(--teal-text)';
+  } else if (key === 'sickPay') {
+    statusText = b.eligible ? 'Eligible' : 'Not eligible';
+    statusColor = b.eligible ? 'var(--teal-text)' : 'var(--orange-text)';
+  } else if (key === 'pension') {
+    statusText = b.autoEnrolEligible ? 'Eligible' : 'Below threshold';
+    statusColor = b.autoEnrolEligible ? 'var(--teal-text)' : 'var(--orange-text)';
+  } else if (key === 'nmwCompliance') {
+    statusText = b.compliant ? '£' + b.yourRate + '/hr ✓' : '£' + b.yourRate + '/hr below';
+    statusColor = b.compliant ? 'var(--teal-text)' : '#A23B36';
+  } else if (key === 'maternityPaternity') {
+    statusText = b.eligible ? 'Eligible' : 'Not yet eligible';
+    statusColor = b.eligible ? 'var(--teal-text)' : 'var(--orange-text)';
+  } else {
+    statusText = ''; statusColor = 'var(--text-3)';
+  }
+  return '<div class="benefit-item">'
+    + '<div class="benefit-icon" style="background:var(--teal-tint);">' + meta.icon + '</div>'
+    + '<div><div class="benefit-name">' + escHtml(meta.label) + '</div>'
+    + '<div class="benefit-desc">' + escHtml(b.detail) + '</div></div>'
+    + '<div class="benefit-right"><div class="benefit-status" style="color:' + statusColor + ';font-weight:700;">' + escHtml(statusText) + '</div></div>'
+  + '</div>';
+}
+
+async function loadBenefits(){
+  try {
+    const res = await fetch(API_BASE + '/api/v1/benefits', { headers: API_HEADERS });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    const eligibleCount =
+      (d.sickPay.eligible ? 1 : 0) +
+      (d.pension.autoEnrolEligible ? 1 : 0) +
+      (d.nmwCompliance.compliant ? 1 : 0) +
+      (d.maternityPaternity.eligible ? 1 : 0) +
+      (d.holiday.eligible ? 1 : 0);
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('benefits-banner-val', eligibleCount + ' of 5 entitlements active');
+    const list = document.getElementById('benefits-list');
+    if (list) {
+      const order = ['holiday', 'sickPay', 'pension', 'nmwCompliance', 'maternityPaternity'];
+      list.innerHTML = order.map((k) => renderBenefit(k, d[k])).join('');
+    }
+  } catch (err) {
+    console.warn('benefits fetch failed:', err);
+  }
+}
+
+function renderDiscount(item){
+  const right = item.redemption === 'code' && item.code
+    ? '<div style="font-size:11px;color:var(--teal-text);font-weight:700;font-family:monospace;">' + escHtml(item.code) + '</div>'
+    : item.redemption === 'in-app'
+      ? '<div style="font-size:11px;color:var(--teal-text);font-weight:700;">In-app</div>'
+      : '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg>';
+  const bg = item.accentBg || 'var(--navy-deep)';
+  const fg = item.accentFg || 'white';
+  return '<div class="activity-item">'
+    + '<div class="a-icon" style="background:' + bg + ';color:' + fg + ';font-weight:800;font-size:11px;letter-spacing:-0.3px;">' + escHtml((item.name || '').slice(0, 4)) + '</div>'
+    + '<div class="a-body"><div class="a-title">' + escHtml(item.name) + '</div>'
+    + '<div class="a-date">' + escHtml(item.description) + '</div></div>'
+    + '<div>' + right + '</div>'
+  + '</div>';
+}
+
+function renderEmployerPerks(perks, employerName){
+  if (!perks || perks.length === 0) return '';
+  const items = perks.map((p) => (
+    '<div class="activity-item">'
+      + '<div class="a-icon" style="background:var(--navy);color:white;font-weight:800;font-size:14px;">🌟</div>'
+      + '<div class="a-body"><div class="a-title">' + escHtml(p.name) + '</div>'
+      + '<div class="a-date">' + escHtml(p.description) + '</div></div>'
+      + '<div style="font-size:13px;font-weight:800;color:var(--teal-text);">' + escHtml(p.value) + '</div>'
+    + '</div>'
+  )).join('');
+  return '<div style="font-family:var(--font);font-size:13px;font-weight:700;color:var(--text-1);margin:0 0 10px;text-transform:uppercase;letter-spacing:0.5px;">' + escHtml(employerName) + ' staff perks</div>'
+    + '<div class="activity-list" style="margin-bottom:18px;">' + items + '</div>';
+}
+
+async function loadDiscounts(){
+  try {
+    const res = await fetch(API_BASE + '/api/v1/discounts', { headers: API_HEADERS });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    const employerEl = document.getElementById('discounts-employer-section');
+    if (employerEl) {
+      // Personas live at Crown Pub Group in the mock; if the perks
+      // ever come from a different employer we'd surface their name
+      // dynamically — for now the literal works.
+      employerEl.innerHTML = renderEmployerPerks(d.employerPerks, 'The Crown Pub Group');
+    }
+    const cats = document.getElementById('discounts-categories');
+    if (cats) {
+      cats.innerHTML = (d.categories || []).map((c) => (
+        '<div style="font-family:var(--font);font-size:13px;font-weight:700;color:var(--text-1);margin:0 0 10px;text-transform:uppercase;letter-spacing:0.5px;">' + escHtml(c.name) + '</div>'
+        + '<div class="activity-list" style="margin-bottom:18px;">'
+        + (c.discounts || []).map(renderDiscount).join('')
+        + '</div>'
+      )).join('');
+    }
+  } catch (err) {
+    console.warn('discounts fetch failed:', err);
+  }
+}
+
 function escHtml(s){
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -2279,6 +2363,8 @@ loadSelfControls();
 loadShifts();
 loadBudget();
 loadWellbeing();
+loadBenefits();
+loadDiscounts();
 </script>
 </div></body>
 </html>

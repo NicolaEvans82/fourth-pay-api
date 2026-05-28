@@ -4,9 +4,11 @@ import { AppService } from './app.service';
 import { InstrumentationModule } from './common/instrumentation/instrumentation.module';
 import { DatabaseModule } from './database/database.module';
 import { usePg } from './database/use-pg';
+import { BenefitsModule } from './modules/benefits/benefits.module';
 import { BudgetModule } from './modules/budget/budget.module';
 import { CoachModule } from './modules/coach/coach.module';
 import { DemoModule } from './modules/demo/demo.module';
+import { DiscountsModule } from './modules/discounts/discounts.module';
 import { EmployerModule } from './modules/employer/employer.module';
 import { EwaModule } from './modules/ewa/ewa.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
@@ -31,6 +33,8 @@ const baseModules = [
   SavingsModule,
   BudgetModule,
   WellbeingModule,
+  BenefitsModule,
+  DiscountsModule,
 ];
 
 const featureModules = usePg() ? baseModules : [...baseModules, DemoModule];

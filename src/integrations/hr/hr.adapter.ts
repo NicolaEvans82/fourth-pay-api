@@ -7,6 +7,12 @@ import {
 export const HR_ADAPTER = Symbol('HrAdapter');
 export const EMPLOYER_CONFIG_READER = Symbol('EmployerConfigReader');
 
+export interface EmployerPerk {
+  name: string;
+  description: string;
+  value: string; // human-readable e.g. "50% off", "£25/night"
+}
+
 export interface EmployerConfig {
   fourthEmployerId: string;
   maxAccessPercent: number;
@@ -15,6 +21,7 @@ export interface EmployerConfig {
   enabled: boolean;
   payrollLockdownStartDay: number;
   payrollLockdownEndDay: number;
+  perks?: EmployerPerk[];
 }
 
 export interface EmployerConfigReader {
@@ -31,11 +38,28 @@ export interface EligibilityResult {
   employerConfig: EmployerConfig;
 }
 
+export interface EmploymentProfile {
+  // FAID-derived employment + identity facts the BenefitsService needs.
+  // PII rule (CLAUDE.md #4): never include NI number or full bank
+  // details here; this object is fine to log if needed.
+  dateOfBirth: Date | null;
+  employmentStartDate: Date | null;
+  isFulltime: boolean;
+  rateOfPay: number;
+  paybasis: string;
+}
+
 export interface HrAdapter {
   checkEligibility(input: {
     fourthEmployeeId: string;
     fourthEmployerId: string;
   }): Promise<EligibilityResult>;
+  // Returns the joined Employees + Employments view BenefitsService
+  // uses. Throws NotFound semantics by returning null when the FAID
+  // is unknown — same contract as fetchEmployee.
+  getEmploymentProfile(input: {
+    fourthEmployeeId: string;
+  }): Promise<EmploymentProfile | null>;
 }
 
 interface EmployeesApiRow {
@@ -127,6 +151,34 @@ export class FourthHrAdapter implements HrAdapter {
     }
 
     return { eligible: true, ...base };
+  }
+
+  async getEmploymentProfile(input: {
+    fourthEmployeeId: string;
+  }): Promise<EmploymentProfile | null> {
+    const [employee, employmentRows] = await Promise.all([
+      this.fetchEmployee(input.fourthEmployeeId),
+      this.fetchEmployment(input.fourthEmployeeId),
+    ]);
+    if (!employee) return null;
+    // Prefer the row whose EmploymentStatus is in the active set
+    // (same predicate as the tenure gate); fall back to the first
+    // record so we still return something for borderline accounts.
+    const active =
+      employmentRows.find((e) =>
+        ACTIVE_EMPLOYMENT_STATUSES.has(
+          (e.EmploymentStatus ?? '').trim().toLowerCase(),
+        ),
+      ) ?? employmentRows[0];
+    return {
+      dateOfBirth: employee.DateOfBirth ? new Date(employee.DateOfBirth) : null,
+      employmentStartDate: active?.EmploymentStartDate
+        ? new Date(active.EmploymentStartDate)
+        : null,
+      isFulltime: (active?.IsFulltime ?? '').trim().toLowerCase() === 'yes',
+      rateOfPay: active?.RateOfPay ?? 0,
+      paybasis: employee.Paybasis,
+    };
   }
 
   // Base URL, auth header, AND endpoint paths confirmed by Ali Barlow

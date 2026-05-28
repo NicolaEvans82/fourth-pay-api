@@ -3,6 +3,7 @@ import { JORDAN_HARRIS_FAID, MARCUS_THOMPSON_FAID } from '../wfm/wfm.mock';
 import {
   EligibilityResult,
   EmployerConfig,
+  EmploymentProfile,
   HrAdapter,
 } from './hr.adapter';
 
@@ -17,6 +18,26 @@ const CROWN_PUB_GROUP_CONFIG: EmployerConfig = {
   enabled: true,
   payrollLockdownStartDay: 27,
   payrollLockdownEndDay: 31,
+  // Employer-specific perks shown in the Discounts screen. Production
+  // should move this to a JSONB column on employer_config (not yet
+  // migrated) — for the demo this lives on the mock config object.
+  perks: [
+    {
+      name: 'Staff meal allowance',
+      description: '50% off any meal during your shift at any Crown venue',
+      value: '50%',
+    },
+    {
+      name: 'Crown Hotel staff rate',
+      description: '£25/night for staff + 1 guest at any Crown Hotel UK',
+      value: '£25/night',
+    },
+    {
+      name: 'Refer a friend',
+      description: '£250 bonus for any colleague who joins and stays 90 days',
+      value: '£250',
+    },
+  ],
 };
 
 interface MockEmployee {
@@ -25,6 +46,11 @@ interface MockEmployee {
   ir35: boolean;
   active: boolean;
   startDate: Date;
+  // Additional fields BenefitsService relies on. Production reads
+  // these from the API Employees + Employments rows directly.
+  dateOfBirth: Date;
+  isFulltime: boolean;
+  rateOfPay: number;
 }
 
 // Jordan started ~21 months before the current docs date (2026-05-27).
@@ -36,6 +62,9 @@ const EMPLOYEES: Record<string, MockEmployee> = {
     ir35: false,
     active: true,
     startDate: new Date('2024-08-15T00:00:00Z'),
+    dateOfBirth: new Date('1998-03-12T00:00:00Z'),
+    isFulltime: true,
+    rateOfPay: 12.5,
   },
   [MARCUS_THOMPSON_FAID]: {
     faid: MARCUS_THOMPSON_FAID,
@@ -43,6 +72,9 @@ const EMPLOYEES: Record<string, MockEmployee> = {
     ir35: false,
     active: true,
     startDate: new Date('2025-08-20T00:00:00Z'),
+    dateOfBirth: new Date('2001-07-04T00:00:00Z'),
+    isFulltime: false,
+    rateOfPay: 11.44,
   },
 };
 
@@ -105,6 +137,20 @@ export class MockHrAdapter implements HrAdapter {
     }
 
     return { eligible: true, ...base };
+  }
+
+  async getEmploymentProfile(input: {
+    fourthEmployeeId: string;
+  }): Promise<EmploymentProfile | null> {
+    const employee = EMPLOYEES[input.fourthEmployeeId];
+    if (!employee) return null;
+    return {
+      dateOfBirth: employee.dateOfBirth,
+      employmentStartDate: employee.startDate,
+      isFulltime: employee.isFulltime,
+      rateOfPay: employee.rateOfPay,
+      paybasis: employee.paybasis,
+    };
   }
 }
 
