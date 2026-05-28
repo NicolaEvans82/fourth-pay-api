@@ -1536,31 +1536,84 @@ function markRead(){
   document.getElementById('notif-badge').style.display='none';
 }
 
-function sendChat(){
+const coachHistory=[];
+let coachInFlight=false;
+
+async function sendChat(){
+  if(coachInFlight)return;
   const input=document.getElementById('chat-input');
   const text=input.value.trim();
   if(!text)return;
-  addMsg(text,'user');
+  addMsg(escHtml(text),'user');
   input.value='';
-  setTimeout(()=>{
-    const replies=["Great question! Based on your earnings pattern, I'd suggest...", "Looking at your spending data, here's what I recommend...", "That's something I can definitely help you with. Let me analyse your situation...","Based on your financial profile, here are my thoughts..."];
-    addMsg(replies[Math.floor(Math.random()*replies.length)],'bot');
-  },800);
+  coachHistory.push({role:'user',content:text});
+
+  const sendBtn=document.querySelector('.chat-send');
+  if(sendBtn)sendBtn.disabled=true;
+  coachInFlight=true;
+  const typingEl=addTyping();
+
+  try{
+    const res=await fetch(API_BASE+'/api/v1/coach/message',{
+      method:'POST',
+      headers:Object.assign({'Content-Type':'application/json'},API_HEADERS),
+      body:JSON.stringify({message:text,conversationHistory:coachHistory.slice(0,-1)}),
+    });
+    if(!res.ok){
+      let msg='Sorry, I had trouble responding (HTTP '+res.status+'). Please try again in a moment.';
+      try{const j=await res.json();if(j&&j.message)msg=Array.isArray(j.message)?j.message.join(', '):j.message;}catch(_){}
+      typingEl.remove();
+      addMsg(escHtml(msg),'bot');
+      coachHistory.pop();
+      return;
+    }
+    const data=await res.json();
+    typingEl.remove();
+    coachHistory.push({role:'assistant',content:data.reply});
+    addMsg(formatCoachReply(data.reply),'bot');
+  }catch(err){
+    typingEl.remove();
+    addMsg('Sorry, I couldn\'t reach the coach. Check your connection and try again.','bot');
+    coachHistory.pop();
+  }finally{
+    coachInFlight=false;
+    if(sendBtn)sendBtn.disabled=false;
+  }
 }
+
 function sendPromptMsg(text){
   document.getElementById('chat-input').value=text;
   sendChat();
 }
-function addMsg(text,type){
+
+function formatCoachReply(text){
+  // Lightweight markdown -> HTML for the chat bubble: line breaks and **bold**.
+  return escHtml(text)
+    .replace(/\*\*([^*]+)\*\*/g,'<strong>$1</strong>')
+    .replace(/\n/g,'<br>');
+}
+
+function addMsg(html,type){
   const msgs=document.getElementById('chat-messages');
   const d=document.createElement('div');
   d.className='msg '+type;
   const now=new Date();
   const t=now.getHours()+':'+(now.getMinutes().toString().padStart(2,'0'));
   d.innerHTML=(type==='bot'?'<div class="coach-bot-icon">AI</div>':'')+
-    '<div class="msg-bubble">'+text+'</div><div class="msg-time">'+t+'</div>';
+    '<div class="msg-bubble">'+html+'</div><div class="msg-time">'+t+'</div>';
   msgs.appendChild(d);
   msgs.scrollTop=msgs.scrollHeight;
+  return d;
+}
+
+function addTyping(){
+  const msgs=document.getElementById('chat-messages');
+  const d=document.createElement('div');
+  d.className='msg bot';
+  d.innerHTML='<div class="coach-bot-icon">AI</div><div class="msg-bubble" style="opacity:0.7;"><em>thinking…</em></div>';
+  msgs.appendChild(d);
+  msgs.scrollTop=msgs.scrollHeight;
+  return d;
 }
 
 // Spending chart
