@@ -33,6 +33,12 @@ export interface PayslipDetail extends PayslipSummary {
   elements: PayslipElement[];
 }
 
+export interface DeductionRecord {
+  elementName: string;
+  amount: number;
+  payPeriodStart: Date;
+}
+
 export interface PayrollAdapter {
   getPayPeriodConfig(input: {
     fourthEmployeeId: string;
@@ -45,6 +51,14 @@ export interface PayrollAdapter {
     fourthEmployeeId: string;
     payPeriodStart: Date;
   }): Promise<PayslipDetail | null>;
+  // Standalone deductions feed — Ali Barlow confirmed the URL on the
+  // API Explorer. Used to compute the `average_deduction_rate` net-pay
+  // factor that drives the balance formula. Currently the same number
+  // is also derivable from negative-Value payslip rows; once the
+  // production adapter is wired in, prefer this endpoint.
+  getDeductions(input: {
+    fourthEmployeeId: string;
+  }): Promise<DeductionRecord[]>;
 }
 
 interface PayrollPeriodApiRow {
@@ -55,6 +69,12 @@ interface PayrollPeriodApiRow {
   PayDate: string;
   PeriodStartDate: string;
   PeriodEndDate: string;
+}
+
+interface DeductionApiRow {
+  ElementName: string;
+  Value: number;
+  PeriodStartDate: string;
 }
 
 interface PayslipApiRow {
@@ -125,14 +145,42 @@ export class FourthPayrollAdapter implements PayrollAdapter {
     return buildDetail(target, items);
   }
 
+  async getDeductions(input: {
+    fourthEmployeeId: string;
+  }): Promise<DeductionRecord[]> {
+    // Confirmed by Ali Barlow from the API Explorer:
+    //   GET /organisations/{orgId}/Employees/Deductions
+    const url = new URL(
+      `/organisations/${encodeURIComponent(this.config.orgId)}/Employees/Deductions`,
+      this.config.baseUrl,
+    );
+    url.searchParams.set('FAID', input.fourthEmployeeId);
+
+    const response = await fetch(url, { headers: this.headers() });
+    if (!response.ok) {
+      throw new Error(
+        `Fourth HCM Deductions request failed (${response.status})`,
+      );
+    }
+    const rows = (await response.json()) as DeductionApiRow[];
+    return rows.map((r) => ({
+      elementName: r.ElementName,
+      // Deductions arrive as positive amounts on this endpoint
+      // (unlike payslip rows where deductions are negative Values).
+      amount: r.Value,
+      payPeriodStart: new Date(r.PeriodStartDate),
+    }));
+  }
+
   private async fetchCurrentPeriod(
     faid: string,
   ): Promise<PayrollPeriodApiRow | null> {
-    // TODO: confirm `/Organisations/{orgId}/PayrollPeriods` path + query
-    // params with Ali Barlow. Base URL + auth header were confirmed
-    // 2026-05-28 (see headers()).
+    // Confirmed by Ali Barlow from the API Explorer:
+    //   GET /organisations/{orgId}/PayrollPeriod
+    // Singular `PayrollPeriod`, not `PayrollPeriods` — the prior
+    // placeholder guessed the plural.
     const url = new URL(
-      `/Organisations/${encodeURIComponent(this.config.orgId)}/PayrollPeriods`,
+      `/organisations/${encodeURIComponent(this.config.orgId)}/PayrollPeriod`,
       this.config.baseUrl,
     );
     url.searchParams.set('FAID', faid);
@@ -155,11 +203,10 @@ export class FourthPayrollAdapter implements PayrollAdapter {
   }
 
   private async fetchPayslipRows(faid: string): Promise<PayslipApiRow[]> {
-    // TODO: confirm `/Organisations/{orgId}/Payslips` path + query
-    // params with Ali Barlow. Base URL + auth header were confirmed
-    // 2026-05-28 (see headers()).
+    // Confirmed by Ali Barlow from the API Explorer:
+    //   GET /organisations/{orgId}/Payslips
     const url = new URL(
-      `/Organisations/${encodeURIComponent(this.config.orgId)}/Payslips`,
+      `/organisations/${encodeURIComponent(this.config.orgId)}/Payslips`,
       this.config.baseUrl,
     );
     url.searchParams.set('FAID', faid);

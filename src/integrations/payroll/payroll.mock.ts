@@ -4,6 +4,7 @@ import {
   MARCUS_THOMPSON_FAID,
 } from '../wfm/wfm.mock';
 import {
+  DeductionRecord,
   PayPeriodConfig,
   PayrollAdapter,
   PayslipDetail,
@@ -145,5 +146,28 @@ export class MockPayrollAdapter implements PayrollAdapter {
           p.payPeriodStart.toISOString() === input.payPeriodStart.toISOString(),
       ) ?? null
     );
+  }
+
+  // Derives mock deductions from the existing payslip rows so the
+  // shape matches what the production /Employees/Deductions endpoint
+  // would return. Negative-Value rows on a payslip are converted to
+  // positive amounts here.
+  async getDeductions(input: {
+    fourthEmployeeId: string;
+  }): Promise<DeductionRecord[]> {
+    if (input.fourthEmployeeId !== JORDAN_HARRIS_FAID) return [];
+    const out: DeductionRecord[] = [];
+    for (const p of JORDAN_PAYSLIPS) {
+      for (const e of p.elements) {
+        if (e.isDeduction) {
+          out.push({
+            elementName: e.elementName,
+            amount: Math.abs(e.value),
+            payPeriodStart: p.payPeriodStart,
+          });
+        }
+      }
+    }
+    return out;
   }
 }

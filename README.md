@@ -60,16 +60,14 @@ the in-memory state and reapplies the seed — useful between demos.
 
 ## Fourth HCM integration status
 
-**Confirmed by Ali Barlow on 2026-05-28** (see `docs/05-integration-contracts.md`):
+**Confirmed by Ali Barlow** (see `docs/05-integration-contracts.md`):
 
 - **Base URL** — `http://10.12.6.10:85` (internal Fourth network only).
 - **Auth header** — single `X-Fourth-Org: <OrganisationID/GroupID>`.
-- **WFM Approved Hours endpoint** — `GET /Organisations/{OrganisationID}/Employees/ApprovedHours` with query params `Start`, `Duration`, `DateFrom`, `DateTo`, `Delta=False`. Wired in `wfm.adapter.ts`.
+- **All six endpoints** — Get Employees, Employment Records, Payslips, Payroll Periods, Approved Hours, and Deductions. Wired across `wfm.adapter.ts`, `hr.adapter.ts`, and `payroll.adapter.ts`.
 
 **Still open with Ali**:
 
-- HR endpoint paths — `Employees` and `EmploymentRecords` placeholders in `hr.adapter.ts`.
-- Payroll endpoint paths — `PayrollPeriods` and `Payslips` placeholders in `payroll.adapter.ts`.
 - FAID → EmployeeID mapping for filtering the Approved Hours response (the endpoint returns the whole org).
 
 ## Tests

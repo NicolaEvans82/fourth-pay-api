@@ -173,13 +173,26 @@ Fourth (e.g. the Railway-hosted demo) it is unreachable, which is why
 every adapter falls back to its `Mock*Adapter` when `NODE_ENV` is not
 production or when the host can't reach the Fourth network.
 
+### Confirmed since the original handover
+
+All six PeopleSystem endpoints have confirmed paths now — see
+`docs/05-integration-contracts.md`:
+
+| Adapter | Endpoint |
+|---|---|
+| WFM | `GET /Organisations/{orgId}/Employees/ApprovedHours` |
+| HR | `GET /organisations/{orgId}/Employees` |
+| HR | `GET /organisations/{orgId}/Employees/Employments` |
+| Payroll | `GET /organisations/{orgId}/PayrollPeriod` |
+| Payroll | `GET /organisations/{orgId}/Payslips` |
+| Payroll | `GET /organisations/{orgId}/Employees/Deductions` |
+
+Path casing differs by adapter (`Organisations` for WFM, lowercase
+`organisations` for HR/Payroll) — matches Ali's confirmation from the
+API Explorer; do not normalise without re-checking.
+
 ### Still open with Ali
 
-- **HR paths** — `Employees` and `EmploymentRecords` placeholders in
-  `hr.adapter.ts` use the confirmed `/Organisations/{orgId}/...`
-  shape but the exact tail paths are guesses.
-- **Payroll paths** — same situation for `PayrollPeriods` and
-  `Payslips` in `payroll.adapter.ts`.
 - **FAID → EmployeeID resolution.** The confirmed Approved Hours
   endpoint takes no employee-scoping query param — it returns every
   employee in the org. Response rows carry `EmployeeID` (numeric) but
@@ -187,6 +200,10 @@ production or when the host can't reach the Fourth network.
   wired before client-side filtering. `FourthWfmAdapter.resolveEmployeeId`
   currently returns `null` (no filter) which is **only safe inside the
   closed Fourth network for the demo org**.
+- **Employment records response shape** — `EmploymentRecordApiRow` in
+  `hr.adapter.ts` only models `StartDate` / `EndDate` / `ContractType`.
+  The API Explorer didn't list structured fields. Confirm the full
+  shape with Ali before relying on extra fields.
 
 ## 7. Switching from Mock* to Fourth* adapters
 

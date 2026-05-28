@@ -28,6 +28,13 @@ authentication**. It is the same API used by Informatica and other integration p
 **Purpose:** Check employee eligibility and get identity data  
 **Fourth Pay use:** Called by HRAdapter.checkEligibility() before every transfer  
 
+**Confirmed by Ali Barlow (API Explorer):**
+```
+URL    GET http://10.12.6.10:85/organisations/{orgId}/Employees
+Auth   X-Fourth-Org: <OrganisationID/GroupID>
+Filter Client-side by FAID against the response array
+```
+
 **Key response fields:**
 ```
 EmployeeID          Integer   Internal numeric ID
@@ -53,13 +60,29 @@ IR35                Boolean   Whether within IR35 (affects EWA eligibility)
 ### 2. GET — Employment records
 **Purpose:** Employment history and contract type  
 **Fourth Pay use:** Eligibility check — confirm active employment, get start date for tenure check  
-**Note:** No structured response fields in API Explorer — shape must be confirmed with Ali Barlow
+
+**Confirmed by Ali Barlow (API Explorer):**
+```
+URL  GET http://10.12.6.10:85/organisations/{orgId}/Employees/Employments
+Auth X-Fourth-Org: <OrganisationID/GroupID>
+```
+
+**Note:** No structured response fields in the API Explorer — the
+`EmploymentRecordApiRow` type in `hr.adapter.ts` only models
+`StartDate` / `EndDate` / `ContractType`. Confirm the full shape with
+Ali Barlow before relying on extra fields.
 
 ---
 
 ### 3. GET — Payslips  
 **Purpose:** Historical payslip data  
 **Fourth Pay use:** Populate the Payslip screen in the app  
+
+**Confirmed by Ali Barlow (API Explorer):**
+```
+URL  GET http://10.12.6.10:85/organisations/{orgId}/Payslips
+Auth X-Fourth-Org: <OrganisationID/GroupID>
+```
 
 **Key response fields:**
 ```
@@ -88,6 +111,15 @@ SiteDescription     Text      Site/location name
 ### 4. GET — Payroll periods
 **Purpose:** Pay period definitions — start/end dates and payday  
 **Fourth Pay use:** Calculate current pay period, determine next_payday, identify lockdown window  
+
+**Confirmed by Ali Barlow (API Explorer):**
+```
+URL  GET http://10.12.6.10:85/organisations/{orgId}/PayrollPeriod
+Auth X-Fourth-Org: <OrganisationID/GroupID>
+```
+
+> Singular `PayrollPeriod`, not `PayrollPeriods` — the prior placeholder
+> guessed plural.
 
 **Key response fields:**
 ```
@@ -168,7 +200,16 @@ SubmittedToPayroll  Text      "Yes" or "No" — whether already in payroll run
 ### 6. GET — Deductions
 **Purpose:** Payroll deductions (pension, student loan, etc.)  
 **Fourth Pay use:** Estimate net pay from gross for available balance calculation  
-**Note:** No structured response fields in API Explorer — shape must be confirmed with payroll team  
+
+**Confirmed by Ali Barlow (API Explorer):**
+```
+URL  GET http://10.12.6.10:85/organisations/{orgId}/Employees/Deductions
+Auth X-Fourth-Org: <OrganisationID/GroupID>
+```
+
+Wired in `FourthPayrollAdapter.getDeductions()`. Returns positive
+amounts (unlike payslip rows where deductions arrive as negative
+`Value`s).
 
 **Fourth Pay mapping:**
 ```typescript

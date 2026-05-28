@@ -107,22 +107,18 @@ export class FourthHrAdapter implements HrAdapter {
     return { eligible: true, ...base };
   }
 
-  // Base URL + auth header were confirmed by Ali Barlow on 2026-05-28
-  // (see headers() below + docs/05-integration-contracts.md). The
-  // employee + employment-records URL paths are still TODO — Ali has
-  // not yet confirmed those specific endpoint names. The pattern
-  // /Organisations/{OrganisationID}/... is the established shape and a
-  // safe placeholder.
+  // Base URL, auth header, AND endpoint paths confirmed by Ali Barlow
+  // from the API Explorer (docs/05-integration-contracts.md):
+  //   GET /organisations/{orgId}/Employees             — eligibility
+  //   GET /organisations/{orgId}/Employees/Employments — employment records
   //
   // NOTE: this.config.baseUrl resolves to 10.12.6.10:85 in production,
   // which is internal to Fourth's network. Outside Fourth infrastructure
   // (e.g. the Railway demo) MockHrAdapter is used instead.
 
   private async fetchEmployee(faid: string): Promise<EmployeesApiRow | null> {
-    // TODO: confirm `/Organisations/{orgId}/Employees` path + query
-    // params with Ali Barlow.
     const url = new URL(
-      `/Organisations/${encodeURIComponent(this.config.orgId)}/Employees`,
+      `/organisations/${encodeURIComponent(this.config.orgId)}/Employees`,
       this.config.baseUrl,
     );
     url.searchParams.set('FAID', faid);
@@ -141,11 +137,8 @@ export class FourthHrAdapter implements HrAdapter {
   private async fetchEmployment(
     faid: string,
   ): Promise<EmploymentRecordApiRow[]> {
-    // TODO: confirm `/Organisations/{orgId}/EmploymentRecords` path +
-    // response shape with Ali Barlow — doc 5 notes this endpoint has
-    // no structured fields in the API Explorer.
     const url = new URL(
-      `/Organisations/${encodeURIComponent(this.config.orgId)}/EmploymentRecords`,
+      `/organisations/${encodeURIComponent(this.config.orgId)}/Employees/Employments`,
       this.config.baseUrl,
     );
     url.searchParams.set('FAID', faid);
