@@ -112,6 +112,12 @@ export class FourthHrAdapter implements HrAdapter {
   //   GET /organisations/{orgId}/Employees             — eligibility
   //   GET /organisations/{orgId}/Employees/Employments — employment records
   //
+  // Path casing — intentional and matches the confirmed API paths.
+  // HR and Payroll endpoints use **lowercase** `/organisations/`, while
+  // WFM endpoints use **capital** `/Organisations/`. Do not normalise
+  // across adapters without re-checking with Ali — the API Explorer
+  // confirmed both forms.
+  //
   // NOTE: this.config.baseUrl resolves to 10.12.6.10:85 in production,
   // which is internal to Fourth's network. Outside Fourth infrastructure
   // (e.g. the Railway demo) MockHrAdapter is used instead.

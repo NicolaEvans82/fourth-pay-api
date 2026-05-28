@@ -162,8 +162,10 @@ Auth         X-Fourth-Org: <OrganisationID/GroupID>
 > 📝 The endpoint has no employee-scoping query param — it returns
 > approved hours for every employee in the org. Response rows carry
 > `EmployeeID` (numeric) but not `FAID`, so a FAID → EmployeeID
-> resolution step is needed before client-side filtering. See
-> `FourthWfmAdapter.resolveEmployeeId` for the placeholder.
+> resolution step runs first via the HR Get Employees endpoint
+> (`FourthWfmAdapter.resolveEmployeeId`, with a per-process cache).
+> Unknown FAIDs short-circuit to `[]` rather than returning the
+> unfiltered org list.
 
 **Key response fields:**
 ```

@@ -54,8 +54,17 @@ interface ApprovedHoursApiRow {
   SubmittedToPayroll: 'Yes' | 'No';
 }
 
+// FAID → EmployeeID mappings are essentially immutable (an employee's
+// internal numeric ID doesn't change), so caching for the lifetime of
+// the process is correct. If a real refresh signal ever lands (e.g.
+// an employee is re-onboarded under a new ID), invalidate by process
+// restart or by adding a TTL here.
+type EmployeeIdCache = Map<string, number>;
+
 @Injectable()
 export class FourthWfmAdapter implements WfmAdapter {
+  private readonly employeeIdCache: EmployeeIdCache = new Map();
+
   constructor(
     @Inject(FOURTH_HCM_CONFIG)
     private readonly config: FourthHcmConfig,
@@ -71,6 +80,12 @@ export class FourthWfmAdapter implements WfmAdapter {
     //   Params : Start, Duration, DateFrom, DateTo, Delta=False
     //   Auth   : X-Fourth-Org header carrying the OrganisationID/GroupID
     //
+    // Path casing — intentional and matches the confirmed API paths:
+    // WFM endpoints use **capital** `/Organisations/`, while HR and
+    // Payroll endpoints use **lowercase** `/organisations/`. Do not
+    // normalise across adapters without re-checking with Ali — the
+    // API Explorer confirmed both forms.
+    //
     // NOTE: 10.12.6.10:85 is **internal to Fourth's network** and will not
     // resolve from outside Fourth infrastructure. The Railway demo
     // therefore routes via MockWfmAdapter (see wfm.module.ts); this
@@ -78,6 +93,19 @@ export class FourthWfmAdapter implements WfmAdapter {
     //
     // Approved Hours is the source for the earnings calc (gross_earned =
     // SUM(Value) for the period — see docs/01-product-context.md).
+    //
+    // ApprovedHours rows carry EmployeeID (numeric) but not FAID, and
+    // the endpoint has no employee-scoping query param — it returns
+    // every employee in the org. Resolve FAID → EmployeeID first
+    // (CLAUDE.md rule 5 — never leak another employee's shift data),
+    // then filter the response client-side.
+    const employeeId = await this.resolveEmployeeId(input.fourthEmployeeId);
+    if (employeeId === null) {
+      // FAID does not exist in HR — return no shifts. Returning the
+      // unfiltered org list would leak everyone else's data.
+      return [];
+    }
+
     const url = new URL(
       `/Organisations/${encodeURIComponent(this.config.orgId)}/Employees/ApprovedHours`,
       this.config.baseUrl,
@@ -101,28 +129,50 @@ export class FourthWfmAdapter implements WfmAdapter {
       );
     }
 
-    // ApprovedHours rows carry EmployeeID (numeric) but not FAID, and the
-    // confirmed query params have no employee filter — the endpoint
-    // returns every employee in the org. We need a FAID → EmployeeID
-    // resolution step (Get Employees) before we can filter; until that
-    // lookup is wired, return all org rows so the caller at least gets
-    // the right shape. Caller must guard against cross-employee leakage.
-    const employeeIdForFaid = await this.resolveEmployeeId(
-      input.fourthEmployeeId,
-    );
     const rows = (await response.json()) as ApprovedHoursApiRow[];
-    const filtered =
-      employeeIdForFaid === null
-        ? rows
-        : rows.filter((r) => r.EmployeeID === employeeIdForFaid);
-    return filtered.map(toShiftRecord);
+    return rows
+      .filter((r) => r.EmployeeID === employeeId)
+      .map(toShiftRecord);
   }
 
-  // Placeholder — needs to call GET Employees and cache the FAID ↔
-  // EmployeeID mapping. Returning null disables filtering, which is
-  // safe only inside the closed Fourth network for the demo org.
-  private async resolveEmployeeId(_faid: string): Promise<number | null> {
-    return null;
+  // Resolves FAID → numeric EmployeeID via the HR-owned Get Employees
+  // endpoint (same URL shape HrAdapter.fetchEmployee uses — see
+  // hr.adapter.ts). Cached for the process lifetime; see
+  // EmployeeIdCache above for the rationale.
+  //
+  // Note: this is a Get Employees call, which is **lowercase**
+  // `/organisations/`, even though we're inside the WfmAdapter — the
+  // casing follows the endpoint, not the calling adapter.
+  private async resolveEmployeeId(faid: string): Promise<number | null> {
+    const cached = this.employeeIdCache.get(faid);
+    if (cached !== undefined) return cached;
+
+    const url = new URL(
+      `/organisations/${encodeURIComponent(this.config.orgId)}/Employees`,
+      this.config.baseUrl,
+    );
+    url.searchParams.set('FAID', faid);
+
+    const response = await fetch(url, {
+      headers: {
+        'X-Fourth-Org': this.config.orgId,
+        Accept: 'application/json',
+      },
+    });
+    if (response.status === 404) return null;
+    if (!response.ok) {
+      throw new Error(
+        `Fourth HCM Get Employees lookup failed (${response.status})`,
+      );
+    }
+    const rows = (await response.json()) as Array<{
+      EmployeeID: number;
+      FAID: string;
+    }>;
+    const match = rows.find((r) => r.FAID === faid);
+    if (!match) return null;
+    this.employeeIdCache.set(faid, match.EmployeeID);
+    return match.EmployeeID;
   }
 
   async getScheduledShifts(_input: {

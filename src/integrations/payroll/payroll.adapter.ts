@@ -91,6 +91,17 @@ interface PayslipApiRow {
 
 const DEDUCTION_RATE_PERIODS = 3;
 
+// All endpoint paths confirmed by Ali Barlow from the API Explorer
+// (docs/05-integration-contracts.md):
+//   GET /organisations/{orgId}/PayrollPeriod          — current period
+//   GET /organisations/{orgId}/Payslips               — historical payslips
+//   GET /organisations/{orgId}/Employees/Deductions   — deduction line items
+//
+// Path casing — intentional and matches the confirmed API paths.
+// HR and Payroll endpoints use **lowercase** `/organisations/`, while
+// WFM endpoints use **capital** `/Organisations/`. Do not normalise
+// across adapters without re-checking with Ali — the API Explorer
+// confirmed both forms.
 @Injectable()
 export class FourthPayrollAdapter implements PayrollAdapter {
   constructor(

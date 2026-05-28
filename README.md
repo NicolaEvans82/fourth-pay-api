@@ -66,9 +66,11 @@ the in-memory state and reapplies the seed — useful between demos.
 - **Auth header** — single `X-Fourth-Org: <OrganisationID/GroupID>`.
 - **All six endpoints** — Get Employees, Employment Records, Payslips, Payroll Periods, Approved Hours, and Deductions. Wired across `wfm.adapter.ts`, `hr.adapter.ts`, and `payroll.adapter.ts`.
 
+FAID → EmployeeID resolution is wired in `FourthWfmAdapter.resolveEmployeeId` (calls the HR `Employees` endpoint, caches the mapping per process). Approved Hours rows are now filtered client-side to the calling employee — no cross-employee leakage.
+
 **Still open with Ali**:
 
-- FAID → EmployeeID mapping for filtering the Approved Hours response (the endpoint returns the whole org).
+- Employment-records response shape — `EmploymentRecordApiRow` in `hr.adapter.ts` only models `StartDate` / `EndDate` / `ContractType`; the API Explorer didn't list structured fields.
 
 ## Tests
 

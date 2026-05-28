@@ -191,15 +191,18 @@ Path casing differs by adapter (`Organisations` for WFM, lowercase
 `organisations` for HR/Payroll) — matches Ali's confirmation from the
 API Explorer; do not normalise without re-checking.
 
+FAID → EmployeeID resolution is now wired:
+`FourthWfmAdapter.resolveEmployeeId` calls the HR `Employees` endpoint
+(same URL `HrAdapter.fetchEmployee` uses — lowercase `/organisations/`
+even though we're inside the WFM adapter, because casing follows the
+endpoint not the calling adapter), finds the row by FAID, and caches
+the resulting EmployeeID for the process lifetime. The Approved Hours
+response is then filtered client-side to that EmployeeID — and short-
+circuits to `[]` for an unknown FAID rather than returning the
+unfiltered org list (CLAUDE.md rule 5).
+
 ### Still open with Ali
 
-- **FAID → EmployeeID resolution.** The confirmed Approved Hours
-  endpoint takes no employee-scoping query param — it returns every
-  employee in the org. Response rows carry `EmployeeID` (numeric) but
-  not `FAID`. A FAID→EmployeeID lookup (via Get Employees) must be
-  wired before client-side filtering. `FourthWfmAdapter.resolveEmployeeId`
-  currently returns `null` (no filter) which is **only safe inside the
-  closed Fourth network for the demo org**.
 - **Employment records response shape** — `EmploymentRecordApiRow` in
   `hr.adapter.ts` only models `StartDate` / `EndDate` / `ContractType`.
   The API Explorer didn't list structured fields. Confirm the full
