@@ -49,6 +49,11 @@ import { TransferService } from './transfer.service';
     },
     { provide: AUTO_SAVE_SINK, useClass: InMemoryAutoSaveSink },
   ],
-  exports: [BalanceService, EarningsService, EWA_TRANSFER_READER],
+  exports: [
+    BalanceService,
+    EarningsService,
+    EWA_TRANSFER_READER,
+    InMemoryEwaTransferStore,
+  ],
 })
 export class EwaModule {}

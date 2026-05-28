@@ -15,6 +15,17 @@ export class InMemorySelfControlsStore
   onModuleInit(): void {
     if (process.env.NODE_ENV === 'test') return;
     if (this.records.size > 0) return;
+    this.seedAll();
+  }
+
+  // Demo-only: wipe overrides and re-seed. Jordan goes back to the
+  // service-level default (£200 cap); Marcus to the tighter £150 cap.
+  resetToSeed(): void {
+    this.records.clear();
+    this.seedAll();
+  }
+
+  private seedAll(): void {
     // Jordan keeps the service-level default (£200 cap). Marcus opts
     // for a tighter £150 monthly cap — gives the demo two distinct
     // self-control profiles out of the box.

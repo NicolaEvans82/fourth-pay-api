@@ -18,6 +18,6 @@ import { NotificationsService } from './notifications.service';
     { provide: NOTIFICATIONS_STORE, useExisting: InMemoryNotificationsStore },
     { provide: EMPLOYEE_ACCOUNT_READER, useClass: MockEmployeeAccountReader },
   ],
-  exports: [NotificationsService],
+  exports: [NotificationsService, InMemoryNotificationsStore],
 })
 export class NotificationsModule {}

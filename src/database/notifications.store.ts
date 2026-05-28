@@ -73,6 +73,14 @@ export class InMemoryNotificationsStore
     seedJordanNotifications(this.notifications);
   }
 
+  // Demo-only: wipe and re-seed the original 3 notifications + read
+  // state. Read-marker timestamps from this session are dropped.
+  resetToSeed(): void {
+    this.notifications.length = 0;
+    this.preferences.clear();
+    seedJordanNotifications(this.notifications);
+  }
+
   async insert(input: NewNotification): Promise<Notification> {
     const notification: Notification = {
       id: randomUUID(),

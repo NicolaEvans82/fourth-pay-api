@@ -27,6 +27,11 @@ import { SelfControlsService } from './self-controls.service';
     { provide: EMPLOYEE_ACCOUNT_READER, useClass: MockEmployeeAccountReader },
     { provide: AUDIT_LOG_WRITER, useClass: InMemoryAuditLogWriter },
   ],
-  exports: [SelfControlsService, SELF_CONTROLS_READER, SELF_CONTROLS_WRITER],
+  exports: [
+    SelfControlsService,
+    SELF_CONTROLS_READER,
+    SELF_CONTROLS_WRITER,
+    InMemorySelfControlsStore,
+  ],
 })
 export class SelfControlsModule {}

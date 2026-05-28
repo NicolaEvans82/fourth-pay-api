@@ -86,6 +86,18 @@ export class InMemoryEwaTransferStore
   onModuleInit(): void {
     if (process.env.NODE_ENV === 'test') return;
     if (this.transfers.length > 0) return;
+    this.seedAll();
+  }
+
+  // Demo-only: wipe the live state and re-run every seeder. Called from
+  // POST /api/v1/demo/reset so a live demo can be repeated without
+  // restarting the process.
+  resetToSeed(): void {
+    this.transfers.length = 0;
+    this.seedAll();
+  }
+
+  private seedAll(): void {
     seedJordanTransfers(this.transfers);
     seedMarcusTransfers(this.transfers);
     seedAnonymousEmployerTransfers(this.transfers);

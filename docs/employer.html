@@ -58,6 +58,15 @@ main{max-width:1200px;margin:0 auto;padding:32px;}
 .footer-note strong{color:var(--text-1);}
 .footer-note svg{flex-shrink:0;margin-top:1px;}
 
+.demo-tools{margin-top:20px;padding:18px;border:1px dashed var(--border);border-radius:var(--r-md);background:var(--bg-card);display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.demo-tools-label{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.6px;}
+.demo-tools-desc{font-size:12px;color:var(--text-2);line-height:1.5;flex:1;min-width:200px;}
+.reset-btn{background:var(--navy);color:white;border:none;border-radius:var(--r-md);padding:10px 18px;font-size:13px;font-weight:700;cursor:pointer;font-family:var(--font);transition:background 0.15s;}
+.reset-btn:hover:not(:disabled){background:var(--navy-deep);}
+.reset-btn:disabled{opacity:0.6;cursor:wait;}
+.reset-status{font-size:12px;font-weight:600;color:var(--teal-text);}
+.reset-status.error{color:#A23B36;}
+
 .error{background:#FFF1F0;border:1px solid #F5C5C2;color:#A23B36;padding:14px 18px;border-radius:var(--r-md);font-size:13px;margin-bottom:20px;display:none;}
 
 @media (max-width: 820px){
@@ -147,6 +156,17 @@ main{max-width:1200px;margin:0 auto;padding:32px;}
       Fourth Pay's FCA Consumer Duty implementation.
     </div>
   </div>
+
+  <div class="demo-tools">
+    <div>
+      <div class="demo-tools-label">Demo controls</div>
+      <div class="demo-tools-desc" style="margin-top:4px;">Restore Jordan's and Marcus's starting balances, transfers, notifications, and self-controls to the original seed state.</div>
+    </div>
+    <div style="display:flex;align-items:center;gap:12px;">
+      <span class="reset-status" id="reset-status"></span>
+      <button class="reset-btn" id="reset-btn" onclick="resetDemo()">Reset demo data</button>
+    </div>
+  </div>
 </main>
 
 <script>
@@ -210,6 +230,31 @@ async function loadStats(){
     banner.style.display = 'block';
   }
 }
+async function resetDemo(){
+  const btn = document.getElementById('reset-btn');
+  const status = document.getElementById('reset-status');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.textContent = 'Resetting…';
+  if (status) { status.textContent = ''; status.classList.remove('error'); }
+  try {
+    const res = await fetch(API_BASE + '/api/v1/demo/reset', { method: 'POST' });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    await loadStats();
+    btn.textContent = 'Reset demo data';
+    if (status) status.textContent = '✓ Reset complete';
+    setTimeout(() => { if (status) status.textContent = ''; }, 4000);
+  } catch (err) {
+    btn.textContent = 'Reset demo data';
+    if (status) {
+      status.textContent = 'Reset failed: ' + (err.message || err);
+      status.classList.add('error');
+    }
+  } finally {
+    btn.disabled = false;
+  }
+}
+
 loadStats();
 </script>
 </body>
