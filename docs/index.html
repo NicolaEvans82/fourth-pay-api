@@ -621,7 +621,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
       <div class="qa-btn" onclick="go('learn')"><div class="qa-icon" style="background:#f3e8ff;color:#8b5cf6;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M22 9l-10 -4l-10 4l10 4z"/><path d="M6 10.6v4.4a6 6 0 0 0 12 0v-4.4"/><path d="M22 9v6"/></svg></div><span class="qa-label">Learn</span><span class="qa-sub">Financial guides</span></div>
     </div>
     <div class="section-header"><div class="section-title">Recent activity</div><div class="section-link" onclick="go('track')">See all</div></div>
-    <div class="activity-list">
+    <div id="activity-list" class="activity-list">
       <div class="activity-item"><div class="a-icon" style="background:var(--teal-tint);color:var(--teal);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg></div><div class="a-body"><div class="a-title">Pay access</div><div class="a-date">24 May · Monzo</div></div><div class="a-amount out">+£80.00</div></div>
       <div class="activity-item"><div class="a-icon" style="background:var(--orange-tint);color:var(--orange);"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M17 8v-1a5 5 0 0 0 -10 0v1"/><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0"/><path d="M5 8h14a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-1l-1 3h-8l-1 -3h-1a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1z"/><path d="M19 12h2"/></svg></div><div class="a-body"><div class="a-title">Auto-save</div><div class="a-date">23 May · Emergency pot</div></div><div class="a-amount neutral">£15.00 saved</div></div>
       <div class="activity-item"><div class="a-icon" style="background:#f3e8ff;color:#8b5cf6;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg></div><div class="a-body"><div class="a-title">Pay access</div><div class="a-date">18 May · Monzo</div></div><div class="a-amount out">+£50.00</div></div>
@@ -705,20 +705,22 @@ input[type=range]{width:100%;accent-color:var(--teal);}
     <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Earnings tracker</div></div></div>
     <div class="track-body">
       <div class="period-card">
-        <div class="period-top"><div class="section-title" style="font-size:13px;">May 2026</div><div class="badge badge-teal">In progress</div></div>
-        <div class="period-dates">1 May – 31 May 2026 · Pay day 6 Jun</div>
+        <div class="period-top"><div id="track-period-title" class="section-title" style="font-size:13px;">May 2026</div><div class="badge badge-teal">In progress</div></div>
+        <div id="track-period-dates" class="period-dates">1 May – 31 May 2026 · Pay day 6 Jun</div>
         <div class="stats-grid">
-          <div class="stat"><div class="stat-val">£625</div><div class="stat-label">Earned</div></div>
-          <div class="stat"><div class="stat-val" style="color:var(--teal);">£312</div><div class="stat-label">Available</div></div>
-          <div class="stat"><div class="stat-val">£130</div><div class="stat-label">Accessed</div></div>
+          <div class="stat"><div id="track-earned" class="stat-val">£625</div><div class="stat-label">Earned</div></div>
+          <div class="stat"><div id="track-available" class="stat-val" style="color:var(--teal);">£312</div><div class="stat-label">Available</div></div>
+          <div class="stat"><div id="track-accessed" class="stat-val">£130</div><div class="stat-label">Accessed</div></div>
         </div>
       </div>
       <div class="section-title" style="padding:0 0 10px;font-size:13px;">Shifts this period</div>
-      <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">MON</div><div class="shift-num">27</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">09:00–17:00 · 8h</div></div></div><div class="shift-earn">£96.00</div></div>
-      <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">SUN</div><div class="shift-num">26</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">11:00–19:00 · 8h</div></div></div><div class="shift-earn">£96.00</div></div>
-      <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">FRI</div><div class="shift-num">23</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">17:00–23:00 · 6h</div></div></div><div class="shift-earn">£72.00</div></div>
-      <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">THU</div><div class="shift-num">22</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">09:00–17:00 · 8h</div></div></div><div class="shift-earn">£96.00</div></div>
-      <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">TUE</div><div class="shift-num">20</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">09:00–15:00 · 6h</div></div></div><div class="shift-earn">£72.00</div></div>
+      <div id="track-shifts">
+        <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">MON</div><div class="shift-num">27</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">09:00–17:00 · 8h</div></div></div><div class="shift-earn">£96.00</div></div>
+        <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">SUN</div><div class="shift-num">26</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">11:00–19:00 · 8h</div></div></div><div class="shift-earn">£96.00</div></div>
+        <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">FRI</div><div class="shift-num">23</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">17:00–23:00 · 6h</div></div></div><div class="shift-earn">£72.00</div></div>
+        <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">THU</div><div class="shift-num">22</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">09:00–17:00 · 8h</div></div></div><div class="shift-earn">£96.00</div></div>
+        <div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">TUE</div><div class="shift-num">20</div></div><div><div class="shift-name">Bar Supervisor</div><div class="shift-hrs">09:00–15:00 · 6h</div></div></div><div class="shift-earn">£72.00</div></div>
+      </div>
     </div>
   </div>
 
@@ -1602,7 +1604,83 @@ async function loadBalance(){
     console.warn('balance fetch failed:', err);
   }
 }
+
+const MONTHS = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+function fmtPeriod(startIso, endIso){
+  const s = new Date(startIso), e = new Date(endIso);
+  return s.getUTCDate() + ' ' + MONTHS[s.getUTCMonth()] + ' – ' + e.getUTCDate() + ' ' + MONTHS[e.getUTCMonth()] + ' ' + e.getUTCFullYear();
+}
+function fmtMonth(iso){
+  const d = new Date(iso);
+  return ['January','February','March','April','May','June','July','August','September','October','November','December'][d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+}
+function fmtDay(iso){
+  const d = new Date(iso);
+  return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()];
+}
+function fmtHHMM(iso){
+  const d = new Date(iso);
+  return String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0');
+}
+
+function renderShift(s){
+  const start = new Date(s.startDateTime);
+  const day = ['SUN','MON','TUE','WED','THU','FRI','SAT'][start.getUTCDay()];
+  const num = start.getUTCDate();
+  const escape = (str) => String(str).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+  return '<div class="shift-item"><div class="shift-left"><div class="shift-dot"><div class="shift-day">' + day + '</div><div class="shift-num">' + num + '</div></div><div><div class="shift-name">' + escape(s.elementName) + '</div><div class="shift-hrs">' + fmtHHMM(s.startDateTime) + '–' + fmtHHMM(s.endDateTime) + ' · ' + s.hours + 'h</div></div></div><div class="shift-earn">' + fmtGbp(s.value) + '</div></div>';
+}
+
+async function loadEarnings(){
+  try {
+    const res = await fetch(API_BASE + '/api/v1/ewa/earnings', { headers: API_HEADERS });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('track-period-title', fmtMonth(data.payPeriodStart));
+    set('track-period-dates', fmtPeriod(data.payPeriodStart, data.payPeriodEnd));
+    set('track-earned', fmtGbp(data.summary.grossEarned));
+    set('track-available', fmtGbp(data.summary.availableAmount));
+    set('track-accessed', fmtGbp(data.summary.accessedAmount));
+    const shiftsEl = document.getElementById('track-shifts');
+    if (shiftsEl) {
+      if (data.shifts && data.shifts.length) {
+        shiftsEl.innerHTML = data.shifts.map(renderShift).join('');
+      } else {
+        shiftsEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px;">No shifts in this period yet</div>';
+      }
+    }
+  } catch (err) {
+    console.warn('earnings fetch failed:', err);
+  }
+}
+
+const PAY_ICON_SVG = '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg>';
+function renderTransfer(t){
+  const speed = t.transferSpeed === 'instant' ? 'Instant' : 'Standard';
+  return '<div class="activity-item"><div class="a-icon" style="background:var(--teal-tint);color:var(--teal);">' + PAY_ICON_SVG + '</div><div class="a-body"><div class="a-title">Pay access</div><div class="a-date">' + fmtDay(t.initiatedAt) + ' · ' + speed + ' · ' + t.status + '</div></div><div class="a-amount out">+' + fmtGbp(t.amount) + '</div></div>';
+}
+
+async function loadTransfers(){
+  try {
+    const res = await fetch(API_BASE + '/api/v1/ewa/transfers', { headers: API_HEADERS });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const listEl = document.getElementById('activity-list');
+    if (!listEl) return;
+    if (data.transfers && data.transfers.length) {
+      listEl.innerHTML = data.transfers.map(renderTransfer).join('');
+    } else {
+      listEl.innerHTML = '<div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px;">No transfers yet — tap <strong>Get paid now</strong> to access your earned pay</div>';
+    }
+  } catch (err) {
+    console.warn('transfers fetch failed:', err);
+  }
+}
+
 loadBalance();
+loadEarnings();
+loadTransfers();
 </script>
 </div></body>
 </html>
