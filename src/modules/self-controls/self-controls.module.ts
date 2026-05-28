@@ -1,5 +1,6 @@
-import { Module } from '@nestjs/common';
+import { Module, type Provider } from '@nestjs/common';
 import { InMemorySelfControlsStore } from '../../database/self-controls.store';
+import { PgSelfControlsStore } from '../../database/pg-self-controls.store';
 import { SELF_CONTROLS_READER } from '../../database/readers/self-controls.reader';
 import { SELF_CONTROLS_WRITER } from '../../database/writers/self-controls.writer';
 import {
@@ -10,28 +11,41 @@ import {
   AUDIT_LOG_WRITER,
   InMemoryAuditLogWriter,
 } from '../../database/writers/audit-log.writer';
+import { PgAuditLogWriter } from '../../database/writers/pg-audit-log.writer';
+import { usePg } from '../../database/use-pg';
 import { HrModule } from '../../integrations/hr/hr.module';
 import { SelfControlsController } from './self-controls.controller';
 import { SelfControlsService } from './self-controls.service';
 
-// In-memory bindings used in every environment until DatabaseModule lands.
-// When the PG-backed module ships, override these via module composition.
+const pgProviders: Provider[] = [
+  PgSelfControlsStore,
+  { provide: SELF_CONTROLS_READER, useExisting: PgSelfControlsStore },
+  { provide: SELF_CONTROLS_WRITER, useExisting: PgSelfControlsStore },
+  { provide: AUDIT_LOG_WRITER, useClass: PgAuditLogWriter },
+];
+
+const inMemoryProviders: Provider[] = [
+  InMemorySelfControlsStore,
+  { provide: SELF_CONTROLS_READER, useExisting: InMemorySelfControlsStore },
+  { provide: SELF_CONTROLS_WRITER, useExisting: InMemorySelfControlsStore },
+  { provide: AUDIT_LOG_WRITER, useClass: InMemoryAuditLogWriter },
+];
+
+const storeProviders = usePg() ? pgProviders : inMemoryProviders;
+
 @Module({
   imports: [HrModule],
   controllers: [SelfControlsController],
   providers: [
     SelfControlsService,
-    InMemorySelfControlsStore,
-    { provide: SELF_CONTROLS_READER, useExisting: InMemorySelfControlsStore },
-    { provide: SELF_CONTROLS_WRITER, useExisting: InMemorySelfControlsStore },
+    ...storeProviders,
     { provide: EMPLOYEE_ACCOUNT_READER, useClass: MockEmployeeAccountReader },
-    { provide: AUDIT_LOG_WRITER, useClass: InMemoryAuditLogWriter },
   ],
   exports: [
     SelfControlsService,
     SELF_CONTROLS_READER,
     SELF_CONTROLS_WRITER,
-    InMemorySelfControlsStore,
+    ...(usePg() ? [] : [InMemorySelfControlsStore]),
   ],
 })
 export class SelfControlsModule {}

@@ -1,0 +1,799 @@
+openapi: 3.1.0
+info:
+  title: Fourth Pay API
+  version: 1.0.0
+  description: |
+    FCA-regulated Earned Wage Access for the Fourth hospitality platform.
+
+    Most endpoints are scoped to a single employee by two headers:
+      - `x-fourth-employee-id`
+      - `x-fourth-employer-id`
+
+    Employer-aggregate endpoints (`/api/v1/employer/*`) only require
+    `x-fourth-employer-id`. The coach, demo-reset, root, and health
+    endpoints are public.
+
+    Headers will be replaced by Fourth SSO JWT extraction (see
+    `docs/05-integration-contracts.md`) when auth lands. The current
+    prototype trusts the headers verbatim.
+  contact:
+    name: Fourth Pay engineering
+servers:
+  - url: https://fourth-pay-api-production.up.railway.app
+    description: Railway production
+  - url: http://localhost:3000
+    description: Local development
+
+tags:
+  - { name: System,        description: Health and identity }
+  - { name: EWA,           description: Earned Wage Access — balance, transfer, history }
+  - { name: Earnings,      description: Period-to-date shift breakdown }
+  - { name: Shifts,        description: Upcoming + recent shifts (employee-facing) }
+  - { name: Self-controls, description: Employee-imposed limits and cooling-off }
+  - { name: Payslips,      description: Payslip list, detail, and PDF }
+  - { name: Notifications, description: In-app notifications }
+  - { name: Coach,         description: AI money coach (currently keyword-routed) }
+  - { name: Employer,      description: Anonymised employer-aggregate dashboard }
+  - { name: Demo,          description: Demo-only reset of in-memory state }
+
+components:
+  parameters:
+    EmployeeIdHeader:
+      name: x-fourth-employee-id
+      in: header
+      required: true
+      schema: { type: string, example: JORDANHARRIS000001 }
+      description: Fourth employee ID (FAID).
+    EmployerIdHeader:
+      name: x-fourth-employer-id
+      in: header
+      required: true
+      schema: { type: string, example: CROWN-PUB-GROUP }
+      description: Fourth employer ID.
+    RoleHeader:
+      name: x-fourth-role
+      in: header
+      required: false
+      schema: { type: string, enum: [employee, employer], default: employee }
+
+  responses:
+    BadRequest:
+      description: Invalid request (missing headers, schema violation, FCA gate not satisfied, etc.).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    NotFound:
+      description: Resource or employee not found.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    Forbidden:
+      description: Access denied (e.g. role mismatch).
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+    ServiceUnavailable:
+      description: Downstream service unavailable.
+      content:
+        application/json:
+          schema: { $ref: '#/components/schemas/Error' }
+
+  schemas:
+    Error:
+      type: object
+      required: [statusCode, message]
+      properties:
+        statusCode: { type: integer, example: 400 }
+        message:
+          oneOf:
+            - { type: string }
+            - { type: array, items: { type: string } }
+        error:   { type: string, example: Bad Request }
+
+    HealthResponse:
+      type: object
+      required: [status]
+      properties:
+        status: { type: string, enum: [ok] }
+
+    BalanceResponse:
+      type: object
+      required:
+        - availableAmount
+        - earnedAmount
+        - accessedAmount
+        - payPeriodStart
+        - payPeriodEnd
+        - nextPayday
+        - employerSubsidy
+      properties:
+        availableAmount: { type: number, format: float, description: GBP available to access now }
+        earnedAmount:    { type: number, format: float, description: Period-to-date gross earned }
+        accessedAmount:  { type: number, format: float, description: Period-to-date already drawn early }
+        payPeriodStart:  { type: string, format: date-time }
+        payPeriodEnd:    { type: string, format: date-time }
+        nextPayday:      { type: string, format: date-time }
+        employerSubsidy: { type: boolean, description: True when the employer covers the instant transfer fee }
+        monthlyLimitRemaining:
+          type: number
+          format: float
+          nullable: true
+          description: Remaining headroom under the employee's monthly self-control cap
+
+    TransferRequest:
+      type: object
+      required: [amount, transferSpeed, fcaDisclosureAcknowledged]
+      properties:
+        amount:        { type: number, format: float, minimum: 10, example: 50 }
+        transferSpeed: { type: string, enum: [instant, standard] }
+        bankAccountId: { type: string, nullable: true }
+        fcaDisclosureAcknowledged:
+          type: boolean
+          description: Must be `true` — the FCA disclosure gate. Sending `false` returns 400.
+
+    TransferResponse:
+      type: object
+      required: [transferId, status, feeAmount, netAmount, estimatedArrival, fcaReference]
+      properties:
+        transferId:       { type: string, format: uuid }
+        status:           { type: string, enum: [pending, processing, completed, failed, reversed] }
+        feeAmount:        { type: number, format: float }
+        netAmount:        { type: number, format: float }
+        estimatedArrival: { type: string, example: immediate }
+        fcaReference:     { type: string, format: uuid }
+
+    TransferListItem:
+      type: object
+      required: [id, amount, feeAmount, netAmount, transferSpeed, status, initiatedAt]
+      properties:
+        id:             { type: string, format: uuid }
+        amount:         { type: number, format: float }
+        feeAmount:      { type: number, format: float }
+        netAmount:      { type: number, format: float }
+        transferSpeed:  { type: string, enum: [instant, standard] }
+        status:         { type: string }
+        initiatedAt:    { type: string, format: date-time }
+        completedAt:    { type: string, format: date-time, nullable: true }
+
+    TransferListResponse:
+      type: object
+      required: [transfers, totalAccessedThisPeriod]
+      properties:
+        transfers: { type: array, items: { $ref: '#/components/schemas/TransferListItem' } }
+        totalAccessedThisPeriod:
+          type: number
+          format: float
+          description: Sum of non-failed transfers in the requested period. Zero unless `pay_period_start` is supplied.
+
+    EarningsShift:
+      type: object
+      required: [elementName, startDateTime, endDateTime, hours, rate, value]
+      properties:
+        elementName:   { type: string, example: Basic Hours }
+        startDateTime: { type: string, format: date-time }
+        endDateTime:   { type: string, format: date-time }
+        hours:         { type: number }
+        rate:          { type: number }
+        value:         { type: number }
+
+    EarningsResponse:
+      type: object
+      required: [payPeriodStart, payPeriodEnd, shifts, summary]
+      properties:
+        payPeriodStart: { type: string, format: date-time }
+        payPeriodEnd:   { type: string, format: date-time }
+        shifts: { type: array, items: { $ref: '#/components/schemas/EarningsShift' } }
+        summary:
+          type: object
+          required: [grossEarned, accessedAmount]
+          properties:
+            grossEarned:     { type: number }
+            availableAmount: { type: number, nullable: true }
+            accessedAmount:  { type: number }
+
+    SelfControlsRecord:
+      type: object
+      required:
+        - employeeAccountId
+        - monthlyLimitEnabled
+        - perTransferLimitEnabled
+        - coolingOffEnabled
+        - coolingOffHours
+        - autoSaveEnabled
+        - autoSavePercent
+        - wellbeingNudgesEnabled
+      properties:
+        employeeAccountId:       { type: string, format: uuid }
+        monthlyLimitEnabled:     { type: boolean }
+        monthlyLimitAmount:      { type: number, nullable: true, minimum: 50 }
+        perTransferLimitEnabled: { type: boolean }
+        perTransferLimitAmount:  { type: number, nullable: true, minimum: 10 }
+        coolingOffEnabled:       { type: boolean }
+        coolingOffHours:         { type: integer, enum: [24, 48, 168] }
+        autoSaveEnabled:         { type: boolean }
+        autoSavePercent:         { type: integer, minimum: 5, maximum: 30 }
+        wellbeingNudgesEnabled:  { type: boolean }
+        pausedUntil:             { type: string, format: date-time, nullable: true }
+
+    UpdateSelfControlsBody:
+      type: object
+      description: |
+        Partial update — every field is optional. Unspecified fields keep their
+        current value (the service strips undefined keys before merging).
+      properties:
+        monthlyLimitEnabled:     { type: boolean }
+        monthlyLimitAmount:      { type: number, nullable: true, minimum: 50 }
+        perTransferLimitEnabled: { type: boolean }
+        perTransferLimitAmount:  { type: number, nullable: true, minimum: 10 }
+        coolingOffEnabled:       { type: boolean }
+        coolingOffHours:         { type: integer, enum: [24, 48, 168] }
+        autoSaveEnabled:         { type: boolean }
+        autoSavePercent:         { type: integer, minimum: 5, maximum: 30 }
+        wellbeingNudgesEnabled:  { type: boolean }
+
+    PauseRequestBody:
+      type: object
+      required: [durationDays]
+      properties:
+        durationDays: { type: integer, enum: [30] }
+
+    PauseResponse:
+      type: object
+      required: [pausedUntil]
+      properties:
+        pausedUntil: { type: string, format: date-time }
+
+    OverrideRequestBody:
+      type: object
+      required: [controlType, reason]
+      properties:
+        controlType: { type: string, enum: [cooling_off, monthly_limit, per_transfer_limit] }
+        reason:      { type: string, minLength: 1 }
+
+    OverrideResponse:
+      type: object
+      required: [overrideToken]
+      properties:
+        overrideToken: { type: string, format: uuid }
+
+    PayslipSummary:
+      type: object
+      required: [payPeriodStart, paymentDate, grossPay, netPay]
+      properties:
+        payPeriodStart: { type: string, format: date-time }
+        paymentDate:    { type: string, format: date-time }
+        grossPay:       { type: number }
+        netPay:         { type: number }
+
+    PayslipElement:
+      type: object
+      required: [elementName, value, isDeduction]
+      properties:
+        elementName: { type: string }
+        units:       { type: number, nullable: true }
+        rate:        { type: number, nullable: true }
+        value:       { type: number }
+        isDeduction: { type: boolean }
+
+    PayslipDetailResponse:
+      type: object
+      required: [payPeriodStart, paymentDate, grossPay, totalDeductions, netPay, elements, ytd]
+      properties:
+        payPeriodStart:  { type: string, format: date-time }
+        paymentDate:     { type: string, format: date-time }
+        grossPay:        { type: number }
+        totalDeductions: { type: number }
+        netPay:          { type: number }
+        elements:        { type: array, items: { $ref: '#/components/schemas/PayslipElement' } }
+        ytd:
+          type: object
+          required: [grossYtd, netYtd, taxYearStart]
+          properties:
+            grossYtd:     { type: number }
+            netYtd:       { type: number }
+            taxYearStart: { type: string, format: date-time }
+
+    Notification:
+      type: object
+      required: [id, employeeAccountId, category, title, body, screenLink, urgency, fcaRequired, createdAt]
+      properties:
+        id:                { type: string, format: uuid }
+        employeeAccountId: { type: string, format: uuid }
+        category:
+          type: string
+          enum: [pay, savings, payslip, wellbeing, pension, bills, system]
+        title:        { type: string }
+        body:         { type: string }
+        screenLink:   { type: string }
+        urgency:      { type: string, enum: [normal, warning, urgent] }
+        fcaRequired:  { type: boolean }
+        readAt:       { type: string, format: date-time, nullable: true }
+        createdAt:    { type: string, format: date-time }
+
+    NotificationListResponse:
+      type: object
+      required: [notifications, unreadCount]
+      properties:
+        notifications: { type: array, items: { $ref: '#/components/schemas/Notification' } }
+        unreadCount:   { type: integer }
+
+    MarkAllReadResponse:
+      type: object
+      required: [updatedCount]
+      properties:
+        updatedCount: { type: integer }
+
+    CoachMessageBody:
+      type: object
+      required: [message, conversationHistory]
+      properties:
+        message: { type: string, maxLength: 2000 }
+        conversationHistory:
+          type: array
+          maxItems: 100
+          items:
+            type: object
+            required: [role, content]
+            properties:
+              role:    { type: string, enum: [user, assistant] }
+              content: { type: string, maxLength: 4000 }
+
+    CoachMessageResponse:
+      type: object
+      required: [reply]
+      properties:
+        reply: { type: string }
+
+    EmployerStatsResponse:
+      type: object
+      required:
+        - employer_id
+        - total_employees_enrolled
+        - total_transfers_this_month
+        - total_amount_accessed_this_month
+        - average_transfer_amount
+        - fee_revenue_this_month
+        - percent_of_workforce_active
+        - daily_access_amounts
+      properties:
+        employer_id:                        { type: string, example: CROWN-PUB-GROUP }
+        total_employees_enrolled:           { type: integer }
+        total_transfers_this_month:         { type: integer }
+        total_amount_accessed_this_month:   { type: number }
+        average_transfer_amount:            { type: number }
+        fee_revenue_this_month:             { type: number, description: instant transfer count × £1.95 }
+        percent_of_workforce_active:        { type: number, description: distinct active employees this month / enrolled × 100 }
+        daily_access_amounts:
+          type: array
+          description: Last 7 calendar days, oldest first.
+          items:
+            type: object
+            required: [date, amount]
+            properties:
+              date:   { type: string, format: date }
+              amount: { type: number }
+
+    UpcomingShift:
+      type: object
+      required: [date, dayName, startTime, endTime, hours]
+      properties:
+        date:      { type: string, format: date }
+        dayName:   { type: string, example: Friday }
+        startTime: { type: string, example: "17:00" }
+        endTime:   { type: string, example: "23:00" }
+        hours:     { type: number }
+        site:      { type: string, nullable: true }
+        role:      { type: string, nullable: true }
+
+    RecentShift:
+      type: object
+      required: [date, dayName, hours, earnings, elementType]
+      properties:
+        date:        { type: string, format: date }
+        dayName:     { type: string }
+        hours:       { type: number }
+        earnings:    { type: number }
+        elementType: { type: string, enum: [Basic Hours, Overtime, Bank Holiday] }
+        site:        { type: string, nullable: true }
+
+    ShiftsResponse:
+      type: object
+      required: [upcoming, recent, weeklySummary]
+      properties:
+        upcoming: { type: array, items: { $ref: '#/components/schemas/UpcomingShift' } }
+        recent:   { type: array, items: { $ref: '#/components/schemas/RecentShift' } }
+        weeklySummary:
+          type: object
+          required: [weekStart, weekEnd, totalHours, totalEarnings, shiftCount]
+          properties:
+            weekStart:     { type: string, format: date }
+            weekEnd:       { type: string, format: date }
+            totalHours:    { type: number }
+            totalEarnings: { type: number }
+            shiftCount:    { type: integer }
+
+    DemoResetResponse:
+      type: object
+      required: [reset]
+      properties:
+        reset: { type: boolean, enum: [true] }
+
+paths:
+  /:
+    get:
+      tags: [System]
+      summary: Identity string
+      responses:
+        '200':
+          description: Plain-text "Hello World!"
+          content:
+            text/plain:
+              schema: { type: string }
+
+  /health:
+    get:
+      tags: [System]
+      summary: Health check
+      description: Public liveness probe, used by Railway and the CI smoke tests.
+      responses:
+        '200':
+          description: Service is up.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/HealthResponse' }
+
+  /api/v1/ewa/balance:
+    get:
+      tags: [EWA]
+      summary: Current pay-period balance
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      responses:
+        '200':
+          description: Period balance, snapshot at request time.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BalanceResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/ewa/transfer:
+    post:
+      tags: [EWA]
+      summary: Request an EWA transfer
+      description: |
+        Executes a transfer of earned wages to the employee's bank account.
+        `fcaDisclosureAcknowledged` must be `true` — sending `false` (or
+        omitting it) is the FCA disclosure gate and returns **400**.
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/TransferRequest' }
+      responses:
+        '201':
+          description: Transfer accepted and (in the mock) immediately completed.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TransferResponse' }
+        '400':
+          description: Missing FCA acknowledgement, validation failure, or self-control / monthly cap breach.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/ewa/transfers:
+    get:
+      tags: [EWA]
+      summary: List recent transfers for the calling employee
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+        - name: limit
+          in: query
+          schema: { type: integer, default: 20, maximum: 100 }
+        - name: pay_period_start
+          in: query
+          required: false
+          schema: { type: string, format: date }
+          description: When supplied, the response's `totalAccessedThisPeriod` sums non-failed transfers in that period.
+      responses:
+        '200':
+          description: Newest-first list of transfers.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/TransferListResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/v1/ewa/earnings:
+    get:
+      tags: [Earnings]
+      summary: Period-to-date shift breakdown
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+        - name: pay_period_start
+          in: query
+          required: false
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Confirmed (worked) shifts in the period plus a summary.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EarningsResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/v1/shifts:
+    get:
+      tags: [Shifts]
+      summary: Upcoming and recent shifts plus a weekly summary
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      responses:
+        '200':
+          description: Forward-looking (next 7d) + retrospective (last 14d) shifts.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/ShiftsResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/v1/self-controls:
+    get:
+      tags: [Self-controls]
+      summary: Read the calling employee's self-controls
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+        - $ref: '#/components/parameters/RoleHeader'
+      responses:
+        '200':
+          description: Current self-controls (defaults applied if no overrides).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SelfControlsRecord' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+    put:
+      tags: [Self-controls]
+      summary: Partially update self-controls
+      description: |
+        Every field is optional. Only supplied fields are written; the
+        rest are preserved. `monthlyLimitAmount` is bounded by the
+        employer's `maxAccessPercent` config — exceeding it returns 400
+        with `code: EWA_MONTHLY_LIMIT_ABOVE_EMPLOYER_MAX`.
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/UpdateSelfControlsBody' }
+      responses:
+        '200':
+          description: Saved record (full snapshot after merge).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SelfControlsRecord' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '403': { $ref: '#/components/responses/Forbidden' }
+
+  /api/v1/self-controls/pause:
+    post:
+      tags: [Self-controls]
+      summary: Pause all access for a fixed duration
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/PauseRequestBody' }
+      responses:
+        '200':
+          description: Account paused until the returned timestamp.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PauseResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/v1/self-controls/override:
+    post:
+      tags: [Self-controls]
+      summary: Override a self-imposed control with a reason
+      description: Issues a one-time override token recorded in the audit log.
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/OverrideRequestBody' }
+      responses:
+        '200':
+          description: Override token (one-shot).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/OverrideResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/v1/payslips:
+    get:
+      tags: [Payslips]
+      summary: List payslips for the calling employee
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+      responses:
+        '200':
+          description: Payslip list, most recent first.
+          content:
+            application/json:
+              schema:
+                type: object
+                required: [payslips]
+                properties:
+                  payslips:
+                    type: array
+                    items: { $ref: '#/components/schemas/PayslipSummary' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/v1/payslips/{payPeriodStart}:
+    get:
+      tags: [Payslips]
+      summary: Payslip detail for a specific pay period
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - name: payPeriodStart
+          in: path
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: Full payslip with element-level breakdown and YTD summary.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PayslipDetailResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/payslips/{payPeriodStart}/pdf:
+    get:
+      tags: [Payslips]
+      summary: Download payslip PDF
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - name: payPeriodStart
+          in: path
+          required: true
+          schema: { type: string, format: date }
+      responses:
+        '200':
+          description: PDF stream.
+          content:
+            application/pdf:
+              schema: { type: string, format: binary }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/notifications:
+    get:
+      tags: [Notifications]
+      summary: List notifications
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - name: category
+          in: query
+          required: false
+          schema:
+            type: string
+            enum: [pay, savings, payslip, wellbeing, pension, bills, system]
+      responses:
+        '200':
+          description: Notifications + unread count.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/NotificationListResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/v1/notifications/{id}/read:
+    post:
+      tags: [Notifications]
+      summary: Mark one notification as read
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      responses:
+        '200':
+          description: The updated notification (with `readAt` populated).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Notification' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/notifications/mark-all-read:
+    post:
+      tags: [Notifications]
+      summary: Mark every unread notification as read
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+      responses:
+        '200':
+          description: Count of notifications that flipped from unread to read.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/MarkAllReadResponse' }
+
+  /api/v1/coach/message:
+    post:
+      tags: [Coach]
+      summary: Send a message to the AI money coach
+      description: |
+        Currently keyword-routed against the live balance / earnings /
+        self-controls of the calling employee. Replies always start
+        "This is guidance, not financial advice." and end "Would you
+        like to know more about any of these options?".
+
+        Conversation history is forwarded by the client but never
+        persisted server-side.
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CoachMessageBody' }
+      responses:
+        '200':
+          description: Coach reply.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/CoachMessageResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '503': { $ref: '#/components/responses/ServiceUnavailable' }
+
+  /api/v1/employer/stats:
+    get:
+      tags: [Employer]
+      summary: Anonymised workforce-level stats for the calling employer
+      description: |
+        Aggregates only — no individual transfer or employee data
+        crosses this boundary (CLAUDE.md rule 5). Used by the employer
+        dashboard.
+      parameters:
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      responses:
+        '200':
+          description: Workforce stats for the current month plus a 7-day chart series.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/EmployerStatsResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/v1/demo/reset:
+    post:
+      tags: [Demo]
+      summary: Reset in-memory demo data to the original seed state
+      description: |
+        Demo-only. Wipes the three mutable in-memory stores
+        (transfers, self-controls, notifications) and re-runs every
+        seeder. **Drop this route from `app.module.ts` before exposing
+        the API to non-demo traffic.**
+      responses:
+        '200':
+          description: Reset acknowledged.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DemoResetResponse' }
