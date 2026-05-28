@@ -191,13 +191,13 @@ export class CoachService {
     const b = ctx.balance;
     if (b) {
       return [
-        `Hi Jordan! I can see your finances in one place and I'm here to help.`,
+        "Hi! I can see your finances in one place and I'm here to help.",
         `You've got ${gbp(b.availableAmount)} available right now, with your next payday on ${formatLongDate(b.nextPayday)}.`,
         'Ask me about your earnings, monthly limits, saving on every transfer, or when you next get paid — I can break any of it down for you.',
       ].join(' ');
     }
     return [
-      'Hi Jordan! I can see your finances in one place and I am here to help.',
+      'Hi! I can see your finances in one place and I am here to help.',
       'Ask me about your earnings, monthly limits, auto-save, or your next payday — I can break any of it down for you.',
     ].join(' ');
   }

@@ -1,5 +1,8 @@
 import { Injectable } from '@nestjs/common';
-import { JORDAN_HARRIS_FAID } from '../wfm/wfm.mock';
+import {
+  JORDAN_HARRIS_FAID,
+  MARCUS_THOMPSON_FAID,
+} from '../wfm/wfm.mock';
 import {
   PayPeriodConfig,
   PayrollAdapter,
@@ -7,14 +10,16 @@ import {
   PayslipSummary,
 } from './payroll.adapter';
 
-// May 2026 period for Jordan Harris. averageDeductionRate ≈ 20% — plausible
-// for a UK low-earner: basic-rate income tax + NI + light pension contribution.
-const JORDAN_PAY_PERIOD: PayPeriodConfig = {
+// May 2026 period. averageDeductionRate ≈ 20% — plausible for a UK
+// low-earner: basic-rate income tax + NI + light pension contribution.
+// Same period config for both demo employees — same employer, same cycle.
+const MAY_2026_PERIOD: PayPeriodConfig = {
   periodStart: new Date('2026-05-01T00:00:00Z'),
   periodEnd: new Date('2026-05-31T23:59:59Z'),
   nextPayday: new Date('2026-05-31T00:00:00Z'),
   averageDeductionRate: 0.2,
 };
+const JORDAN_PAY_PERIOD = MAY_2026_PERIOD;
 
 // Historical payslips for Jordan — both fall in UK tax year 2025/26
 // (6 Apr 2025 – 5 Apr 2026), so YTD-as-of-March sums both.
@@ -108,10 +113,13 @@ export class MockPayrollAdapter implements PayrollAdapter {
     fourthEmployeeId: string;
     fourthEmployerId: string;
   }): Promise<PayPeriodConfig> {
-    if (input.fourthEmployeeId !== JORDAN_HARRIS_FAID) {
+    if (
+      input.fourthEmployeeId !== JORDAN_HARRIS_FAID &&
+      input.fourthEmployeeId !== MARCUS_THOMPSON_FAID
+    ) {
       throw new Error(`No payroll record for ${input.fourthEmployeeId}`);
     }
-    return JORDAN_PAY_PERIOD;
+    return MAY_2026_PERIOD;
   }
 
   async listPayslips(input: {

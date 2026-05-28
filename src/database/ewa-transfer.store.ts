@@ -1,6 +1,9 @@
 import { Injectable, type OnModuleInit } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
-import { JORDAN_ACCOUNT } from './readers/employee-account.reader';
+import {
+  JORDAN_ACCOUNT,
+  MARCUS_ACCOUNT,
+} from './readers/employee-account.reader';
 
 export const EWA_TRANSFER_READER = Symbol('EwaTransferReader');
 export const EWA_TRANSFER_WRITER = Symbol('EwaTransferWriter');
@@ -84,6 +87,7 @@ export class InMemoryEwaTransferStore
     if (process.env.NODE_ENV === 'test') return;
     if (this.transfers.length > 0) return;
     seedJordanTransfers(this.transfers);
+    seedMarcusTransfers(this.transfers);
     seedAnonymousEmployerTransfers(this.transfers);
   }
 
@@ -299,4 +303,31 @@ function seedJordanTransfers(target: EwaTransfer[]): void {
       createdAt: initiatedAt,
     });
   }
+}
+
+// Marcus's single £50 standard transfer earlier in the period — drives
+// his accessedAmount = £50 and available = £155.92 (50% of £411.84 − £50).
+function seedMarcusTransfers(target: EwaTransfer[]): void {
+  const periodStart = new Date(Date.UTC(2026, 4, 1));
+  const periodEnd = new Date(Date.UTC(2026, 4, 31, 23, 59, 59));
+  const initiatedAt = new Date(Date.UTC(2026, 4, 15, 10, 30, 0));
+  target.push({
+    id: randomUUID(),
+    employeeAccountId: MARCUS_ACCOUNT.id,
+    payPeriodStart: periodStart,
+    payPeriodEnd: periodEnd,
+    requestedAmount: 50,
+    feeAmount: 0,
+    feeSubsidised: false,
+    netAmount: 50,
+    transferSpeed: 'standard',
+    status: 'completed',
+    bankAccountId: 'starling-3142',
+    initiatedAt,
+    completedAt: new Date(initiatedAt.getTime() + 2 * 86400000),
+    failureReason: null,
+    fcaDisclosureShown: true,
+    fcaDisclosureAt: initiatedAt,
+    createdAt: initiatedAt,
+  });
 }

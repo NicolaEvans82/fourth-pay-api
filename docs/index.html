@@ -516,6 +516,13 @@ input[type=range]{width:100%;accent-color:var(--teal);}
 
 /* PROFILE - light */
 .profile-hero{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:var(--s5);margin-bottom:var(--s3);text-align:center;box-shadow:var(--shadow-card);}
+.persona-switcher{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:8px 14px;background:linear-gradient(180deg,#FFF8E6 0%,#FFF1CC 100%);border-bottom:1px solid #F0D88A;}
+.persona-switcher-label{font-size:10px;font-weight:700;color:#7A5A0F;letter-spacing:0.6px;text-transform:uppercase;}
+.persona-pills{display:flex;gap:6px;}
+.persona-pill{display:flex;align-items:center;gap:6px;padding:5px 10px;border-radius:100px;background:rgba(255,255,255,0.6);border:1px solid rgba(122,90,15,0.18);font-size:11px;font-weight:600;color:#7A5A0F;cursor:pointer;transition:all 0.15s;}
+.persona-pill.active{background:var(--navy);border-color:var(--navy);color:white;}
+.persona-pill-avatar{width:18px;height:18px;border-radius:50%;background:var(--teal);color:white;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:800;letter-spacing:-0.3px;}
+.persona-pill.active .persona-pill-avatar{background:var(--teal-on-dark);color:var(--navy);}
 .profile-avatar{width:60px;height:60px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px;color:white;margin:0 auto var(--s3);}
 .profile-name{font-size:17px;font-weight:700;color:var(--text-1);letter-spacing:-0.3px;margin-bottom:2px;}
 .profile-role{font-size:12px;color:var(--text-3);}
@@ -541,12 +548,24 @@ input[type=range]{width:100%;accent-color:var(--teal);}
 
   <!-- ═══ HOME ═══ -->
   <div class="screen active" id="screen-home">
+    <!-- Demo persona switcher — visually marked as a prototype affordance -->
+    <div class="persona-switcher">
+      <div class="persona-switcher-label">Demo persona</div>
+      <div class="persona-pills">
+        <div class="persona-pill active" id="persona-pill-jordan" onclick="switchPersona('jordan')">
+          <span class="persona-pill-avatar">JH</span><span>Jordan</span>
+        </div>
+        <div class="persona-pill" id="persona-pill-marcus" onclick="switchPersona('marcus')">
+          <span class="persona-pill-avatar">MT</span><span>Marcus</span>
+        </div>
+      </div>
+    </div>
     <!-- Greeting row — light bg, dark text, matches Employee App -->
     <div style="padding:var(--s4) var(--s4) var(--s3);display:flex;align-items:center;justify-content:space-between;">
       <div style="display:flex;align-items:center;gap:var(--s3);">
-        <div style="width:38px;height:38px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:white;flex-shrink:0;">JH</div>
+        <div id="greeting-avatar" style="width:38px;height:38px;border-radius:50%;background:var(--teal);display:flex;align-items:center;justify-content:center;font-weight:700;font-size:14px;color:white;flex-shrink:0;">JH</div>
         <div>
-          <div style="font-size:17px;font-weight:700;color:var(--text-1);letter-spacing:-0.3px;">Good morning, Jordan</div>
+          <div style="font-size:17px;font-weight:700;color:var(--text-1);letter-spacing:-0.3px;">Good morning, <span id="greeting-name">Jordan</span></div>
           <div style="font-size:12px;color:var(--text-3);margin-top:1px;">Pay day in 10 days · Everything's on track</div>
         </div>
       </div>
@@ -1205,7 +1224,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
   <div class="screen" id="screen-profile">
     <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">My profile</div></div></div>
     <div class="profile-body">
-      <div class="profile-hero"><div class="profile-avatar">JH</div><div class="profile-name">Jordan Harris</div><div class="profile-role">Bar Supervisor</div><div class="profile-employer">The Crown Pub Group Ltd</div></div>
+      <div class="profile-hero"><div class="profile-avatar" id="profile-avatar">JH</div><div class="profile-name" id="profile-name">Jordan Harris</div><div class="profile-role" id="profile-role">Bar Supervisor</div><div class="profile-employer">The Crown Pub Group Ltd</div></div>
       <div class="profile-section">
         <div class="profile-row"><div class="profile-row-left"><div class="pr-icon" style="background:var(--teal-tint);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--teal);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 21l18 0"/><path d="M3 10l18 0"/><path d="M5 6l7 -3l7 3"/><path d="M4 10l0 11"/><path d="M20 10l0 11"/><path d="M8 14l0 3"/><path d="M12 14l0 3"/><path d="M16 14l0 3"/></svg></div><div><div class="pr-label">Bank account</div><div class="pr-val">Monzo •••• 4891</div></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
         <div class="profile-row" onclick="go('controls')"><div class="profile-row-left"><div class="pr-icon" style="background:var(--red-tint);"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--red-text);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="6" cy="10" r="2"/><path d="M6 4v4m0 4v8"/><circle cx="12" cy="6" r="2"/><path d="M12 4v0m0 4v14"/><circle cx="18" cy="14" r="2"/><path d="M18 4v8m0 4v4"/></svg></div><div><div class="pr-label">Self-controls</div><div class="pr-val">Monthly limit: £200</div></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
@@ -1645,10 +1664,69 @@ updateClock();setInterval(updateClock,30000);
 updateStream();
 
 const API_BASE = 'https://fourth-pay-api-production.up.railway.app';
-const API_HEADERS = {
-  'x-fourth-employee-id': 'JORDANHARRIS000001',
-  'x-fourth-employer-id': 'CROWN-PUB-GROUP',
+
+const PERSONAS = {
+  jordan: {
+    faid: 'JORDANHARRIS000001',
+    employerId: 'CROWN-PUB-GROUP',
+    firstName: 'Jordan',
+    fullName: 'Jordan Harris',
+    role: 'Bar Supervisor',
+    initials: 'JH',
+  },
+  marcus: {
+    faid: 'MARCUSTHOMPSON000001',
+    employerId: 'CROWN-PUB-GROUP',
+    firstName: 'Marcus',
+    fullName: 'Marcus Thompson',
+    role: 'Hotel Receptionist',
+    initials: 'MT',
+  },
 };
+
+let currentPersona = (() => {
+  try { return localStorage.getItem('fp_persona') === 'marcus' ? 'marcus' : 'jordan'; }
+  catch (_) { return 'jordan'; }
+})();
+let API_HEADERS = headersForPersona(currentPersona);
+
+function headersForPersona(key){
+  const p = PERSONAS[key] || PERSONAS.jordan;
+  return { 'x-fourth-employee-id': p.faid, 'x-fourth-employer-id': p.employerId };
+}
+
+function applyPersonaToUI(){
+  const p = PERSONAS[currentPersona];
+  const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+  set('greeting-avatar', p.initials);
+  set('greeting-name', p.firstName);
+  set('profile-avatar', p.initials);
+  set('profile-name', p.fullName);
+  set('profile-role', p.role);
+  document.querySelectorAll('.persona-pill').forEach((el) => {
+    el.classList.remove('active');
+  });
+  const activePill = document.getElementById('persona-pill-' + currentPersona);
+  if (activePill) activePill.classList.add('active');
+}
+
+function switchPersona(key){
+  if (!PERSONAS[key] || key === currentPersona) return;
+  currentPersona = key;
+  API_HEADERS = headersForPersona(key);
+  try { localStorage.setItem('fp_persona', key); } catch (_) {}
+  applyPersonaToUI();
+  // Coach history is per-persona — clear it so we don't ask Marcus's
+  // questions on Jordan's behalf (or vice versa).
+  if (Array.isArray(coachHistory)) coachHistory.length = 0;
+  // Re-fetch every wired screen with the new headers.
+  loadBalance();
+  loadEarnings();
+  loadTransfers();
+  loadPayslips();
+  loadNotifications();
+  loadSelfControls();
+}
 
 function fmtGbp(n){
   if (typeof n !== 'number' || !isFinite(n)) return '—';
@@ -1985,6 +2063,7 @@ async function putControl(patch){
   }
 }
 
+applyPersonaToUI();
 loadBalance();
 loadEarnings();
 loadTransfers();

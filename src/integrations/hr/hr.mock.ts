@@ -1,5 +1,5 @@
 import { Injectable } from '@nestjs/common';
-import { JORDAN_HARRIS_FAID } from '../wfm/wfm.mock';
+import { JORDAN_HARRIS_FAID, MARCUS_THOMPSON_FAID } from '../wfm/wfm.mock';
 import {
   EligibilityResult,
   EmployerConfig,
@@ -28,6 +28,7 @@ interface MockEmployee {
 }
 
 // Jordan started ~21 months before the current docs date (2026-05-27).
+// Marcus started ~9 months before — both safely past the 90-day tenure gate.
 const EMPLOYEES: Record<string, MockEmployee> = {
   [JORDAN_HARRIS_FAID]: {
     faid: JORDAN_HARRIS_FAID,
@@ -35,6 +36,13 @@ const EMPLOYEES: Record<string, MockEmployee> = {
     ir35: false,
     active: true,
     startDate: new Date('2024-08-15T00:00:00Z'),
+  },
+  [MARCUS_THOMPSON_FAID]: {
+    faid: MARCUS_THOMPSON_FAID,
+    paybasis: 'monthly',
+    ir35: false,
+    active: true,
+    startDate: new Date('2025-08-20T00:00:00Z'),
   },
 };
 

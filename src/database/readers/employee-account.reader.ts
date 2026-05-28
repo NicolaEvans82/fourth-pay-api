@@ -1,6 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { CROWN_PUB_GROUP_EMPLOYER_ID } from '../../integrations/hr/hr.mock';
-import { JORDAN_HARRIS_FAID } from '../../integrations/wfm/wfm.mock';
+import {
+  JORDAN_HARRIS_FAID,
+  MARCUS_THOMPSON_FAID,
+} from '../../integrations/wfm/wfm.mock';
 
 export const EMPLOYEE_ACCOUNT_READER = Symbol('EmployeeAccountReader');
 
@@ -22,11 +25,23 @@ export const JORDAN_ACCOUNT: EmployeeAccount = {
   status: 'active',
 };
 
+export const MARCUS_ACCOUNT: EmployeeAccount = {
+  id: '11111111-1111-1111-1111-111111111111',
+  fourthEmployeeId: MARCUS_THOMPSON_FAID,
+  fourthEmployerId: CROWN_PUB_GROUP_EMPLOYER_ID,
+  status: 'active',
+};
+
+const ACCOUNTS_BY_FAID: ReadonlyMap<string, EmployeeAccount> = new Map([
+  [JORDAN_ACCOUNT.fourthEmployeeId, JORDAN_ACCOUNT],
+  [MARCUS_ACCOUNT.fourthEmployeeId, MARCUS_ACCOUNT],
+]);
+
 @Injectable()
 export class MockEmployeeAccountReader implements EmployeeAccountReader {
   async findByFourthEmployeeId(
     faid: string,
   ): Promise<EmployeeAccount | null> {
-    return faid === JORDAN_ACCOUNT.fourthEmployeeId ? JORDAN_ACCOUNT : null;
+    return ACCOUNTS_BY_FAID.get(faid) ?? null;
   }
 }

@@ -5,6 +5,11 @@ import { ShiftRecord, WfmAdapter } from './wfm.adapter';
 // FAID format is 18-char alphanumeric per docs/05-integration-contracts.md.
 export const JORDAN_HARRIS_FAID = 'JORDANHARRIS000001';
 
+// Marcus Thompson — Hotel Receptionist, The Crown Pub Group. Different
+// shift pattern (6 daytime shifts, Basic Hours only, no overtime / bank
+// holiday premium) so the prototype can demonstrate a second persona.
+export const MARCUS_THOMPSON_FAID = 'MARCUSTHOMPSON000001';
+
 interface FixtureRow extends ShiftRecord {
   fourthEmployeeId: string;
 }
@@ -112,6 +117,68 @@ const FIXTURE: FixtureRow[] = [
     units: 5,
     rate: 12.5,
     value: 62.5,
+    submittedToPayroll: false,
+  },
+  // Marcus Thompson — 6 daytime reception shifts, Basic Hours only, all
+  // 6h at £11.44/hr. 36h × £11.44 = £411.84 gross for the period.
+  {
+    fourthEmployeeId: MARCUS_THOMPSON_FAID,
+    elementName: 'Basic Hours',
+    startDateTime: new Date('2026-05-04T09:00:00Z'),
+    endDateTime: new Date('2026-05-04T15:00:00Z'),
+    units: 6,
+    rate: 11.44,
+    value: 68.64,
+    submittedToPayroll: false,
+  },
+  {
+    fourthEmployeeId: MARCUS_THOMPSON_FAID,
+    elementName: 'Basic Hours',
+    startDateTime: new Date('2026-05-06T14:00:00Z'),
+    endDateTime: new Date('2026-05-06T20:00:00Z'),
+    units: 6,
+    rate: 11.44,
+    value: 68.64,
+    submittedToPayroll: false,
+  },
+  {
+    fourthEmployeeId: MARCUS_THOMPSON_FAID,
+    elementName: 'Basic Hours',
+    startDateTime: new Date('2026-05-09T09:00:00Z'),
+    endDateTime: new Date('2026-05-09T15:00:00Z'),
+    units: 6,
+    rate: 11.44,
+    value: 68.64,
+    submittedToPayroll: false,
+  },
+  {
+    fourthEmployeeId: MARCUS_THOMPSON_FAID,
+    elementName: 'Basic Hours',
+    startDateTime: new Date('2026-05-13T09:00:00Z'),
+    endDateTime: new Date('2026-05-13T15:00:00Z'),
+    units: 6,
+    rate: 11.44,
+    value: 68.64,
+    submittedToPayroll: false,
+  },
+  {
+    fourthEmployeeId: MARCUS_THOMPSON_FAID,
+    elementName: 'Basic Hours',
+    startDateTime: new Date('2026-05-19T14:00:00Z'),
+    endDateTime: new Date('2026-05-19T20:00:00Z'),
+    units: 6,
+    rate: 11.44,
+    value: 68.64,
+    submittedToPayroll: false,
+  },
+  {
+    fourthEmployeeId: MARCUS_THOMPSON_FAID,
+    elementName: 'Basic Hours',
+    startDateTime: new Date('2026-05-23T09:00:00Z'),
+    endDateTime: new Date('2026-05-23T15:00:00Z'),
+    units: 6,
+    rate: 11.44,
+    value: 68.64,
     submittedToPayroll: false,
   },
 ];
