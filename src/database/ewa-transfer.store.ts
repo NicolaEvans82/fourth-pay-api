@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, type OnModuleInit } from '@nestjs/common';
 import { randomUUID } from 'node:crypto';
+import { JORDAN_ACCOUNT } from './readers/employee-account.reader';
 
 export const EWA_TRANSFER_READER = Symbol('EwaTransferReader');
 export const EWA_TRANSFER_WRITER = Symbol('EwaTransferWriter');
@@ -72,9 +73,15 @@ export interface EwaTransferWriter {
 // reader and writer tokens via useExisting so writes are visible to reads.
 @Injectable()
 export class InMemoryEwaTransferStore
-  implements EwaTransferReader, EwaTransferWriter
+  implements EwaTransferReader, EwaTransferWriter, OnModuleInit
 {
   private readonly transfers: EwaTransfer[] = [];
+
+  onModuleInit(): void {
+    if (process.env.NODE_ENV === 'test') return;
+    if (this.transfers.length > 0) return;
+    seedJordanTransfers(this.transfers);
+  }
 
   async sumAdvancesInPeriod(input: {
     employeeAccountId: string;
@@ -161,4 +168,47 @@ function sameDay(a: Date, b: Date): boolean {
     a.getUTCMonth() === b.getUTCMonth() &&
     a.getUTCDate() === b.getUTCDate()
   );
+}
+
+function seedJordanTransfers(target: EwaTransfer[]): void {
+  // Pay period anchored to the mock May 2026 cycle so accessedAmount lines
+  // up with /balance and /earnings summaries.
+  const periodStart = new Date(Date.UTC(2026, 4, 1));
+  const periodEnd = new Date(Date.UTC(2026, 4, 31, 23, 59, 59));
+  const seeds: Array<{
+    amount: number;
+    speed: 'instant' | 'standard';
+    daysAgo: number;
+  }> = [
+    { amount: 80, speed: 'instant', daysAgo: 2 },
+    { amount: 50, speed: 'standard', daysAgo: 6 },
+    { amount: 30, speed: 'instant', daysAgo: 10 },
+  ];
+  const now = new Date(Date.UTC(2026, 4, 28, 9, 0, 0));
+  for (const s of seeds) {
+    const initiatedAt = new Date(now.getTime() - s.daysAgo * 86400000);
+    const completedAt = new Date(
+      initiatedAt.getTime() + (s.speed === 'instant' ? 60000 : 2 * 86400000),
+    );
+    const feeAmount = s.speed === 'instant' ? 1.95 : 0;
+    target.push({
+      id: randomUUID(),
+      employeeAccountId: JORDAN_ACCOUNT.id,
+      payPeriodStart: periodStart,
+      payPeriodEnd: periodEnd,
+      requestedAmount: s.amount,
+      feeAmount,
+      feeSubsidised: feeAmount > 0,
+      netAmount: s.amount,
+      transferSpeed: s.speed,
+      status: 'completed',
+      bankAccountId: 'monzo-4891',
+      initiatedAt,
+      completedAt,
+      failureReason: null,
+      fcaDisclosureShown: true,
+      fcaDisclosureAt: initiatedAt,
+      createdAt: initiatedAt,
+    });
+  }
 }

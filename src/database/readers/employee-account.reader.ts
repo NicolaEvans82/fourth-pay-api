@@ -15,7 +15,7 @@ export interface EmployeeAccountReader {
   findByFourthEmployeeId(faid: string): Promise<EmployeeAccount | null>;
 }
 
-const JORDAN_ACCOUNT: EmployeeAccount = {
+export const JORDAN_ACCOUNT: EmployeeAccount = {
   id: '00000000-0000-0000-0000-000000000001',
   fourthEmployeeId: JORDAN_HARRIS_FAID,
   fourthEmployerId: CROWN_PUB_GROUP_EMPLOYER_ID,
