@@ -1,13 +1,11 @@
+import { Injectable, Logger } from '@nestjs/common';
+import { BalanceService, type EwaBalance } from '../ewa/balance.service';
 import {
-  Injectable,
-  InternalServerErrorException,
-  Logger,
-  ServiceUnavailableException,
-} from '@nestjs/common';
-import Anthropic from '@anthropic-ai/sdk';
-import { BalanceService } from '../ewa/balance.service';
-import { EarningsService } from '../ewa/earnings.service';
+  EarningsService,
+  type EarningsResponse,
+} from '../ewa/earnings.service';
 import { SelfControlsService } from '../self-controls/self-controls.service';
+import type { SelfControlsRecord } from '../../database/readers/self-controls.reader';
 import type { CoachHistoryTurn } from './dtos';
 
 export interface CoachInput {
@@ -17,157 +15,207 @@ export interface CoachInput {
   conversationHistory: CoachHistoryTurn[];
 }
 
-// Spec 11 originally specified `claude-sonnet-4-20250514` (Sonnet 4.0,
-// retires 2026-06-15). Bumped to Sonnet 4.6 — its launch replacement.
-const COACH_MODEL = 'claude-sonnet-4-6';
-const MAX_OUTPUT_TOKENS = 1024;
-const MAX_HISTORY_TURNS = 20;
+interface CoachContext {
+  balance: EwaBalance | null;
+  earnings: EarningsResponse | null;
+  selfControls: SelfControlsRecord | null;
+}
+
+const PREFIX = 'This is guidance, not financial advice.';
+const SUFFIX = 'Would you like to know more about any of these options?';
 
 @Injectable()
 export class CoachService {
   private readonly logger = new Logger(CoachService.name);
-  private readonly anthropic: Anthropic | null;
 
   constructor(
     private readonly balanceService: BalanceService,
     private readonly earningsService: EarningsService,
     private readonly selfControlsService: SelfControlsService,
-  ) {
-    const apiKey = process.env.ANTHROPIC_API_KEY;
-    this.anthropic = apiKey ? new Anthropic({ apiKey }) : null;
-    if (!apiKey) {
-      this.logger.warn(
-        'ANTHROPIC_API_KEY not set — /api/v1/coach/message will return 503.',
-      );
-    }
-  }
+  ) {}
 
   async sendMessage(input: CoachInput): Promise<{ reply: string }> {
-    if (!this.anthropic) {
-      throw new ServiceUnavailableException(
-        'Coach is not configured — ANTHROPIC_API_KEY is missing on the server.',
-      );
-    }
-
-    const systemPrompt = await this.buildSystemPrompt(input);
-    const history = input.conversationHistory
-      .slice(-MAX_HISTORY_TURNS)
-      .map((t) => ({ role: t.role, content: t.content }));
-
-    try {
-      const response = await this.anthropic.messages.create({
-        model: COACH_MODEL,
-        max_tokens: MAX_OUTPUT_TOKENS,
-        system: systemPrompt,
-        // Chat workload: keep latency low. Sonnet 4.6 defaults to
-        // effort: high which is too slow for the Spec 11 5-second target.
-        thinking: { type: 'disabled' },
-        output_config: { effort: 'low' },
-        messages: [...history, { role: 'user', content: input.message }],
-      });
-
-      const reply = response.content
-        .filter((b): b is Anthropic.TextBlock => b.type === 'text')
-        .map((b) => b.text)
-        .join('\n')
-        .trim();
-
-      if (!reply) {
-        throw new InternalServerErrorException('Coach returned an empty reply.');
-      }
-
-      return { reply };
-    } catch (err) {
-      if (err instanceof Anthropic.APIError) {
-        this.logger.error(
-          `Anthropic API error ${err.status}: ${err.message}`,
-          err.stack,
-        );
-        throw new ServiceUnavailableException(
-          'Coach is temporarily unavailable. Please try again.',
-        );
-      }
-      throw err;
-    }
+    const ctx = await this.gatherContext(input);
+    const body = this.routeReply(input.message, ctx);
+    return { reply: `${PREFIX}\n\n${body}\n\n${SUFFIX}` };
   }
 
-  private async buildSystemPrompt(input: CoachInput): Promise<string> {
+  private async gatherContext(input: CoachInput): Promise<CoachContext> {
     const auth = {
       fourthEmployeeId: input.fourthEmployeeId,
       fourthEmployerId: input.fourthEmployerId,
     };
-
-    // Pull only Spec 11-permitted fields. Sort codes, account numbers, NI
-    // numbers, and tax codes are deliberately excluded — they are never
-    // sent to the LLM (CLAUDE.md rule 4, Spec 11 data_never_provided).
     const [balance, earnings, selfControls] = await Promise.all([
-      this.balanceService.getBalance(auth).catch(() => null),
-      this.earningsService.getEarnings(auth).catch(() => null),
+      this.balanceService.getBalance(auth).catch((err) => {
+        this.logger.warn(`balance fetch failed: ${err}`);
+        return null;
+      }),
+      this.earningsService.getEarnings(auth).catch((err) => {
+        this.logger.warn(`earnings fetch failed: ${err}`);
+        return null;
+      }),
       this.selfControlsService
         .get({ ...auth, role: 'employee' })
-        .catch(() => null),
+        .catch((err) => {
+          this.logger.warn(`self-controls fetch failed: ${err}`);
+          return null;
+        }),
     ]);
+    return { balance, earnings, selfControls };
+  }
 
+  private routeReply(message: string, ctx: CoachContext): string {
+    const m = message.toLowerCase();
+    // Topical keywords (earn/save/limit/payday) win over the generic
+    // "how much" balance branch so questions like "how much have I earned"
+    // hit the earnings reply.
+    if (/(earn|shift|work)/.test(m)) {
+      return this.replyEarn(ctx);
+    }
+    if (/(save|saving|pot)/.test(m)) {
+      return this.replySave(ctx);
+    }
+    if (/(limit|control)/.test(m)) {
+      return this.replyLimit(ctx);
+    }
+    if (/(payday|pay day|when)/.test(m)) {
+      return this.replyPayday(ctx);
+    }
+    if (/(access|available|how much)/.test(m)) {
+      return this.replyAccess(ctx);
+    }
+    return this.replyDefault(ctx);
+  }
+
+  private replyAccess(ctx: CoachContext): string {
+    const b = ctx.balance;
+    if (!b) {
+      return "I can't see your balance right now, but you can check it on the home screen. Tap 'Get paid now' to see what's available.";
+    }
+    return [
+      `You've got ${gbp(b.availableAmount)} available to access right now, out of ${gbp(b.earnedAmount)} earned this period.`,
+      `You've already accessed ${gbp(b.accessedAmount)} this month.`,
+      `Standard transfers are free; instant transfers cost £1.95${b.employerSubsidy ? ' — but your employer covers that fee for you' : ''}.`,
+    ].join(' ');
+  }
+
+  private replySave(ctx: CoachContext): string {
+    const sc = ctx.selfControls;
+    const b = ctx.balance;
     const lines: string[] = [
-      'You are Jordan Harris\'s personal money coach inside the Fourth Pay app.',
-      'Fourth Pay is an FCA-regulated Earned Wage Access product for hospitality workers.',
-      '',
-      '## Hard rules (must follow on every turn)',
-      '- You are NOT a financial advisor. You provide guidance and education only. If asked whether you are a financial advisor, say no.',
-      '- When discussing any financial product, preface with "This is not financial advice".',
-      '- Never recommend specific external financial products by name (e.g. specific banks, ISAs, credit cards, investment funds, loan providers). Talk in general categories instead.',
-      '- For complex situations (debt collections, bereavement, eviction risk, suspected fraud, serious mental health concerns), signpost to human support: the in-app "Talk to a money coach" route, StepChange, Citizens Advice, or Samaritans.',
-      '- Reference Jordan\'s actual data below where helpful to personalise advice.',
-      '- Stay concise — aim for under 150 words unless the question demands more.',
-      '- Be warm and supportive. Hospitality work has volatile pay; respect that.',
-      '',
-      '## Jordan\'s financial snapshot (current as of this turn)',
+      "Auto-save is a brilliant way to build a buffer without thinking about it. It moves a percentage of every transfer straight into a savings pot.",
     ];
-
-    if (balance) {
-      lines.push(
-        `- Pay period: ${formatDate(balance.payPeriodStart)} – ${formatDate(balance.payPeriodEnd)}, paid ${formatDate(balance.nextPayday)}`,
-        `- Earned so far this period: £${balance.earnedAmount.toFixed(2)}`,
-        `- Accessed via Fourth Pay so far: £${balance.accessedAmount.toFixed(2)}`,
-        `- Available to access right now: £${balance.availableAmount.toFixed(2)}`,
-        `- Employer covers the instant transfer fee: ${balance.employerSubsidy ? 'yes' : 'no'}`,
-      );
-      if (balance.monthlyLimitRemaining !== null) {
+    if (sc) {
+      if (sc.autoSaveEnabled) {
         lines.push(
-          `- Monthly self-imposed limit remaining: £${balance.monthlyLimitRemaining.toFixed(2)}`,
+          `Yours is already on at ${sc.autoSavePercent}% — so your next transfer automatically tops up your pot.`,
+        );
+      } else {
+        const example =
+          b && b.availableAmount > 0
+            ? ` On your current ${gbp(b.availableAmount)} available, that'd save about ${gbp(Math.round(b.availableAmount * 0.1 * 100) / 100)} next time.`
+            : '';
+        lines.push(
+          `It's currently off. Head to Self-controls to turn it on — even 10% adds up fast.${example}`,
         );
       }
     } else {
-      lines.push('- (Balance data unavailable this turn)');
+      lines.push('You can turn it on in Self-controls.');
     }
+    return lines.join(' ');
+  }
 
-    if (earnings) {
-      const totalHours = earnings.shifts.reduce((s, sh) => s + sh.hours, 0);
+  private replyLimit(ctx: CoachContext): string {
+    const sc = ctx.selfControls;
+    const b = ctx.balance;
+    if (sc && sc.monthlyLimitEnabled && sc.monthlyLimitAmount && b) {
+      const used = b.accessedAmount;
+      const cap = sc.monthlyLimitAmount;
+      const remaining = Math.max(0, cap - used);
+      const pct = Math.round((used / cap) * 100);
+      return [
+        `You've used ${gbp(used)} of your ${gbp(cap)} monthly limit (${pct}%), so ${gbp(remaining)} is still available before you hit the cap.`,
+        'Your limits are yours to set — you can adjust them anytime in Self-controls. Lower caps help you stay in control; higher caps give more flexibility.',
+      ].join(' ');
+    }
+    return 'Your monthly limit is off right now. Turning one on in Self-controls is a good way to stay in control of how often you dip into earned pay.';
+  }
+
+  private replyPayday(ctx: CoachContext): string {
+    const b = ctx.balance;
+    if (!b) {
+      return "I can't see your pay schedule right now — check the home screen for your next payday.";
+    }
+    const days = Math.max(
+      0,
+      Math.ceil((b.nextPayday.getTime() - Date.now()) / 86400000),
+    );
+    return [
+      `Your next payday is ${formatLongDate(b.nextPayday)} — ${days === 0 ? 'today' : `${days} day${days === 1 ? '' : 's'} away`}.`,
+      `That covers the pay period ${formatShortDate(b.payPeriodStart)} – ${formatShortDate(b.payPeriodEnd)}.`,
+      `You've earned ${gbp(b.earnedAmount)} so far this period.`,
+    ].join(' ');
+  }
+
+  private replyEarn(ctx: CoachContext): string {
+    const e = ctx.earnings;
+    const b = ctx.balance;
+    if (!e) {
+      return "I can't see your shifts right now — check the Earnings tracker for the full breakdown.";
+    }
+    const totalHours = e.shifts.reduce((s, sh) => s + sh.hours, 0);
+    const elementCounts = new Map<string, { hours: number; value: number }>();
+    for (const s of e.shifts) {
+      const prev = elementCounts.get(s.elementName) ?? { hours: 0, value: 0 };
+      prev.hours += s.hours;
+      prev.value += s.value;
+      elementCounts.set(s.elementName, prev);
+    }
+    const breakdown = Array.from(elementCounts.entries())
+      .sort((a, b) => b[1].value - a[1].value)
+      .map(([name, v]) => `${name} ${gbp(v.value)} (${v.hours.toFixed(1)}h)`)
+      .join(', ');
+    const lines = [
+      `You've worked ${e.shifts.length} shift${e.shifts.length === 1 ? '' : 's'} totalling ${totalHours.toFixed(1)} hours this pay period, earning ${gbp(e.summary.grossEarned)} gross.`,
+      `Breakdown: ${breakdown}.`,
+    ];
+    if (b) {
       lines.push(
-        `- Shifts worked this period: ${earnings.shifts.length} (${totalHours.toFixed(1)} hours total)`,
+        `Of that, ${gbp(b.availableAmount)} is available to access early right now.`,
       );
     }
+    return lines.join(' ');
+  }
 
-    if (selfControls) {
-      lines.push(
-        '',
-        '## Jordan\'s self-imposed access controls',
-        `- Monthly cap: ${selfControls.monthlyLimitEnabled ? `£${selfControls.monthlyLimitAmount ?? 0}` : 'off'}`,
-        `- Per-transfer cap: ${selfControls.perTransferLimitEnabled ? `£${selfControls.perTransferLimitAmount ?? 0}` : 'off'}`,
-        `- Cooling-off between transfers: ${selfControls.coolingOffEnabled ? `${selfControls.coolingOffHours}h` : 'off'}`,
-        `- Auto-save on access: ${selfControls.autoSaveEnabled ? `${selfControls.autoSavePercent}% of every transfer` : 'off'}`,
-        `- Wellbeing nudges: ${selfControls.wellbeingNudgesEnabled ? 'on' : 'off'}`,
-      );
+  private replyDefault(ctx: CoachContext): string {
+    const b = ctx.balance;
+    if (b) {
+      return [
+        `Hi Jordan! I can see your finances in one place and I'm here to help.`,
+        `You've got ${gbp(b.availableAmount)} available right now, with your next payday on ${formatLongDate(b.nextPayday)}.`,
+        'Ask me about your earnings, monthly limits, saving on every transfer, or when you next get paid — I can break any of it down for you.',
+      ].join(' ');
     }
-
-    return lines.join('\n');
+    return [
+      'Hi Jordan! I can see your finances in one place and I am here to help.',
+      'Ask me about your earnings, monthly limits, auto-save, or your next payday — I can break any of it down for you.',
+    ].join(' ');
   }
 }
 
-function formatDate(d: Date): string {
+function gbp(amount: number): string {
+  return '£' + (Number.isInteger(amount) ? amount.toString() : amount.toFixed(2));
+}
+
+function formatLongDate(d: Date): string {
   return d.toLocaleDateString('en-GB', {
+    weekday: 'long',
     day: 'numeric',
-    month: 'short',
+    month: 'long',
     year: 'numeric',
   });
+}
+
+function formatShortDate(d: Date): string {
+  return d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
 }
