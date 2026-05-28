@@ -1,4 +1,4 @@
-import { Module, type Provider } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import {
   InMemoryNotificationsStore,
   NOTIFICATIONS_STORE,
@@ -10,24 +10,14 @@ import {
 import { NotificationsController } from './notifications.controller';
 import { NotificationsService } from './notifications.service';
 
-const devProviders: Provider[] =
-  process.env.NODE_ENV === 'production'
-    ? []
-    : [
-        InMemoryNotificationsStore,
-        {
-          provide: NOTIFICATIONS_STORE,
-          useExisting: InMemoryNotificationsStore,
-        },
-        {
-          provide: EMPLOYEE_ACCOUNT_READER,
-          useClass: MockEmployeeAccountReader,
-        },
-      ];
-
 @Module({
   controllers: [NotificationsController],
-  providers: [NotificationsService, ...devProviders],
+  providers: [
+    NotificationsService,
+    InMemoryNotificationsStore,
+    { provide: NOTIFICATIONS_STORE, useExisting: InMemoryNotificationsStore },
+    { provide: EMPLOYEE_ACCOUNT_READER, useClass: MockEmployeeAccountReader },
+  ],
   exports: [NotificationsService],
 })
 export class NotificationsModule {}

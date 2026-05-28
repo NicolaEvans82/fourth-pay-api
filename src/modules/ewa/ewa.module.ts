@@ -1,4 +1,4 @@
-import { Module, type Provider } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import {
   EWA_TRANSFER_READER,
   EWA_TRANSFER_WRITER,
@@ -30,27 +30,7 @@ import { EarningsService } from './earnings.service';
 import { EwaController } from './ewa.controller';
 import { TransferService } from './transfer.service';
 
-// Dev/test in-memory bindings. PG_POOL + concrete Pg impls land via the
-// deferred DatabaseModule; prod boot fails today, by design.
-const devReaderWriterProviders: Provider[] =
-  process.env.NODE_ENV === 'production'
-    ? []
-    : [
-        InMemoryEwaTransferStore,
-        { provide: EWA_TRANSFER_READER, useExisting: InMemoryEwaTransferStore },
-        { provide: EWA_TRANSFER_WRITER, useExisting: InMemoryEwaTransferStore },
-        {
-          provide: EMPLOYEE_ACCOUNT_READER,
-          useClass: MockEmployeeAccountReader,
-        },
-        { provide: AUDIT_LOG_WRITER, useClass: InMemoryAuditLogWriter },
-        {
-          provide: EWA_DEDUCTION_QUEUE_WRITER,
-          useClass: InMemoryEwaDeductionQueueWriter,
-        },
-        { provide: AUTO_SAVE_SINK, useClass: InMemoryAutoSaveSink },
-      ];
-
+// In-memory bindings used in every environment until DatabaseModule lands.
 @Module({
   imports: [WfmModule, HrModule, PayrollModule, SelfControlsModule],
   controllers: [EwaController, EarningsController],
@@ -58,7 +38,16 @@ const devReaderWriterProviders: Provider[] =
     BalanceService,
     TransferService,
     EarningsService,
-    ...devReaderWriterProviders,
+    InMemoryEwaTransferStore,
+    { provide: EWA_TRANSFER_READER, useExisting: InMemoryEwaTransferStore },
+    { provide: EWA_TRANSFER_WRITER, useExisting: InMemoryEwaTransferStore },
+    { provide: EMPLOYEE_ACCOUNT_READER, useClass: MockEmployeeAccountReader },
+    { provide: AUDIT_LOG_WRITER, useClass: InMemoryAuditLogWriter },
+    {
+      provide: EWA_DEDUCTION_QUEUE_WRITER,
+      useClass: InMemoryEwaDeductionQueueWriter,
+    },
+    { provide: AUTO_SAVE_SINK, useClass: InMemoryAutoSaveSink },
   ],
 })
 export class EwaModule {}
