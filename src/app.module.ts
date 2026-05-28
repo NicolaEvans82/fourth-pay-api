@@ -13,6 +13,7 @@ import { EmployerModule } from './modules/employer/employer.module';
 import { EwaModule } from './modules/ewa/ewa.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PayslipModule } from './modules/payslip/payslip.module';
+import { PensionModule } from './modules/pension/pension.module';
 import { SavingsModule } from './modules/savings/savings.module';
 import { SelfControlsModule } from './modules/self-controls/self-controls.module';
 import { ShiftsModule } from './modules/shifts/shifts.module';
@@ -35,6 +36,7 @@ const baseModules = [
   WellbeingModule,
   BenefitsModule,
   DiscountsModule,
+  PensionModule,
 ];
 
 const featureModules = usePg() ? baseModules : [...baseModules, DemoModule];

@@ -22,6 +22,11 @@ export interface EmployerConfig {
   payrollLockdownStartDay: number;
   payrollLockdownEndDay: number;
   perks?: EmployerPerk[];
+  // Employer-side pension contribution rate, percent of gross. UK
+  // statutory minimum for auto-enrolled employees is 3%. PensionService
+  // reads this; production should add a `pension_employer_contribution_percent`
+  // column to employer_config (the Pg reader currently returns undefined).
+  pensionEmployerContributionPercent?: number;
 }
 
 export interface EmployerConfigReader {

@@ -945,39 +945,17 @@ input[type=range]{width:100%;accent-color:var(--teal);}
     <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">My pension</div></div></div>
     <div class="pension-body">
       <div class="pension-hero">
-        <div class="pension-label">Total pension pot</div>
-        <div class="pension-val">£14,820.00</div>
-        <div class="pension-sub">Across 2 pots · Growing at ~6% pa</div>
+        <div class="pension-label">Projected pot at age 67</div>
+        <div class="pension-val" id="pension-projected">—</div>
+        <div class="pension-sub" id="pension-status-sub">—</div>
       </div>
-      <div class="section-title" style="padding:0 0 10px;font-size:13px;">Your pots</div>
-      <div class="pension-pots">
-        <div class="pension-pot">
-          <div class="pension-pot-header">
-            <div><div class="pension-pot-name">Current employer</div><div class="pension-pot-provider">The Crown Pub Group · Nest</div></div>
-            <div style="text-align:right;"><div class="pension-pot-val">£3,240.00</div><div class="pension-pot-growth">+£120 this month</div></div>
-          </div>
-          <div class="loan-row"><span class="loan-label">Employee contribution</span><span class="loan-val">5% (£62/mo)</span></div>
-          <div class="loan-row"><span class="loan-label">Employer contribution</span><span class="loan-val">3% (£37/mo)</span></div>
-          <div class="loan-row" style="border:none;"><span class="loan-label">Fund</span><span class="loan-val">Nest Retirement Date 2055</span></div>
-        </div>
-        <div class="pension-pot">
-          <div class="pension-pot-header">
-            <div><div class="pension-pot-name">Previous employer</div><div class="pension-pot-provider">Mitchells & Butlers · Aviva</div></div>
-            <div style="text-align:right;"><div class="pension-pot-val">£11,580.00</div><div class="pension-pot-growth">+£580 this year</div></div>
-          </div>
-          <div class="loan-row"><span class="loan-label">Status</span><span class="loan-val" style="color:var(--orange);">Deferred · Consolidate?</span></div>
-          <div class="loan-row" style="border:none;"><span class="loan-label">Found by</span><span class="loan-val">Fourth Pay pension finder</span></div>
-        </div>
+      <div class="section-title" style="padding:0 0 10px;font-size:13px;">Current monthly contribution</div>
+      <div class="pension-pot" id="pension-current-card">
+        <div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px;">Loading…</div>
       </div>
-      <div class="section-title" style="padding:0 0 10px;font-size:13px;">Retirement forecast</div>
-      <div class="forecast-card">
-        <div class="forecast-row"><span class="forecast-label">Estimated retirement age</span><span class="forecast-val">67 (2056)</span></div>
-        <div class="forecast-row"><span class="forecast-label">Projected pot at retirement</span><span class="forecast-val" style="color:var(--teal);">£89,400</span></div>
-        <div class="forecast-row"><span class="forecast-label">Estimated monthly income</span><span class="forecast-val">£620/mo</span></div>
-        <div class="forecast-row"><span class="forecast-label">State pension (estimated)</span><span class="forecast-val">£221/wk</span></div>
-      </div>
-      <button class="btn btn-teal" style="margin-bottom:8px;"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M3 7l5 5l-5 5"/><path d="M21 12h-13"/><path d="M14 7l7 5l-7 5"/></svg> Consolidate Aviva pot</button>
-      <button class="btn btn-ghost"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="10" cy="10" r="7"/><path d="M21 21l-6 -6"/></svg> Find more lost pensions</button>
+      <div class="section-title" style="padding:14px 0 10px;font-size:13px;">If you increased your contribution</div>
+      <div id="pension-scenarios" style="display:flex;flex-direction:column;gap:8px;margin-bottom:18px;"></div>
+      <div id="pension-lost-pension"></div>
       <div style="height:16px;"></div>
     </div>
   </div>
@@ -1724,6 +1702,7 @@ function switchPersona(key){
   loadWellbeing();
   loadBenefits();
   loadDiscounts();
+  loadPension();
 }
 
 function fmtGbp(n){
@@ -2111,6 +2090,77 @@ async function loadDiscounts(){
   }
 }
 
+const PENSION_STATUS_COPY = {
+  enrolled:         { line: 'Enrolled — you and your employer are contributing', color: 'var(--teal-text)' },
+  eligible:         { line: 'You meet the auto-enrolment criteria — opt in to start contributing', color: 'var(--orange-text)' },
+  below_threshold:  { line: 'Below the £10,000 auto-enrolment threshold — you can opt in voluntarily', color: 'var(--orange-text)' },
+  opted_out:        { line: 'Currently opted out — opt back in to resume contributions', color: 'var(--orange-text)' },
+};
+
+function renderPensionCurrent(d){
+  const emp = d.currentContributionPercent;
+  const er = d.employerContributionPercent;
+  const enrolled = d.autoEnrolmentStatus === 'enrolled';
+  return '<div class="pension-pot-header">'
+    + '<div><div class="pension-pot-name">' + (enrolled ? 'You + Crown Pub Group' : 'Not yet contributing') + '</div>'
+    + '<div class="pension-pot-provider">Reference gross £' + d.detail.referenceGrossPay.toFixed(2) + '/period</div></div>'
+    + '<div style="text-align:right;"><div class="pension-pot-val">' + fmtGbpInt(d.totalMonthlyContribution) + '</div><div class="pension-pot-growth">per month</div></div>'
+  + '</div>'
+  + '<div class="loan-row"><span class="loan-label">You contribute</span><span class="loan-val">' + emp + '% · ' + fmtGbpInt(d.detail.referenceGrossPay * (emp / 100)) + '/mo</span></div>'
+  + '<div class="loan-row" style="border:none;"><span class="loan-label">Employer contributes</span><span class="loan-val">' + er + '% · ' + (enrolled ? fmtGbpInt(d.detail.referenceGrossPay * (er / 100)) + '/mo' : 'starts when you enrol') + '</span></div>';
+}
+
+function renderScenario(s, baselinePot){
+  // potUplift compares to the baseline projection (could be 0 for
+  // non-enrolled), so the headline number for new starters is
+  // "your pot would be £X" rather than "+£0 uplift".
+  const headline = baselinePot > 0
+    ? '+ ' + fmtGbpInt(s.potUplift) + ' more at retirement'
+    : fmtGbpInt(s.projectedPot) + ' projected pot';
+  return '<div class="pension-pot" style="padding:14px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--text-1);">Contribute ' + s.newEmployeePercent + '%</div>'
+      + '<div style="font-size:11px;font-weight:700;color:var(--text-3);">+ ' + fmtGbpInt(s.extraMonthlyCost) + '/mo</div>'
+    + '</div>'
+    + '<div style="font-size:13px;font-weight:800;color:var(--teal-text);">' + escHtml(headline) + '</div>'
+  + '</div>';
+}
+
+function renderLostPensionNudge(d){
+  if (!d.lostPensionNudge) return '';
+  return '<div style="background:var(--teal-tint);border:1px solid var(--teal-border);border-radius:var(--r-md);padding:14px 16px;display:flex;gap:12px;align-items:flex-start;color:var(--teal-text);font-size:12px;line-height:1.5;">'
+    + '<span style="font-size:18px;flex-shrink:0;">🔍</span>'
+    + '<div><strong style="color:var(--text-1);">Find lost pension pots</strong><br>'
+    + 'You\'ve been employed long enough to likely have pension pots at previous employers. The government can help you track them down free.<br>'
+    + '<a href="' + escHtml(d.governmentTracingUrl) + '" target="_blank" rel="noopener" style="color:var(--teal-text);font-weight:700;text-decoration:underline;">Open the GOV.UK pension tracing service →</a></div>'
+  + '</div>';
+}
+
+async function loadPension(){
+  try {
+    const res = await fetch(API_BASE + '/api/v1/pension', { headers: API_HEADERS });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('pension-projected', fmtGbpInt(d.projectedPot));
+    const statusCopy = PENSION_STATUS_COPY[d.autoEnrolmentStatus]
+      || { line: d.autoEnrolmentStatus, color: 'var(--text-3)' };
+    const sub = document.getElementById('pension-status-sub');
+    if (sub) {
+      sub.textContent = statusCopy.line + ' · ' + d.detail.yearsToRetirement + ' yrs to age 67';
+      sub.style.color = 'rgba(255,255,255,0.6)';
+    }
+    const card = document.getElementById('pension-current-card');
+    if (card) card.innerHTML = renderPensionCurrent(d);
+    const scenarios = document.getElementById('pension-scenarios');
+    if (scenarios) scenarios.innerHTML = (d.increaseScenarios || []).map((s) => renderScenario(s, d.projectedPot)).join('');
+    const nudge = document.getElementById('pension-lost-pension');
+    if (nudge) nudge.innerHTML = renderLostPensionNudge(d);
+  } catch (err) {
+    console.warn('pension fetch failed:', err);
+  }
+}
+
 function escHtml(s){
   return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
@@ -2365,6 +2415,7 @@ loadBudget();
 loadWellbeing();
 loadBenefits();
 loadDiscounts();
+loadPension();
 </script>
 </div></body>
 </html>

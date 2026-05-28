@@ -29,8 +29,11 @@ const JORDAN_PAYSLIPS: PayslipDetail[] = [
     payPeriodStart: new Date('2026-02-01T00:00:00Z'),
     paymentDate: new Date('2026-02-28T00:00:00Z'),
     grossPay: 1500,
-    totalDeductions: 300,
-    netPay: 1200,
+    // 200 + 100 + 45 (pension @ 3% of £1500) = 345 — gross 1500, net 1155.
+    // Keeping the original net £1200 would require tax/NI tweaks; the
+    // honest move is to recompute net from the new deductions sum.
+    totalDeductions: 345,
+    netPay: 1155,
     elements: [
       {
         elementName: 'Basic Hours',
@@ -60,14 +63,26 @@ const JORDAN_PAYSLIPS: PayslipDetail[] = [
         value: -100,
         isDeduction: true,
       },
+      {
+        // 3% employee pension contribution — auto-enrolled per
+        // UK Pensions Act 2008. Crown Pub Group also contributes 3%
+        // (employer-side, tracked in employer_config.perks vicinity
+        // / pensionEmployerContributionPercent).
+        elementName: 'Pension',
+        units: null,
+        rate: null,
+        value: -45,
+        isDeduction: true,
+      },
     ],
   },
   {
     payPeriodStart: new Date('2026-03-01T00:00:00Z'),
     paymentDate: new Date('2026-03-31T00:00:00Z'),
     grossPay: 1600,
-    totalDeductions: 380,
-    netPay: 1220,
+    // 220 + 110 + 50 + 48 (pension @ 3% of £1600) = 428 — net 1172.
+    totalDeductions: 428,
+    netPay: 1172,
     elements: [
       {
         elementName: 'Basic Hours',
@@ -102,6 +117,13 @@ const JORDAN_PAYSLIPS: PayslipDetail[] = [
         units: null,
         rate: null,
         value: -50,
+        isDeduction: true,
+      },
+      {
+        elementName: 'Pension',
+        units: null,
+        rate: null,
+        value: -48,
         isDeduction: true,
       },
     ],

@@ -18,6 +18,10 @@ const CROWN_PUB_GROUP_CONFIG: EmployerConfig = {
   enabled: true,
   payrollLockdownStartDay: 27,
   payrollLockdownEndDay: 31,
+  // UK statutory minimum employer contribution for auto-enrolled
+  // employees. The full minimum is 8% total (3% employer + 5%
+  // employee); Crown Pub Group sticks to the minimum.
+  pensionEmployerContributionPercent: 3,
   // Employer-specific perks shown in the Discounts screen. Production
   // should move this to a JSONB column on employer_config (not yet
   // migrated) — for the demo this lives on the mock config object.

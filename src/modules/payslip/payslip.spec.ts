@@ -40,10 +40,11 @@ describe('payslip (Spec 4) — acceptance criteria', () => {
       fourthEmployeeId: JORDAN_HARRIS_FAID,
       payPeriodStart: MARCH_PAYSLIP_START,
     });
-    // Mar gross 1600, deductions 220 + 110 + 50 = 380, net 1220.
-    expect(detail.totalDeductions).toBe(380);
+    // Mar gross 1600, deductions 220 + 110 + 50 + 48 (3% pension) = 428,
+    // net 1172.
+    expect(detail.totalDeductions).toBe(428);
     expect(detail.netPay).toBe(detail.grossPay - detail.totalDeductions);
-    expect(detail.netPay).toBe(1220);
+    expect(detail.netPay).toBe(1172);
   });
 
   it('ytd gross sums correctly across periods', async () => {
@@ -55,7 +56,7 @@ describe('payslip (Spec 4) — acceptance criteria', () => {
     });
     // Feb (1500) + Mar (1600) = 3100, both in tax year 2025/26.
     expect(detail.ytd.grossYtd).toBe(3100);
-    expect(detail.ytd.netYtd).toBe(2420); // 1200 + 1220
+    expect(detail.ytd.netYtd).toBe(2327); // 1155 + 1172 (after 3% pension)
   });
 
   it('pdf endpoint returns valid pdf binary', async () => {
