@@ -14,10 +14,23 @@ export interface ShiftRecord {
   rate: number;
   value: number;
   submittedToPayroll: boolean;
+  // Optional metadata — populated by the mock for prototype display; the
+  // production adapter maps them from Department/JobDescription/SiteDescription
+  // if present on the source row.
+  site?: string;
+  role?: string;
 }
 
 export interface WfmAdapter {
   getConfirmedShifts(input: {
+    fourthEmployeeId: string;
+    from: Date;
+    to: Date;
+  }): Promise<ShiftRecord[]>;
+  // Forward-looking shifts (rostered but not yet approved hours). Kept
+  // distinct from confirmed shifts so they do NOT inflate the earnings
+  // calc, which counts only confirmed/approved hours.
+  getScheduledShifts(input: {
     fourthEmployeeId: string;
     from: Date;
     to: Date;
@@ -79,6 +92,17 @@ export class FourthWfmAdapter implements WfmAdapter {
     const rows = (await response.json()) as ApprovedHoursApiRow[];
     return rows.map(toShiftRecord);
   }
+
+  async getScheduledShifts(_input: {
+    fourthEmployeeId: string;
+    from: Date;
+    to: Date;
+  }): Promise<ShiftRecord[]> {
+    // TODO: wire up the Fourth WFM rostered-shifts endpoint with Ali
+    // Barlow — Approved Hours only returns worked shifts. For now the
+    // production adapter returns no rostered shifts.
+    return [];
+  }
 }
 
 function toShiftRecord(row: ApprovedHoursApiRow): ShiftRecord {
@@ -90,6 +114,8 @@ function toShiftRecord(row: ApprovedHoursApiRow): ShiftRecord {
     rate: row.Rate,
     value: row.Value,
     submittedToPayroll: row.SubmittedToPayroll === 'Yes',
+    site: row.SiteDescription,
+    role: row.JobDescription,
   };
 }
 

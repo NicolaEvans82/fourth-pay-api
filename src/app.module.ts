@@ -7,6 +7,7 @@ import { EwaModule } from './modules/ewa/ewa.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PayslipModule } from './modules/payslip/payslip.module';
 import { SelfControlsModule } from './modules/self-controls/self-controls.module';
+import { ShiftsModule } from './modules/shifts/shifts.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SelfControlsModule } from './modules/self-controls/self-controls.module
     NotificationsModule,
     CoachModule,
     EmployerModule,
+    ShiftsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

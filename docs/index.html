@@ -743,6 +743,32 @@ input[type=range]{width:100%;accent-color:var(--teal);}
     </div>
   </div>
 
+  <!-- ═══ SHIFTS (bottom-nav primary) ═══ -->
+  <div class="screen" id="screen-shifts">
+    <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Shifts</div></div></div>
+    <div class="track-body">
+      <div class="period-card">
+        <div class="period-top"><div class="section-title" style="font-size:13px;">This week</div><div class="badge badge-teal">In progress</div></div>
+        <div id="shifts-week-dates" class="period-dates">—</div>
+        <div class="stats-grid">
+          <div class="stat"><div id="shifts-week-count" class="stat-val">—</div><div class="stat-label">Shifts</div></div>
+          <div class="stat"><div id="shifts-week-hours" class="stat-val">—</div><div class="stat-label">Hours</div></div>
+          <div class="stat"><div id="shifts-week-earnings" class="stat-val" style="color:var(--teal);">—</div><div class="stat-label">Earnings</div></div>
+        </div>
+      </div>
+
+      <div class="section-title" style="padding:0 0 10px;font-size:13px;">Upcoming · next 7 days</div>
+      <div id="shifts-upcoming-list">
+        <div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px;">Loading…</div>
+      </div>
+
+      <div class="section-title" style="padding:14px 0 10px;font-size:13px;">Recent · last 14 days</div>
+      <div id="shifts-recent-list">
+        <div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px;">Loading…</div>
+      </div>
+    </div>
+  </div>
+
   <!-- ═══ SPENDING / OPEN BANKING ═══ -->
   <div class="screen" id="screen-spend">
     <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Spending tracker</div></div></div>
@@ -1369,7 +1395,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
   <!-- BOTTOM NAV - matches Employee App -->
   <div class="bottom-nav" id="bottom-nav">
     <div class="nav-item active" id="nav-home" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M5 12l-2 0l9 -9l9 9l-2 0"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2 -2v-7"/><path d="M9 21v-6a2 2 0 0 1 2 -2h2a2 2 0 0 1 2 2v6"/></svg><span>Home</span></div>
-    <div class="nav-item" id="nav-track" onclick="go('track')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/><path d="M11 15h1"/><path d="M12 15v3"/></svg><span>Shifts</span></div>
+    <div class="nav-item" id="nav-shifts" onclick="go('shifts')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/><path d="M11 15h1"/><path d="M12 15v3"/></svg><span>Shifts</span></div>
     <div class="nav-item" id="nav-stream" onclick="go('stream')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg><span>Pay</span></div>
     <div class="nav-item" id="nav-save" onclick="go('save')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><path d="M14.8 9a2 2 0 0 0 -1.8 -1h-2a2 2 0 1 0 0 4h2a2 2 0 1 0 0 4h-2a2 2 0 0 1 -1.8 -1"/><path d="M12 7v10"/></svg><span>Money</span></div>
     <div class="nav-item" id="nav-wellbeing" onclick="go('wellbeing')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><rect x="4" y="4" width="6" height="6" rx="1"/><rect x="14" y="4" width="6" height="6" rx="1"/><rect x="4" y="14" width="6" height="6" rx="1"/><rect x="14" y="14" width="6" height="6" rx="1"/></svg><span>More</span></div>
@@ -1378,7 +1404,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
 
 <script>
 const noNav=['confirm','payslip','controls','notifications','profile','coach','pension','benefits','loans','discounts','spend','budget','learn'];
-const navMap={home:'home',track:'track',stream:'stream',confirm:'stream',save:'save',wellbeing:'wellbeing',spend:'home',discounts:'save',payslip:'home',controls:'home',notifications:'home',profile:'home',coach:'wellbeing',pension:'wellbeing',benefits:'wellbeing',loans:'save',budget:'home',learn:'wellbeing'};
+const navMap={home:'home',shifts:'shifts',track:'shifts',stream:'stream',confirm:'stream',save:'save',wellbeing:'wellbeing',spend:'home',discounts:'save',payslip:'home',controls:'home',notifications:'home',profile:'home',coach:'wellbeing',pension:'wellbeing',benefits:'wellbeing',loans:'save',budget:'home',learn:'wellbeing'};
 
 function go(name){
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
@@ -1726,6 +1752,7 @@ function switchPersona(key){
   loadPayslips();
   loadNotifications();
   loadSelfControls();
+  loadShifts();
 }
 
 function fmtGbp(n){
@@ -1826,6 +1853,77 @@ async function loadTransfers(){
     }
   } catch (err) {
     console.warn('transfers fetch failed:', err);
+  }
+}
+
+const SHIFT_DAY_ABBR = ['SUN','MON','TUE','WED','THU','FRI','SAT'];
+function shiftDayAbbr(iso){
+  // iso is YYYY-MM-DD; pin to noon UTC to avoid TZ edge cases.
+  return SHIFT_DAY_ABBR[new Date(iso + 'T12:00:00Z').getUTCDay()];
+}
+function shiftDayNum(iso){ return parseInt(iso.slice(8, 10), 10); }
+
+function renderUpcomingShift(s){
+  const escape = (str) => escHtml(str ?? '');
+  const subline = (s.role ? escape(s.role) : 'Shift')
+    + (s.site ? ' · ' + escape(s.site) : '');
+  return '<div class="shift-item">'
+    + '<div class="shift-left">'
+      + '<div class="shift-dot"><div class="shift-day">' + shiftDayAbbr(s.date) + '</div><div class="shift-num">' + shiftDayNum(s.date) + '</div></div>'
+      + '<div><div class="shift-name">' + subline + '</div>'
+      + '<div class="shift-hrs">' + escape(s.startTime) + '–' + escape(s.endTime) + ' · ' + s.hours + 'h</div></div>'
+    + '</div>'
+    + '<div class="shift-earn" style="font-size:11px;font-weight:700;color:var(--teal-text);text-transform:uppercase;letter-spacing:0.4px;">Scheduled</div>'
+  + '</div>';
+}
+
+function renderRecentShift(s){
+  const escape = (str) => escHtml(str ?? '');
+  const subline = (s.elementType === 'Basic Hours' ? 'Basic Hours' : escape(s.elementType))
+    + (s.site ? ' · ' + escape(s.site) : '');
+  return '<div class="shift-item">'
+    + '<div class="shift-left">'
+      + '<div class="shift-dot"><div class="shift-day">' + shiftDayAbbr(s.date) + '</div><div class="shift-num">' + shiftDayNum(s.date) + '</div></div>'
+      + '<div><div class="shift-name">' + subline + '</div>'
+      + '<div class="shift-hrs">' + s.hours + 'h worked</div></div>'
+    + '</div>'
+    + '<div class="shift-earn">' + fmtGbp(s.earnings) + '</div>'
+  + '</div>';
+}
+
+function fmtShortDate(iso){
+  const d = new Date(iso + 'T12:00:00Z');
+  return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()];
+}
+
+async function loadShifts(){
+  try {
+    const res = await fetch(API_BASE + '/api/v1/shifts', { headers: API_HEADERS });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    const ws = data.weeklySummary;
+    if (ws) {
+      const yr = new Date(ws.weekEnd + 'T12:00:00Z').getUTCFullYear();
+      set('shifts-week-dates', fmtShortDate(ws.weekStart) + ' – ' + fmtShortDate(ws.weekEnd) + ' ' + yr);
+      set('shifts-week-count', ws.shiftCount);
+      set('shifts-week-hours', ws.totalHours + 'h');
+      set('shifts-week-earnings', fmtGbp(ws.totalEarnings));
+    }
+    const up = document.getElementById('shifts-upcoming-list');
+    if (up) {
+      up.innerHTML = (data.upcoming && data.upcoming.length)
+        ? data.upcoming.map(renderUpcomingShift).join('')
+        : '<div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px;">No shifts scheduled in the next 7 days</div>';
+    }
+    const re = document.getElementById('shifts-recent-list');
+    if (re) {
+      re.innerHTML = (data.recent && data.recent.length)
+        ? data.recent.map(renderRecentShift).join('')
+        : '<div style="padding:24px;text-align:center;color:var(--text-3);font-size:12px;">No shifts in the last 14 days</div>';
+    }
+  } catch (err) {
+    console.warn('shifts fetch failed:', err);
   }
 }
 
@@ -2078,6 +2176,7 @@ loadTransfers();
 loadPayslips();
 loadNotifications();
 loadSelfControls();
+loadShifts();
 </script>
 </div></body>
 </html>
