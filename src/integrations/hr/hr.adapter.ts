@@ -107,9 +107,24 @@ export class FourthHrAdapter implements HrAdapter {
     return { eligible: true, ...base };
   }
 
+  // Base URL + auth header were confirmed by Ali Barlow on 2026-05-28
+  // (see headers() below + docs/05-integration-contracts.md). The
+  // employee + employment-records URL paths are still TODO — Ali has
+  // not yet confirmed those specific endpoint names. The pattern
+  // /Organisations/{OrganisationID}/... is the established shape and a
+  // safe placeholder.
+  //
+  // NOTE: this.config.baseUrl resolves to 10.12.6.10:85 in production,
+  // which is internal to Fourth's network. Outside Fourth infrastructure
+  // (e.g. the Railway demo) MockHrAdapter is used instead.
+
   private async fetchEmployee(faid: string): Promise<EmployeesApiRow | null> {
-    // TODO: confirm path and query-param names with Ali Barlow (deployment-config gap).
-    const url = new URL('/peoplesystem/employees', this.config.baseUrl);
+    // TODO: confirm `/Organisations/{orgId}/Employees` path + query
+    // params with Ali Barlow.
+    const url = new URL(
+      `/Organisations/${encodeURIComponent(this.config.orgId)}/Employees`,
+      this.config.baseUrl,
+    );
     url.searchParams.set('FAID', faid);
 
     const response = await fetch(url, { headers: this.headers() });
@@ -126,9 +141,13 @@ export class FourthHrAdapter implements HrAdapter {
   private async fetchEmployment(
     faid: string,
   ): Promise<EmploymentRecordApiRow[]> {
-    // TODO: confirm path AND response shape with Ali Barlow — doc 5 notes
-    // this endpoint has no structured fields in the API Explorer.
-    const url = new URL('/peoplesystem/employmentrecords', this.config.baseUrl);
+    // TODO: confirm `/Organisations/{orgId}/EmploymentRecords` path +
+    // response shape with Ali Barlow — doc 5 notes this endpoint has
+    // no structured fields in the API Explorer.
+    const url = new URL(
+      `/Organisations/${encodeURIComponent(this.config.orgId)}/EmploymentRecords`,
+      this.config.baseUrl,
+    );
     url.searchParams.set('FAID', faid);
 
     const response = await fetch(url, { headers: this.headers() });
@@ -154,10 +173,11 @@ export class FourthHrAdapter implements HrAdapter {
     return config;
   }
 
+  // Confirmed by Ali Barlow on 2026-05-28: single X-Fourth-Org header
+  // carrying the OrganisationID / GroupID. No separate token.
   private headers(): Record<string, string> {
     return {
-      'X-Fourth-Org-Token': this.config.orgToken,
-      'X-Fourth-Org-Id': this.config.orgId,
+      'X-Fourth-Org': this.config.orgId,
       Accept: 'application/json',
     };
   }

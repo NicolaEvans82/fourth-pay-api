@@ -115,6 +115,24 @@ PeriodEndDate       Date      Period end
 **Purpose:** Hours approved for payment — this is the source for earnings calculation  
 **Fourth Pay use:** Called by WFMAdapter.getConfirmedShifts() — the input to the earnings formula  
 
+**Confirmed by Ali Barlow on 2026-05-28:**
+```
+URL          GET http://10.12.6.10:85/Organisations/{OrganisationID}/Employees/ApprovedHours
+Query params Start, Duration, DateFrom, DateTo, Delta=False
+Auth         X-Fourth-Org: <OrganisationID/GroupID>
+```
+
+> ⚠️ `10.12.6.10:85` resolves only inside Fourth's internal network.
+> The Railway demo cannot reach it and routes via `MockWfmAdapter`
+> instead. This adapter only runs when the Fourth Pay API is deployed
+> inside Fourth infrastructure.
+
+> 📝 The endpoint has no employee-scoping query param — it returns
+> approved hours for every employee in the org. Response rows carry
+> `EmployeeID` (numeric) but not `FAID`, so a FAID → EmployeeID
+> resolution step is needed before client-side filtering. See
+> `FourthWfmAdapter.resolveEmployeeId` for the placeholder.
+
 **Key response fields:**
 ```
 EmployeeID          Integer   Employee ID
@@ -187,18 +205,34 @@ The PeopleSystem Integration API uses **org-scoped authentication** — not empl
 
 ```typescript
 // Service-to-service auth — Fourth Pay API calls HCM UK API as a service account
-// The org token identifies the employer (e.g. The Crown Pub Group)
+// The OrganisationID identifies the employer (e.g. The Crown Pub Group)
 // Employee data is scoped by the org — the service account sees all employees
 // Fourth Pay must enforce its own employee-level scoping
 // i.e. never return employee A's data in a request authenticated as employee B
 ```
 
-**Environment variables needed:**
+**Auth header (confirmed by Ali Barlow, 2026-05-28):**
+
+A single header carries the OrganisationID / GroupID — no separate
+token field:
+
 ```
-FOURTH_HCM_API_URL      = https://[org-subdomain].fourth.com/api  (confirm with Ali)
-FOURTH_HCM_ORG_TOKEN    = Org-scoped authentication token
-FOURTH_HCM_ORG_ID       = Organisation identifier
+X-Fourth-Org: <OrganisationID>
 ```
+
+**Environment variables (confirmed):**
+```
+FOURTH_INTERNAL_API_URL = http://10.12.6.10:85     # base URL, internal to Fourth network
+FOURTH_ORG_ID           = <OrganisationID/GroupID> # used as both URL segment and X-Fourth-Org header
+```
+
+The legacy `FOURTH_HCM_API_URL` / `FOURTH_HCM_ORG_TOKEN` /
+`FOURTH_HCM_ORG_ID` env vars are no longer read.
+
+> ⚠️ `10.12.6.10:85` is an **internal** Fourth address. It resolves
+> only from inside Fourth's network — the Railway-hosted demo cannot
+> reach it, so every adapter falls back to its `Mock*Adapter`
+> implementation when deployed outside Fourth.
 
 ---
 

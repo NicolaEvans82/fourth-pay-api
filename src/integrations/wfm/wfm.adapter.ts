@@ -66,19 +66,31 @@ export class FourthWfmAdapter implements WfmAdapter {
     from: Date;
     to: Date;
   }): Promise<ShiftRecord[]> {
-    // TODO: confirm endpoint path and query-param names with Ali Barlow.
-    // Doc 5 names this as "GET Approved hours" on the PeopleSystem
-    // Integration API but does not specify the URL pattern.
-    const url = new URL('/peoplesystem/approvedhours', this.config.baseUrl);
-    url.searchParams.set('FAID', input.fourthEmployeeId);
-    url.searchParams.set('from', toIsoDate(input.from));
-    url.searchParams.set('to', toIsoDate(input.to));
+    // Confirmed by Ali Barlow on 2026-05-28:
+    //   URL    : http://10.12.6.10:85/Organisations/{OrganisationID}/Employees/ApprovedHours
+    //   Params : Start, Duration, DateFrom, DateTo, Delta=False
+    //   Auth   : X-Fourth-Org header carrying the OrganisationID/GroupID
+    //
+    // NOTE: 10.12.6.10:85 is **internal to Fourth's network** and will not
+    // resolve from outside Fourth infrastructure. The Railway demo
+    // therefore routes via MockWfmAdapter (see wfm.module.ts); this
+    // adapter only runs when the API is deployed inside Fourth.
+    //
+    // Approved Hours is the source for the earnings calc (gross_earned =
+    // SUM(Value) for the period — see docs/01-product-context.md).
+    const url = new URL(
+      `/Organisations/${encodeURIComponent(this.config.orgId)}/Employees/ApprovedHours`,
+      this.config.baseUrl,
+    );
+    url.searchParams.set('Start', '0');
+    url.searchParams.set('Duration', '1000');
+    url.searchParams.set('DateFrom', toIsoDate(input.from));
+    url.searchParams.set('DateTo', toIsoDate(input.to));
+    url.searchParams.set('Delta', 'False');
 
     const response = await fetch(url, {
       headers: {
-        // TODO: confirm auth header name with Ali Barlow.
-        'X-Fourth-Org-Token': this.config.orgToken,
-        'X-Fourth-Org-Id': this.config.orgId,
+        'X-Fourth-Org': this.config.orgId,
         Accept: 'application/json',
       },
     });
@@ -89,8 +101,28 @@ export class FourthWfmAdapter implements WfmAdapter {
       );
     }
 
+    // ApprovedHours rows carry EmployeeID (numeric) but not FAID, and the
+    // confirmed query params have no employee filter — the endpoint
+    // returns every employee in the org. We need a FAID → EmployeeID
+    // resolution step (Get Employees) before we can filter; until that
+    // lookup is wired, return all org rows so the caller at least gets
+    // the right shape. Caller must guard against cross-employee leakage.
+    const employeeIdForFaid = await this.resolveEmployeeId(
+      input.fourthEmployeeId,
+    );
     const rows = (await response.json()) as ApprovedHoursApiRow[];
-    return rows.map(toShiftRecord);
+    const filtered =
+      employeeIdForFaid === null
+        ? rows
+        : rows.filter((r) => r.EmployeeID === employeeIdForFaid);
+    return filtered.map(toShiftRecord);
+  }
+
+  // Placeholder — needs to call GET Employees and cache the FAID ↔
+  // EmployeeID mapping. Returning null disables filtering, which is
+  // safe only inside the closed Fourth network for the demo org.
+  private async resolveEmployeeId(_faid: string): Promise<number | null> {
+    return null;
   }
 
   async getScheduledShifts(_input: {

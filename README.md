@@ -53,27 +53,22 @@ the in-memory state and reapplies the seed — useful between demos.
 | `NODE_ENV` | `production` switches to Pg-backed stores when `DATABASE_URL` is also set; `test` keeps in-memory (Jest default). | No — defaults to development. |
 | `DATABASE_URL` | Postgres connection string. When set in production, all reader/writer tokens bind to the Pg-backed implementations. Without it, the API keeps running on in-memory mocks (current Railway deploy mode). | Optional. |
 | `ANTHROPIC_API_KEY` | Real LLM calls for the in-app money coach. Currently the coach is keyword-routed and **does not** need this — see `src/modules/coach/coach.service.ts`. Re-add if you swap the coach back to a live model. | No (current build). |
-| `FOURTH_HCM_API_URL` | Base URL for the Fourth HCM PeopleSystem Integration API. Production-only. | Required when switching `MockWfmAdapter` → `FourthWfmAdapter`. |
-| `FOURTH_HCM_ORG_TOKEN` | Org credential for the same API. | Same as above. |
-| `FOURTH_HCM_ORG_ID` | Organisation ID for the same API. | Same as above. |
+| `FOURTH_INTERNAL_API_URL` | Base URL for the Fourth HCM PeopleSystem Integration API. **Internal Fourth network only** — `http://10.12.6.10:85` for production, unreachable from Railway. | Required when switching `Mock*Adapter` → `Fourth*Adapter`. |
+| `FOURTH_ORG_ID` | OrganisationID / GroupID. Used both as a URL segment (`/Organisations/{OrganisationID}/...`) and as the `X-Fourth-Org` auth header value. | Same as above. |
 
-## Open questions for Ali Barlow
+## Fourth HCM integration status
 
-The real WFM adapter (`src/integrations/wfm/wfm.adapter.ts`) has two
-unresolved points before it can call the Fourth HCM **PeopleSystem
-Integration API** in anger:
+**Confirmed by Ali Barlow on 2026-05-28** (see `docs/05-integration-contracts.md`):
 
-1. **Base URL + endpoint path for `GET Approved hours`.** Doc 5 names
-   the operation but does not specify the URL pattern. Current code
-   guesses `${FOURTH_HCM_API_URL}/peoplesystem/approvedhours?FAID=...&from=...&to=...`
-   — needs confirmation. (`wfm.adapter.ts:69-71`)
-2. **Authentication header name.** Current code sends `X-Fourth-Org-Token`
-   + `X-Fourth-Org-Id` but the actual header schema isn't documented in
-   doc 5. (`wfm.adapter.ts:79`)
+- **Base URL** — `http://10.12.6.10:85` (internal Fourth network only).
+- **Auth header** — single `X-Fourth-Org: <OrganisationID/GroupID>`.
+- **WFM Approved Hours endpoint** — `GET /Organisations/{OrganisationID}/Employees/ApprovedHours` with query params `Start`, `Duration`, `DateFrom`, `DateTo`, `Delta=False`. Wired in `wfm.adapter.ts`.
 
-The same uncertainty applies in `payroll.adapter.ts` and `hr.adapter.ts`
-for the corresponding HR/Payroll endpoints — Ali Barlow review needed
-there too.
+**Still open with Ali**:
+
+- HR endpoint paths — `Employees` and `EmploymentRecords` placeholders in `hr.adapter.ts`.
+- Payroll endpoint paths — `PayrollPeriods` and `Payslips` placeholders in `payroll.adapter.ts`.
+- FAID → EmployeeID mapping for filtering the Approved Hours response (the endpoint returns the whole org).
 
 ## Tests
 

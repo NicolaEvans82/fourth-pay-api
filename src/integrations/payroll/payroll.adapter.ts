@@ -128,8 +128,13 @@ export class FourthPayrollAdapter implements PayrollAdapter {
   private async fetchCurrentPeriod(
     faid: string,
   ): Promise<PayrollPeriodApiRow | null> {
-    // TODO: confirm endpoint path and query-param names with Ali Barlow.
-    const url = new URL('/peoplesystem/payrollperiods', this.config.baseUrl);
+    // TODO: confirm `/Organisations/{orgId}/PayrollPeriods` path + query
+    // params with Ali Barlow. Base URL + auth header were confirmed
+    // 2026-05-28 (see headers()).
+    const url = new URL(
+      `/Organisations/${encodeURIComponent(this.config.orgId)}/PayrollPeriods`,
+      this.config.baseUrl,
+    );
     url.searchParams.set('FAID', faid);
 
     const response = await fetch(url, { headers: this.headers() });
@@ -150,8 +155,13 @@ export class FourthPayrollAdapter implements PayrollAdapter {
   }
 
   private async fetchPayslipRows(faid: string): Promise<PayslipApiRow[]> {
-    // TODO: confirm endpoint path and query-param names with Ali Barlow.
-    const url = new URL('/peoplesystem/payslips', this.config.baseUrl);
+    // TODO: confirm `/Organisations/{orgId}/Payslips` path + query
+    // params with Ali Barlow. Base URL + auth header were confirmed
+    // 2026-05-28 (see headers()).
+    const url = new URL(
+      `/Organisations/${encodeURIComponent(this.config.orgId)}/Payslips`,
+      this.config.baseUrl,
+    );
     url.searchParams.set('FAID', faid);
 
     const response = await fetch(url, { headers: this.headers() });
@@ -163,10 +173,13 @@ export class FourthPayrollAdapter implements PayrollAdapter {
     return (await response.json()) as PayslipApiRow[];
   }
 
+  // Confirmed by Ali Barlow on 2026-05-28: single X-Fourth-Org header
+  // carrying the OrganisationID / GroupID. No separate token.
+  // The base URL (this.config.baseUrl → 10.12.6.10:85) is internal to
+  // Fourth's network; MockPayrollAdapter is used outside Fourth.
   private headers(): Record<string, string> {
     return {
-      'X-Fourth-Org-Token': this.config.orgToken,
-      'X-Fourth-Org-Id': this.config.orgId,
+      'X-Fourth-Org': this.config.orgId,
       Accept: 'application/json',
     };
   }
