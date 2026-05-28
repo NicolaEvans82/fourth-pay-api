@@ -17,8 +17,9 @@ export interface CoachInput {
   conversationHistory: CoachHistoryTurn[];
 }
 
-// Spec 11 — `claude-sonnet-4-20250514` is the model the spec calls out.
-const COACH_MODEL = 'claude-sonnet-4-20250514';
+// Spec 11 originally specified `claude-sonnet-4-20250514` (Sonnet 4.0,
+// retires 2026-06-15). Bumped to Sonnet 4.6 — its launch replacement.
+const COACH_MODEL = 'claude-sonnet-4-6';
 const MAX_OUTPUT_TOKENS = 1024;
 const MAX_HISTORY_TURNS = 20;
 
@@ -58,6 +59,10 @@ export class CoachService {
         model: COACH_MODEL,
         max_tokens: MAX_OUTPUT_TOKENS,
         system: systemPrompt,
+        // Chat workload: keep latency low. Sonnet 4.6 defaults to
+        // effort: high which is too slow for the Spec 11 5-second target.
+        thinking: { type: 'disabled' },
+        output_config: { effort: 'low' },
         messages: [...history, { role: 'user', content: input.message }],
       });
 
