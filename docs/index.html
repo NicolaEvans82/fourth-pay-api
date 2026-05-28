@@ -568,8 +568,8 @@ input[type=range]{width:100%;accent-color:var(--teal);}
         <div class="pay-card-meta" style="margin-bottom:var(--s4);">
           <div class="pay-meta-item">
             <div class="pay-meta-label">Available</div>
-            <div class="pay-meta-val" style="font-size:20px;letter-spacing:-0.5px;color:var(--teal-text);">£312.50</div>
-            <div style="font-size:10px;color:var(--text-3);margin-top:1px;">of £625 earned</div>
+            <div id="balance-available" class="pay-meta-val" style="font-size:20px;letter-spacing:-0.5px;color:var(--teal-text);">£312.50</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:1px;">of <span id="balance-earned-of">£625</span> earned</div>
           </div>
           <div class="pay-meta-item">
             <div class="pay-meta-label">Next payday</div>
@@ -583,13 +583,13 @@ input[type=range]{width:100%;accent-color:var(--teal);}
           </div>
           <div class="pay-meta-item">
             <div class="pay-meta-label">This month</div>
-            <div class="pay-meta-val" style="font-size:20px;letter-spacing:-0.5px;">£625</div>
+            <div id="balance-month" class="pay-meta-val" style="font-size:20px;letter-spacing:-0.5px;">£625</div>
             <div style="font-size:10px;color:var(--teal-text);font-weight:600;margin-top:1px;">+15% vs last month</div>
           </div>
         </div>
         <!-- Pay period progress bar -->
         <div>
-          <div class="prog-label"><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-3);">Pay cycle · Day 17 of 31</span><span style="font-size:11px;color:var(--teal-text);font-weight:700;">£312.50 earned</span></div>
+          <div class="prog-label"><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-3);">Pay cycle · Day 17 of 31</span><span style="font-size:11px;color:var(--teal-text);font-weight:700;"><span id="balance-progress">£312.50</span> earned</span></div>
           <div class="prog-track" style="margin-top:4px;"><div class="prog-fill" style="width:55%;"></div></div>
         </div>
       </div>
@@ -1576,6 +1576,33 @@ function updateClock(){
 }
 updateClock();setInterval(updateClock,30000);
 updateStream();
+
+const API_BASE = 'https://fourth-pay-api-production.up.railway.app';
+const API_HEADERS = {
+  'x-fourth-employee-id': 'JORDANHARRIS000001',
+  'x-fourth-employer-id': 'CROWN-PUB-GROUP',
+};
+
+function fmtGbp(n){
+  if (typeof n !== 'number' || !isFinite(n)) return '—';
+  return '£' + (Number.isInteger(n) ? n.toString() : n.toFixed(2));
+}
+
+async function loadBalance(){
+  try {
+    const res = await fetch(API_BASE + '/api/v1/ewa/balance', { headers: API_HEADERS });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('balance-available', fmtGbp(data.availableAmount));
+    set('balance-earned-of', fmtGbp(data.earnedAmount));
+    set('balance-month', fmtGbp(data.earnedAmount));
+    set('balance-progress', fmtGbp(data.availableAmount));
+  } catch (err) {
+    console.warn('balance fetch failed:', err);
+  }
+}
+loadBalance();
 </script>
 </div></body>
 </html>
