@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Fourth Pay · Employer dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --navy:#002747;--navy-deep:#14304F;--navy-soft:#234B73;--navy-line:rgba(255,255,255,0.10);
+  --teal:#00B69F;--teal-tint:rgba(0,182,159,0.10);--teal-border:rgba(0,182,159,0.30);--teal-text:#007F6F;
+  --orange:#FAA51A;--orange-tint:rgba(250,165,26,0.12);--orange-text:#B6730A;
+  --text-1:#14304F;--text-2:#4A5568;--text-3:#647282;
+  --border:#E5E9EE;--bg-page:#F5F7FA;--bg-card:#FFFFFF;
+  --r-sm:6px;--r-md:10px;--r-lg:14px;
+  --shadow-card:0 1px 2px rgba(20,48,79,0.04),0 4px 12px rgba(20,48,79,0.05);
+  --font:'Roboto',-apple-system,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font);background:var(--bg-page);color:var(--text-1);min-height:100vh;}
+
+.topbar{background:var(--navy);color:white;padding:18px 32px;display:flex;align-items:center;justify-content:space-between;}
+.brand{display:flex;align-items:center;gap:14px;}
+.brand-mark{width:36px;height:36px;border-radius:8px;background:var(--teal);display:flex;align-items:center;justify-content:center;color:white;font-weight:800;font-size:14px;letter-spacing:-0.5px;}
+.brand-name{font-size:15px;font-weight:700;letter-spacing:-0.2px;}
+.brand-sub{font-size:11px;font-weight:500;color:rgba(255,255,255,0.6);text-transform:uppercase;letter-spacing:0.6px;margin-top:2px;}
+.topbar-right{display:flex;align-items:center;gap:14px;font-size:12px;color:rgba(255,255,255,0.7);}
+.role-chip{background:rgba(255,255,255,0.08);border:1px solid rgba(255,255,255,0.16);padding:6px 12px;border-radius:100px;font-size:11px;font-weight:600;letter-spacing:0.3px;}
+
+main{max-width:1200px;margin:0 auto;padding:32px;}
+.page-head{margin-bottom:28px;}
+.page-title{font-size:28px;font-weight:800;letter-spacing:-0.5px;color:var(--text-1);}
+.page-sub{font-size:14px;color:var(--text-3);margin-top:6px;}
+
+.metrics{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:28px;}
+.metric{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:22px;box-shadow:var(--shadow-card);}
+.metric-label{font-size:11px;font-weight:700;color:var(--text-3);text-transform:uppercase;letter-spacing:0.6px;}
+.metric-value{font-size:32px;font-weight:800;letter-spacing:-0.8px;color:var(--text-1);margin-top:8px;line-height:1.05;}
+.metric-sub{font-size:12px;color:var(--text-2);margin-top:8px;}
+.metric.teal .metric-value{color:var(--teal-text);}
+.metric.orange .metric-value{color:var(--orange-text);}
+
+.chart-card{background:var(--bg-card);border:1px solid var(--border);border-radius:var(--r-lg);padding:24px 24px 20px;box-shadow:var(--shadow-card);margin-bottom:24px;}
+.chart-head{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:18px;}
+.chart-title{font-size:15px;font-weight:700;color:var(--text-1);}
+.chart-sub{font-size:12px;color:var(--text-3);}
+.chart{display:grid;grid-template-columns:repeat(7,1fr);gap:14px;align-items:end;height:240px;padding:0 4px;}
+.bar-col{display:flex;flex-direction:column;align-items:center;gap:8px;height:100%;}
+.bar-wrap{flex:1;width:100%;display:flex;align-items:end;}
+.bar{width:100%;background:linear-gradient(180deg,var(--teal) 0%,var(--teal-text) 100%);border-radius:6px 6px 0 0;transition:height 0.3s ease;position:relative;min-height:4px;}
+.bar-value{font-size:11px;font-weight:700;color:var(--text-1);margin-bottom:-2px;}
+.bar-label{font-size:11px;font-weight:600;color:var(--text-3);text-align:center;}
+.bar-day{font-size:10px;color:var(--text-3);font-weight:500;}
+
+.footer-note{background:var(--teal-tint);border:1px solid var(--teal-border);border-radius:var(--r-md);padding:14px 18px;display:flex;gap:12px;align-items:flex-start;color:var(--teal-text);font-size:12px;line-height:1.5;}
+.footer-note strong{color:var(--text-1);}
+.footer-note svg{flex-shrink:0;margin-top:1px;}
+
+.error{background:#FFF1F0;border:1px solid #F5C5C2;color:#A23B36;padding:14px 18px;border-radius:var(--r-md);font-size:13px;margin-bottom:20px;display:none;}
+
+@media (max-width: 820px){
+  main{padding:20px;}
+  .metrics{grid-template-columns:repeat(2,1fr);}
+  .topbar{padding:14px 20px;}
+}
+@media (max-width: 540px){
+  .metrics{grid-template-columns:1fr;}
+  .chart{height:180px;gap:8px;}
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="brand">
+    <div class="brand-mark">F</div>
+    <div>
+      <div class="brand-name">Fourth Pay · Employer portal</div>
+      <div class="brand-sub" id="employer-name">Crown Pub Group</div>
+    </div>
+  </div>
+  <div class="topbar-right">
+    <span>Updated <span id="updated-at">just now</span></span>
+    <span class="role-chip">HR / Manager view</span>
+  </div>
+</div>
+
+<main>
+  <div class="page-head">
+    <div class="page-title">This month at a glance</div>
+    <div class="page-sub">Anonymised aggregate usage of Earned Wage Access across your workforce.</div>
+  </div>
+
+  <div class="error" id="error-banner"></div>
+
+  <div class="metrics">
+    <div class="metric">
+      <div class="metric-label">Employees enrolled</div>
+      <div class="metric-value" id="m-enrolled">—</div>
+      <div class="metric-sub">Eligible workers signed up to Fourth Pay</div>
+    </div>
+    <div class="metric teal">
+      <div class="metric-label">Active this month</div>
+      <div class="metric-value" id="m-active">—</div>
+      <div class="metric-sub">Share of enrolled workforce who used the service</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Transfers this month</div>
+      <div class="metric-value" id="m-transfers">—</div>
+      <div class="metric-sub">Completed pay-access transfers</div>
+    </div>
+    <div class="metric teal">
+      <div class="metric-label">Total accessed</div>
+      <div class="metric-value" id="m-total">—</div>
+      <div class="metric-sub">Gross earned wages drawn early this month</div>
+    </div>
+    <div class="metric">
+      <div class="metric-label">Average transfer</div>
+      <div class="metric-value" id="m-avg">—</div>
+      <div class="metric-sub">Mean amount per transfer this month</div>
+    </div>
+    <div class="metric orange">
+      <div class="metric-label">Instant transfer fees</div>
+      <div class="metric-value" id="m-fees">—</div>
+      <div class="metric-sub">Total £1.95 fees on instant transfers</div>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-head">
+      <div>
+        <div class="chart-title">Daily access amounts</div>
+        <div class="chart-sub">Last 7 days, all employees</div>
+      </div>
+      <div class="chart-sub" id="chart-total">—</div>
+    </div>
+    <div class="chart" id="chart"></div>
+  </div>
+
+  <div class="footer-note">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16v.01"/></svg>
+    <div>
+      <strong>Anonymisation:</strong> all figures are workforce-level aggregates.
+      Individual employee transfer data is never accessible to employers — see
+      Fourth Pay's FCA Consumer Duty implementation.
+    </div>
+  </div>
+</main>
+
+<script>
+const API_BASE = 'https://fourth-pay-api-production.up.railway.app';
+const EMPLOYER_HEADERS = { 'x-fourth-employer-id': 'CROWN-PUB-GROUP' };
+
+function fmtGbp(n){
+  if (typeof n !== 'number' || !isFinite(n)) return '—';
+  return '£' + (Number.isInteger(n) ? n.toLocaleString('en-GB') : n.toFixed(2));
+}
+function fmtGbpRounded(n){
+  if (typeof n !== 'number' || !isFinite(n)) return '—';
+  return '£' + Math.round(n).toLocaleString('en-GB');
+}
+function fmtPct(n){ return (typeof n === 'number' ? n.toFixed(1) + '%' : '—'); }
+function weekdayShort(iso){
+  const d = new Date(iso + 'T12:00:00Z');
+  return ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'][d.getUTCDay()];
+}
+function dayOfMonth(iso){
+  return parseInt(iso.slice(8,10), 10);
+}
+
+function renderChart(points){
+  const wrap = document.getElementById('chart');
+  wrap.innerHTML = '';
+  const max = Math.max(...points.map(p => p.amount), 1);
+  for (const p of points){
+    const heightPct = Math.max(2, (p.amount / max) * 100);
+    const col = document.createElement('div');
+    col.className = 'bar-col';
+    col.innerHTML =
+      '<div class="bar-value">' + fmtGbpRounded(p.amount) + '</div>' +
+      '<div class="bar-wrap"><div class="bar" style="height:' + heightPct + '%;"></div></div>' +
+      '<div class="bar-label">' + weekdayShort(p.date) + '</div>' +
+      '<div class="bar-day">' + dayOfMonth(p.date) + ' May</div>';
+    wrap.appendChild(col);
+  }
+  const total = points.reduce((s, p) => s + p.amount, 0);
+  document.getElementById('chart-total').textContent = 'Week total: ' + fmtGbpRounded(total);
+}
+
+async function loadStats(){
+  try {
+    const res = await fetch(API_BASE + '/api/v1/employer/stats', { headers: EMPLOYER_HEADERS });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    set('m-enrolled', d.total_employees_enrolled.toLocaleString('en-GB'));
+    set('m-active', fmtPct(d.percent_of_workforce_active));
+    set('m-transfers', d.total_transfers_this_month.toLocaleString('en-GB'));
+    set('m-total', fmtGbpRounded(d.total_amount_accessed_this_month));
+    set('m-avg', fmtGbp(d.average_transfer_amount));
+    set('m-fees', fmtGbp(d.fee_revenue_this_month));
+    renderChart(d.daily_access_amounts || []);
+    const now = new Date();
+    set('updated-at', now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
+  } catch (err) {
+    const banner = document.getElementById('error-banner');
+    banner.textContent = 'Could not load stats: ' + (err.message || err) + '. Make sure the Fourth Pay API is reachable.';
+    banner.style.display = 'block';
+  }
+}
+loadStats();
+</script>
+</body>
+</html>
