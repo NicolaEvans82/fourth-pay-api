@@ -1,0 +1,405 @@
+{
+  "info": {
+    "name": "Fourth Pay API",
+    "description": "Full request catalogue for the Fourth Pay API. The two scoping headers (x-fourth-employee-id, x-fourth-employer-id) are pre-filled as collection variables and applied at the collection level — every request inherits them. Switch personas by editing the variables: Jordan = `JORDANHARRIS000001`, Marcus = `MARCUSTHOMPSON000001`.\n\nThe employer-aggregate and demo-reset requests don't need the employee header; the public endpoints (/, /health) don't need either. Postman just sends extra headers; the API ignores anything it doesn't read.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_postman_id": "fourth-pay-api-collection"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "https://fourth-pay-api-production.up.railway.app",
+      "type": "string",
+      "description": "Switch to http://localhost:3000 for local dev."
+    },
+    {
+      "key": "x-fourth-employee-id",
+      "value": "JORDANHARRIS000001",
+      "type": "string",
+      "description": "FAID. Demo personas: JORDANHARRIS000001 / MARCUSTHOMPSON000001."
+    },
+    {
+      "key": "x-fourth-employer-id",
+      "value": "CROWN-PUB-GROUP",
+      "type": "string",
+      "description": "Fourth employer ID. The mock universe has one employer: CROWN-PUB-GROUP."
+    }
+  ],
+  "auth": {
+    "type": "noauth"
+  },
+  "item": [
+    {
+      "name": "System",
+      "item": [
+        {
+          "name": "GET / — identity",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/", "host": ["{{baseUrl}}"], "path": [""] }
+          }
+        },
+        {
+          "name": "GET /health",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/health", "host": ["{{baseUrl}}"], "path": ["health"] }
+          }
+        }
+      ]
+    },
+    {
+      "name": "EWA",
+      "item": [
+        {
+          "name": "GET /api/v1/ewa/balance",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" },
+              { "key": "x-fourth-employer-id", "value": "{{x-fourth-employer-id}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ewa/balance",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "ewa", "balance"]
+            },
+            "description": "Period-to-date balance for the calling employee: earned, accessed, available, monthly-limit remaining, plus pay-period dates."
+          }
+        },
+        {
+          "name": "POST /api/v1/ewa/transfer",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" },
+              { "key": "x-fourth-employer-id", "value": "{{x-fourth-employer-id}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"amount\": 30,\n  \"transferSpeed\": \"instant\",\n  \"fcaDisclosureAcknowledged\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ewa/transfer",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "ewa", "transfer"]
+            },
+            "description": "Execute an EWA transfer. `fcaDisclosureAcknowledged` MUST be true — the FCA disclosure gate (CLAUDE.md rule 3). Sending false (or omitting it) returns 400.\n\n`transferSpeed`: `instant` (£1.95 fee, possibly employer-subsidised) or `standard` (free, 1–3 working days).\n\n`bankAccountId` is optional — defaults to the employee's primary bank account in production; the mock ignores it."
+          }
+        },
+        {
+          "name": "GET /api/v1/ewa/transfers",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" },
+              { "key": "x-fourth-employer-id", "value": "{{x-fourth-employer-id}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ewa/transfers?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "ewa", "transfers"],
+              "query": [
+                { "key": "limit", "value": "20" },
+                { "key": "pay_period_start", "value": "2026-05-01", "disabled": true, "description": "When supplied, the response's totalAccessedThisPeriod sums non-failed transfers in that period." }
+              ]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/ewa/earnings",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" },
+              { "key": "x-fourth-employer-id", "value": "{{x-fourth-employer-id}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/ewa/earnings",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "ewa", "earnings"],
+              "query": [
+                { "key": "pay_period_start", "value": "2026-05-01", "disabled": true }
+              ]
+            },
+            "description": "Period-to-date shift breakdown — Basic Hours, Overtime, Bank Holiday line items — plus a summary of grossEarned / availableAmount / accessedAmount."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Shifts",
+      "item": [
+        {
+          "name": "GET /api/v1/shifts",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" },
+              { "key": "x-fourth-employer-id", "value": "{{x-fourth-employer-id}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/shifts",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "shifts"]
+            },
+            "description": "Upcoming shifts (next 7 days), recent shifts (last 14 days), and a Mon-Sun weekly summary. Site + role are included on upcoming shifts."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Self-controls",
+      "item": [
+        {
+          "name": "GET /api/v1/self-controls",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" },
+              { "key": "x-fourth-employer-id", "value": "{{x-fourth-employer-id}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/self-controls",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "self-controls"]
+            }
+          }
+        },
+        {
+          "name": "PUT /api/v1/self-controls",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" },
+              { "key": "x-fourth-employer-id", "value": "{{x-fourth-employer-id}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"monthlyLimitEnabled\": true,\n  \"monthlyLimitAmount\": 250\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/self-controls",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "self-controls"]
+            },
+            "description": "Partial update — only the fields you include are written. Fields are bounded: monthlyLimitAmount ≥ 50, perTransferLimitAmount ≥ 10, coolingOffHours ∈ {24,48,168}, autoSavePercent 5–30."
+          }
+        },
+        {
+          "name": "POST /api/v1/self-controls/pause",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" },
+              { "key": "x-fourth-employer-id", "value": "{{x-fourth-employer-id}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"durationDays\": 30\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/self-controls/pause",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "self-controls", "pause"]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/self-controls/override",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" },
+              { "key": "x-fourth-employer-id", "value": "{{x-fourth-employer-id}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"controlType\": \"monthly_limit\",\n  \"reason\": \"Unexpected bill — need to access more than my cap this month\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/self-controls/override",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "self-controls", "override"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Payslips",
+      "item": [
+        {
+          "name": "GET /api/v1/payslips",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payslips",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payslips"]
+            }
+          }
+        },
+        {
+          "name": "GET /api/v1/payslips/{payPeriodStart}",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payslips/2026-03-01",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payslips", "2026-03-01"]
+            },
+            "description": "Full payslip detail with element breakdown + YTD summary. Path param is YYYY-MM-DD; the mock has Jordan's payslips for 2026-02-01 and 2026-03-01."
+          }
+        },
+        {
+          "name": "GET /api/v1/payslips/{payPeriodStart}/pdf",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/payslips/2026-03-01/pdf",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "payslips", "2026-03-01", "pdf"]
+            },
+            "description": "Streams a PDF. In demo mode the mock generator returns a placeholder PDF."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Notifications",
+      "item": [
+        {
+          "name": "GET /api/v1/notifications",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "notifications"],
+              "query": [
+                { "key": "category", "value": "pay", "disabled": true, "description": "Optional filter: pay | savings | payslip | wellbeing | pension | bills | system" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "POST /api/v1/notifications/{id}/read",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/REPLACE_WITH_UUID/read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "notifications", "REPLACE_WITH_UUID", "read"]
+            },
+            "description": "Pick a real id from GET /api/v1/notifications first — the seeded ids change per process boot."
+          }
+        },
+        {
+          "name": "POST /api/v1/notifications/mark-all-read",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/notifications/mark-all-read",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "notifications", "mark-all-read"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Coach",
+      "item": [
+        {
+          "name": "POST /api/v1/coach/message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "x-fourth-employee-id", "value": "{{x-fourth-employee-id}}" },
+              { "key": "x-fourth-employer-id", "value": "{{x-fourth-employer-id}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"How much can I access right now?\",\n  \"conversationHistory\": []\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/coach/message",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "coach", "message"]
+            },
+            "description": "Money coach. Currently keyword-routed against live balance/earnings/self-controls. Try messages containing: 'access', 'available', 'how much', 'save', 'limit', 'payday', 'earn'. Pass prior turns in `conversationHistory` (role + content) for context."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Employer",
+      "item": [
+        {
+          "name": "GET /api/v1/employer/stats",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "x-fourth-employer-id", "value": "{{x-fourth-employer-id}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/employer/stats",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "employer", "stats"]
+            },
+            "description": "Anonymised workforce-level dashboard data. CLAUDE.md rule 5: no individual employee data crosses this boundary."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Demo",
+      "item": [
+        {
+          "name": "POST /api/v1/demo/reset",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demo/reset",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demo", "reset"]
+            },
+            "description": "Demo-only. Wipes the three in-memory stores and re-seeds. Returns 404 in production with DATABASE_URL set (DemoModule is gated off)."
+          }
+        }
+      ]
+    }
+  ]
+}
