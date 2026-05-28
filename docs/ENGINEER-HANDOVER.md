@@ -26,6 +26,43 @@ The API runs in two modes:
 Everything below assumes you're in production-mode territory unless
 otherwise stated.
 
+## 1.5 What's built
+
+All P0 features are shipped. Most P2 features are shipped. The only
+outstanding employee-facing surfaces are workplace loans and the
+spending tracker (both need Open Banking integration to be
+meaningful).
+
+| Priority | Feature | Endpoint(s) | Status |
+|---|---|---|---|
+| P0 | EWA core transfer | `GET /api/v1/ewa/balance`, `POST /ewa/transfer`, `GET /ewa/transfers` | ✅ implemented |
+| P0 | Earnings tracker | `GET /api/v1/ewa/earnings` | ✅ implemented |
+| P0 | Self-controls | `GET / PUT /api/v1/self-controls`, `POST /pause`, `POST /override` | ✅ implemented |
+| P0 | Payslips | `GET /api/v1/payslips`, `/:period`, `/:period/pdf` | ✅ implemented |
+| P0 | Notifications | `GET /api/v1/notifications`, `POST /:id/read`, `POST /mark-all-read` | ✅ implemented |
+| P1 | Shifts | `GET /api/v1/shifts` (upcoming + recent + weekly) | ✅ implemented |
+| P1 | Savings pots | `GET / POST /api/v1/savings/pots`, `POST /:id/contribute` + auto-save | ✅ implemented |
+| P1 | Budget planner | `GET /api/v1/budget` (50/30/20, EWA = needs spend) | ✅ implemented |
+| P1 | Bill reminders | — | ❌ not started |
+| P1 | Spending tracker | — | ⌛ UI-only (needs Open Banking) |
+| P2 | Money coach | `POST /api/v1/coach/message` | ✅ implemented (keyword-routed; Anthropic SDK wiring still in tree) |
+| P2 | Benefits checker | `GET /api/v1/benefits` (statutory entitlements) | ✅ implemented |
+| P2 | Pension finder | `GET /api/v1/pension` (contributions + projection + lost-pot nudge) | ✅ implemented |
+| P2 | Discounts | `GET /api/v1/discounts` (catalogue + employer perks) | ✅ implemented |
+| P2 | Wellbeing score | `GET /api/v1/wellbeing/score` (4-component) | ✅ implemented |
+| P2 | Workplace loans | — | ⌛ UI-only |
+| P2 | Financial learning | — | ❌ not started |
+| — | Employer dashboard | `GET /api/v1/employer/stats` + `docs/employer.html` | ✅ implemented |
+| — | Demo reset | `POST /api/v1/demo/reset` (gated off in Pg mode) | ✅ implemented |
+| — | iQ360 instrumentation | 24 events, fire-and-forget via global `Iq360Service` | ✅ implemented |
+| — | Persona switcher | Jordan + Marcus, `localStorage`-backed | ✅ implemented |
+| — | DatabaseModule | `usePg()` gates the swap; tests stay in-memory | ✅ implemented |
+| — | Fourth HCM adapters | All 6 endpoints with confirmed URL paths | ✅ implemented |
+
+Live URLs are in the top of this file. Specs for everything above
+live in `docs/03-feature-specs.md`; the OpenAPI 3.1 contract is
+`openapi.yaml`.
+
 ## 2. Required reading
 
 Skim, in this order, before touching code:
@@ -92,7 +129,7 @@ Anything Postgres 15+ works. Two options:
 - **Railway:** add a Postgres plugin to the existing service.
   `DATABASE_URL` will be injected automatically.
 
-### 5.2 Run the four migrations
+### 5.2 Run the five migrations
 
 The migrations live in `src/database/migrations/`. They are
 TypeORM-style classes but the project has no DataSource registered, so
@@ -104,23 +141,27 @@ it manually:
 psql "$DATABASE_URL"
 
 # 2. Run each .up() in order. The migrations are:
-#    20260527000001_create_ewa_tables.ts          — employee_accounts,
-#                                                   bank_accounts,
-#                                                   ewa_transfers,
-#                                                   payroll_deduction_queue,
-#                                                   self_controls,
-#                                                   audit_log
+#    20260527000001_create_ewa_tables.ts            — employee_accounts,
+#                                                     bank_accounts,
+#                                                     ewa_transfers,
+#                                                     payroll_deduction_queue,
+#                                                     self_controls,
+#                                                     audit_log
 #    20260527000002_create_employer_config_table.ts — employer_config
 #    20260527000003_create_notifications_tables.ts  — notifications,
 #                                                     notification_preferences
 #    20260528000004_seed_demo_employees.ts          — Crown Pub Group +
-#                                                     Jordan + Marcus
+#                                                     Jordan + Marcus + Jordan's
+#                                                     £150 self_controls cap
+#                                                     + Emergency fund savings pot
+#    20260528000005_create_savings_pots_table.ts    — savings_pots
 ```
 
 The fourth migration is a **data seed**, not a schema change — it
 inserts the same UUIDs the in-memory code uses (`00000000-…-001` for
-Jordan, `11111111-…-1111` for Marcus) so the Pg stores see the same
-demo personas the prototype expects.
+Jordan, `11111111-…-1111` for Marcus, `22222222-…-2222` for Jordan's
+Emergency Fund pot) so the Pg stores see the same demo personas the
+prototype expects.
 
 If you want a proper migration runner, wire `typeorm-ts-node-commonjs`
 into a `migration:run` script — the migrations themselves are

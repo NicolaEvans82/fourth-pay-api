@@ -649,28 +649,359 @@ instrumentation:
 
 ---
 
+#═══════════════════════════════════════════════════════════════════
+# SPEC 13: BENEFITS CHECKER (employment-statutory) — IMPLEMENTED
+#═══════════════════════════════════════════════════════════════════
+> Supersedes Spec 9 for the v1.0 shipped scope. Spec 9 was scoped to
+> means-tested state benefits (Working Tax Credit, Council Tax
+> Support, etc.) — a household-data flow that's deferred. Spec 13 is
+> the simpler employment-statutory checker that's actually wired:
+> nothing the employee has to type, everything derived from data we
+> already hold.
+
+```yaml
+feature: benefits_checker
+version: 2.0
+status: implemented
+module: src/modules/benefits
+endpoint: GET /api/v1/benefits
+regulatory: [fca_consumer_duty]
+priority: P2
+
+description: >
+  Calculates five statutory employment entitlements directly from
+  the HR + Payroll data the API already has — no questionnaire,
+  no household data collection.
+
+inputs_used:
+  - hr.employment_profile.date_of_birth         # for age + NMW bracket
+  - hr.employment_profile.employment_start_date # for tenure-based gates
+  - hr.employment_profile.is_fulltime           # for assumed weekly hours
+  - hr.employment_profile.rate_of_pay           # for NMW, SSP, pension thresholds
+  - payroll.deductions                          # current pension contribution
+
+calculations:
+  holiday:
+    annual_days: 28 if is_fulltime else 16     # statutory 5.6 weeks pro-rated
+    accrued_days: round(annual_days × tenure_days / 365), capped at annual
+  statutory_sick_pay:
+    weekly_earnings_estimate: rate × (37.5 if FT else 16) hours
+    eligible: weekly_earnings >= £123 (LEL 2025/26)
+  pension_auto_enrolment:
+    age_eligible: age >= 22
+    earnings_eligible: annual_earnings >= £10,000
+    current_contribution: sum of deduction rows where elementName matches /pension/i
+  nmw_compliance:
+    bracket_rate: { 21+: £12.21, 18-20: £10.00, under_18_or_apprentice: £7.55 }
+    compliant: rate_of_pay >= bracket_rate
+  maternity_paternity:
+    qualifying_weeks: 26
+    eligible: tenure_days >= 182
+
+business_rules:
+  - never_collect_disability_status_or_household_data
+  - thresholds_centralised_at_top_of_service_for_april_2026_update
+  - non_compliant_nmw_surfaces_as_warning_with_back_pay_copy
+
+acceptance_criteria:
+  - jordan_persona_returns_all_five_entitlements_active
+  - marcus_persona_flags_nmw_non_compliant_and_pension_below_threshold
+  - response_never_includes_ni_number_or_dob_raw_string
+
+fca_flags:
+  consumer_duty: [consumer_support]
+  disclaimer_required: false  # surfaces statutory entitlements, not advice
+
+instrumentation:
+  - benefits.viewed
+```
+
+
+#═══════════════════════════════════════════════════════════════════
+# SPEC 14: DISCOUNTS & PERKS — IMPLEMENTED
+#═══════════════════════════════════════════════════════════════════
+
+```yaml
+feature: discounts
+version: 1.0
+status: implemented
+module: src/modules/discounts
+endpoint: GET /api/v1/discounts
+priority: P2
+
+description: >
+  Curated catalogue of hospitality-relevant partner discounts plus
+  an employer-specific perks slot. Static catalogue today; partner-
+  management UI is a future iteration.
+
+response_shape:
+  categories:
+    - { name: 'Food & drink',   discounts: [Greggs, Costa Coffee] }
+    - { name: 'Travel',         discounts: [National Express, Trainline] }
+    - { name: 'Fitness',        discounts: [PureGym, The Gym Group] }
+    - { name: 'Entertainment',  discounts: [Cineworld, Spotify] }
+    - { name: 'Retail',         discounts: [Boots, Argos] }
+  employer_perks: from EmployerConfig.perks   # see hr.adapter.ts
+
+partner_record:
+  name: string
+  description: string
+  percentOff: number | null
+  redemption: 'in-app' | 'code' | 'link'
+  code: string (optional, present when redemption === 'code')
+  accentBg / accentFg: brand colour for UI tile
+
+employer_perks (Crown Pub Group):
+  - { name: 'Staff meal allowance', value: '50%', description: '50% off any meal during your shift' }
+  - { name: 'Crown Hotel staff rate', value: '£25/night', description: 'staff + 1 guest at any Crown Hotel' }
+  - { name: 'Refer a friend', value: '£250', description: 'bonus for any colleague who joins and stays 90 days' }
+
+business_rules:
+  - partners_are_static_today_no_user_personalisation
+  - employer_perks_read_from_employer_config_no_separate_table
+  - voucher_codes_rendered_monospace_easy_to_copy
+
+acceptance_criteria:
+  - response_contains_exactly_five_categories_with_two_partners_each
+  - employer_perks_only_present_when_employer_config_has_them
+  - voucher_codes_returned_for_redemption_eq_code
+
+instrumentation:
+  - discounts.viewed
+```
+
+
+#═══════════════════════════════════════════════════════════════════
+# SPEC 15: PENSION FINDER (auto-enrolment + projection) — IMPLEMENTED
+#═══════════════════════════════════════════════════════════════════
+> Supersedes Spec 10 for the v1.0 shipped scope. The lost-pot
+> tracing flow from Spec 10 is now a *nudge* (link to the GOV.UK
+> tracing service) rather than an in-app search; full consolidation
+> is deferred.
+
+```yaml
+feature: pension_finder
+version: 2.0
+status: implemented
+module: src/modules/pension
+endpoint: GET /api/v1/pension
+regulatory: [fca_consumer_duty, pension_schemes_act]
+priority: P2
+
+description: >
+  Current contribution + employer match + simple flat-rate projection
+  to age 67, three "what if I increased my contribution" scenarios,
+  and a tenure-based lost-pension nudge.
+
+response_shape:
+  current_contribution_percent: number       # employee %, derived from payslip pension deduction
+  employer_contribution_percent: number      # from EmployerConfig.pensionEmployerContributionPercent
+  total_monthly_contribution: number         # only counts employer match when status === 'enrolled'
+  projected_pot: number                      # total_monthly × 12 × years_to_retirement
+  auto_enrolment_status: enum [enrolled, eligible, opted_out, below_threshold]
+  increase_scenarios: [{ +1%, +2%, +3% } each with newEmployeePercent, extraMonthlyCost, projectedPot, potUplift]
+  lost_pension_nudge: boolean                # true if tenure_days > 730
+  government_tracing_url: 'https://www.gov.uk/find-pension-contact-details'
+
+business_rules:
+  - projection_is_flat_rate_no_growth_no_inflation_no_salary_escalation
+  - employer_match_only_in_current_total_when_employee_actually_enrolled
+  - scenarios_assume_enrolment_so_include_employer_match_in_projection
+  - ni_number_never_appears_in_response
+  - thresholds_match_benefits_checker_so_status_lines_up
+  - retirement_age_67_default_30_years_if_dob_unknown
+
+acceptance_criteria:
+  - jordan_persona_returns_3_percent_employee_3_percent_employer_status_enrolled
+  - marcus_persona_returns_0_employee_status_below_threshold_total_eq_0
+  - increase_scenarios_array_length_is_3
+  - lost_pension_nudge_threshold_is_strictly_greater_than_2_years
+
+fca_flags:
+  consumer_duty: [consumer_support]
+  not_financial_advice_disclaimer_required: true
+
+instrumentation:
+  - pension.viewed (with auto_enrolment_status property)
+```
+
+
+#═══════════════════════════════════════════════════════════════════
+# SPEC 16: BUDGET PLANNER v2 — IMPLEMENTED
+#═══════════════════════════════════════════════════════════════════
+> Updates Spec 6. v1 imagined Open-Banking spend tracking; v2 ships
+> the 50/30/20 split with EWA-accessed counting as Needs spend.
+> Full discretionary tracking still needs Open Banking — deferred.
+
+```yaml
+feature: budget_planner
+version: 2.0
+status: implemented
+module: src/modules/budget
+endpoint: GET /api/v1/budget
+priority: P1
+
+description: >
+  Classic 50/30/20 envelope split derived from the current pay
+  period's gross earnings. EWA accessed counts as drawing from the
+  Needs envelope; Wants and Savings have allocation but no "used"
+  tracking until Open Banking lands.
+
+response_shape:
+  pay_period_start: string (ISO)
+  pay_period_end: string (ISO)
+  monthly_earnings: number
+  needs: { allocated, used, remaining }   # allocated = 50% × earnings, used = ewa_accessed
+  wants: { allocated, used, remaining }   # allocated = 30%, used = 0 today
+  savings: { allocated, used, remaining } # allocated = 20%, used = 0 today
+
+business_rules:
+  - allocation_fractions_centralised_constants_easy_to_swap
+  - ewa_accessed_counted_as_needs_spend_not_wants
+  - wants_and_savings_used_stay_zero_until_open_banking_integration
+
+acceptance_criteria:
+  - jordan_persona_returns_312_50_needs_allocated_160_used
+  - allocation_fractions_sum_to_exactly_100_percent
+
+instrumentation:
+  - budget.viewed
+```
+
+
+#═══════════════════════════════════════════════════════════════════
+# SPEC 17: SAVINGS POTS v2 — IMPLEMENTED
+#═══════════════════════════════════════════════════════════════════
+> Updates Spec 5 with the actual shipped surface: per-pot CRUD, an
+> is_default pot that auto-save credits, and the auto-save sink
+> wired into TransferService.
+
+```yaml
+feature: savings_pots
+version: 2.0
+status: implemented
+module: src/modules/savings
+endpoints:
+  - GET  /api/v1/savings/pots                       # list
+  - POST /api/v1/savings/pots                       # create
+  - POST /api/v1/savings/pots/:id/contribute        # manual deposit
+priority: P1
+
+description: >
+  Named savings pots with optional targets. Each employee can have
+  many pots; exactly one is is_default and receives the auto-save
+  side-effect of every successful EWA transfer.
+
+storage: savings_pots table (migration 20260528000005)
+
+business_rules:
+  - exactly_one_default_pot_per_employee_enforced_by_partial_unique_index
+  - auto_save_credits_default_pot_only_when_self_controls_auto_save_enabled
+  - cross_employee_pot_lookups_return_404_not_403_no_existence_leak
+  - balance_check_constraint_prevents_negative
+
+acceptance_criteria:
+  - jordan_persona_starts_with_emergency_fund_45_of_500_default
+  - marcus_persona_starts_with_no_pots
+  - first_pot_for_an_employee_is_automatically_is_default
+  - auto_save_writes_to_default_pot_after_successful_transfer
+
+instrumentation:
+  - savings.pot.viewed (with pot_count property)
+```
+
+
+#═══════════════════════════════════════════════════════════════════
+# SPEC 18: WELLBEING SCORE v2 — IMPLEMENTED
+#═══════════════════════════════════════════════════════════════════
+> Updates Spec 12 with the actual shipped component weights and
+> sub-score formulas. Insights array removed — the per-component
+> `detail` string drives the UI directly.
+
+```yaml
+feature: wellbeing_score
+version: 2.0
+status: implemented
+module: src/modules/wellbeing
+endpoint: GET /api/v1/wellbeing/score
+priority: P2
+
+description: >
+  Single 0–100 score with four weighted components and a band
+  label. Every input is live: savings pot vs target, monthly limit
+  usage, transfer frequency this period, cooling-off enabled.
+
+formula:
+  weights: { savings: 0.30, monthly_limit: 0.25, transfer_frequency: 0.25, cooling_off: 0.20 }
+  savings_sub_score:
+    no_pot: 0
+    pot_exists: 75 + 25 × min(1, balance / target)
+  monthly_limit_sub_score:
+    not_enabled: 30
+    enabled: 60 + 40 × (1 - accessed / cap)
+  transfer_frequency_sub_score:
+    zero_transfers: 100
+    n_transfers: max(30, 95 - 8 × n)
+  cooling_off_sub_score:
+    on: 100
+    off: 50
+  total_score: round(sum of weight × sub_score)
+  band:
+    thriving: score >= 80
+    steady:   score >= 60
+    building: score < 60
+
+response_shape:
+  score: number
+  band: enum
+  components: { savings, monthlyLimit, transferFrequency, coolingOff }
+    each: { weight, score, contribution, detail }
+
+business_rules:
+  - score_data_driven_no_persona_hardcoded_outputs
+  - jordans_seeded_state_must_land_at_68_for_demo_continuity
+
+acceptance_criteria:
+  - jordan_persona_score_eq_68_band_steady
+  - marcus_persona_score_eq_54_band_building
+  - component_contributions_sum_to_overall_score_within_rounding
+
+instrumentation:
+  - wellbeing.score.viewed (with score + band properties)
+```
+
+---
+
 ## Implementation priority
 
 ```
-P0 — Must ship for FCA compliance and core product:
-  - ewa_core_transfer
-  - ewa_self_controls
-  - earnings_tracker
-  - payslip
-  - notifications (ewa_transfer_confirmed + limit warnings)
+P0 — FCA compliance + core product (IMPLEMENTED):
+  ✓ ewa_core_transfer            (Spec 1)
+  ✓ ewa_self_controls            (Spec 2)
+  ✓ earnings_tracker             (Spec 3)
+  ✓ payslip                      (Spec 4)
+  ✓ notifications                (Spec 8)
 
-P1 — Ship in first major release:
-  - savings_pots
-  - budget_planner
-  - bill_reminders
-  - spending_tracker (open banking)
+P1 — First major release:
+  ✓ savings_pots                 (Spec 17 — supersedes Spec 5)
+  ✓ budget_planner               (Spec 16 — supersedes Spec 6)
+  ✓ shifts                       (week + upcoming + recent — new)
+  ⌛ bill_reminders               (Spec 7 — not started)
+  ⌛ spending_tracker             (Open Banking — UI-only)
 
-P2 — Ship to reach Stream feature parity:
-  - benefits_checker
-  - pension_finder
-  - ai_money_coach
-  - wellbeing_score
-  - workplace_loans
-  - discounts (catalogue)
-  - financial_learning
+P2 — Stream feature parity:
+  ✓ benefits_checker             (Spec 13 — supersedes Spec 9; employment-statutory only)
+  ✓ pension_finder               (Spec 15 — supersedes Spec 10; lost-pot is a nudge today)
+  ✓ ai_money_coach               (Spec 11 — keyword-routed, Anthropic SDK ready)
+  ✓ wellbeing_score              (Spec 18 — supersedes Spec 12)
+  ✓ discounts                    (Spec 14 — new)
+  ⌛ workplace_loans              (UI-only)
+  ⌛ financial_learning           (not started)
+
+Cross-cutting infrastructure (IMPLEMENTED):
+  ✓ employer_dashboard           (anonymised aggregate stats)
+  ✓ demo_reset                   (POST /api/v1/demo/reset, gated off in Pg mode)
+  ✓ iq360_instrumentation        (24 event types across the service)
+  ✓ persona_switcher             (Jordan + Marcus, localStorage-backed)
+  ✓ pg_backed_stores             (DatabaseModule.forRoot, NODE_ENV + DATABASE_URL gate)
 ```

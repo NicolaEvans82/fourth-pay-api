@@ -33,6 +33,12 @@ tags:
   - { name: Payslips,      description: Payslip list, detail, and PDF }
   - { name: Notifications, description: In-app notifications }
   - { name: Coach,         description: AI money coach (currently keyword-routed) }
+  - { name: Savings,       description: Savings pots — list, create, manual contribute, auto-save sink }
+  - { name: Budget,        description: 50/30/20 budget split derived from monthly earnings }
+  - { name: Wellbeing,     description: Financial wellbeing score with component breakdown }
+  - { name: Benefits,      description: Statutory employment entitlements computed from HR + Payroll }
+  - { name: Discounts,     description: Partner discounts and employer-specific perks }
+  - { name: Pension,       description: Pension contributions, projection, and lost-pot tracing nudge }
   - { name: Employer,      description: Anonymised employer-aggregate dashboard }
   - { name: Demo,          description: Demo-only reset of in-memory state }
 
@@ -412,6 +418,204 @@ components:
             totalEarnings: { type: number }
             shiftCount:    { type: integer }
 
+    BenefitsResponse:
+      type: object
+      required: [holiday, sickPay, pension, nmwCompliance, maternityPaternity]
+      properties:
+        holiday:
+          type: object
+          required: [eligible, annualDays, accruedDays, detail]
+          properties:
+            eligible:     { type: boolean }
+            annualDays:   { type: integer }
+            accruedDays:  { type: integer }
+            detail:       { type: string }
+        sickPay:
+          type: object
+          required: [eligible, weeklyEarningsEstimate, lowerEarningsLimit, detail]
+          properties:
+            eligible:                { type: boolean }
+            weeklyEarningsEstimate:  { type: number }
+            lowerEarningsLimit:      { type: number }
+            detail:                  { type: string }
+        pension:
+          type: object
+          required: [autoEnrolEligible, annualEarningsEstimate, detail]
+          properties:
+            autoEnrolEligible:       { type: boolean }
+            currentContribution:     { type: number, nullable: true }
+            annualEarningsEstimate:  { type: number }
+            detail:                  { type: string }
+        nmwCompliance:
+          type: object
+          required: [compliant, bracketLabel, bracketRate, yourRate, detail]
+          properties:
+            compliant:     { type: boolean }
+            bracketLabel:  { type: string, example: '21 and over' }
+            bracketRate:   { type: number }
+            yourRate:      { type: number }
+            detail:        { type: string }
+        maternityPaternity:
+          type: object
+          required: [eligible, daysOfTenure, detail]
+          properties:
+            eligible:      { type: boolean }
+            daysOfTenure:  { type: integer }
+            detail:        { type: string }
+
+    Discount:
+      type: object
+      required: [name, description, redemption]
+      properties:
+        name:        { type: string }
+        description: { type: string }
+        percentOff:  { type: number, nullable: true }
+        redemption:  { type: string, enum: [in-app, code, link] }
+        code:        { type: string, description: 'Present when redemption === code' }
+        accentBg:    { type: string }
+        accentFg:    { type: string }
+
+    DiscountsResponse:
+      type: object
+      required: [categories, employerPerks]
+      properties:
+        categories:
+          type: array
+          items:
+            type: object
+            required: [name, discounts]
+            properties:
+              name:      { type: string, example: 'Food & drink' }
+              discounts: { type: array, items: { $ref: '#/components/schemas/Discount' } }
+        employerPerks:
+          type: array
+          items:
+            type: object
+            required: [name, description, value]
+            properties:
+              name:        { type: string }
+              description: { type: string }
+              value:       { type: string, description: 'Human-readable, e.g. 50% or £25/night' }
+
+    PensionIncreaseScenario:
+      type: object
+      required: [newEmployeePercent, extraMonthlyCost, projectedPot, potUplift]
+      properties:
+        newEmployeePercent: { type: number, example: 4 }
+        extraMonthlyCost:   { type: number }
+        projectedPot:       { type: number }
+        potUplift:          { type: number }
+
+    PensionResponse:
+      type: object
+      required:
+        - currentContributionPercent
+        - employerContributionPercent
+        - totalMonthlyContribution
+        - projectedPot
+        - autoEnrolmentStatus
+        - increaseScenarios
+        - lostPensionNudge
+        - governmentTracingUrl
+        - detail
+      properties:
+        currentContributionPercent:  { type: number }
+        employerContributionPercent: { type: number }
+        totalMonthlyContribution:    { type: number, description: 'Only counts employer match when autoEnrolmentStatus === enrolled' }
+        projectedPot:                { type: number, description: 'Flat-rate accumulation, no growth/inflation/escalation' }
+        autoEnrolmentStatus:
+          type: string
+          enum: [eligible, enrolled, opted_out, below_threshold]
+        increaseScenarios:
+          type: array
+          minItems: 3
+          maxItems: 3
+          items: { $ref: '#/components/schemas/PensionIncreaseScenario' }
+        lostPensionNudge:     { type: boolean, description: 'true when tenure > 2 years' }
+        governmentTracingUrl: { type: string, format: uri }
+        detail:
+          type: object
+          required: [referenceGrossPay, yearsToRetirement]
+          properties:
+            referenceGrossPay:  { type: number }
+            yearsToRetirement:  { type: integer }
+            estimatedAge:       { type: integer, nullable: true }
+
+    SavingsPot:
+      type: object
+      required: [id, name, balance, isDefault, createdAt, updatedAt]
+      properties:
+        id:              { type: string, format: uuid }
+        name:            { type: string }
+        targetAmount:    { type: number, nullable: true }
+        balance:         { type: number }
+        isDefault:       { type: boolean }
+        progressPercent: { type: number, nullable: true, description: 'null when targetAmount is null' }
+        createdAt:       { type: string, format: date-time }
+        updatedAt:       { type: string, format: date-time }
+
+    SavingsPotListResponse:
+      type: object
+      required: [pots]
+      properties:
+        pots: { type: array, items: { $ref: '#/components/schemas/SavingsPot' } }
+
+    CreatePotBody:
+      type: object
+      required: [name]
+      properties:
+        name:         { type: string, minLength: 1, maxLength: 64 }
+        targetAmount: { type: number, nullable: true, minimum: 1 }
+
+    ContributeBody:
+      type: object
+      required: [amount]
+      properties:
+        amount: { type: number, minimum: 0.01, description: 'Manual top-up amount' }
+
+    BudgetCategory:
+      type: object
+      required: [allocated, used, remaining]
+      properties:
+        allocated: { type: number }
+        used:      { type: number }
+        remaining: { type: number }
+
+    BudgetResponse:
+      type: object
+      required: [payPeriodStart, payPeriodEnd, monthlyEarnings, needs, wants, savings]
+      properties:
+        payPeriodStart:  { type: string, format: date-time }
+        payPeriodEnd:    { type: string, format: date-time }
+        monthlyEarnings: { type: number }
+        needs:           { $ref: '#/components/schemas/BudgetCategory' }
+        wants:           { $ref: '#/components/schemas/BudgetCategory' }
+        savings:         { $ref: '#/components/schemas/BudgetCategory' }
+
+    WellbeingComponent:
+      type: object
+      required: [weight, score, contribution, detail]
+      properties:
+        weight:       { type: number, description: '0–1 share of overall score' }
+        score:        { type: integer, minimum: 0, maximum: 100 }
+        contribution: { type: number, description: 'weight × score' }
+        detail:       { type: string, description: 'Human-readable explanation' }
+
+    WellbeingResponse:
+      type: object
+      required: [score, band, components]
+      properties:
+        score: { type: integer, minimum: 0, maximum: 100 }
+        band:  { type: string, enum: [building, steady, thriving] }
+        components:
+          type: object
+          required: [savings, monthlyLimit, transferFrequency, coolingOff]
+          properties:
+            savings:           { $ref: '#/components/schemas/WellbeingComponent' }
+            monthlyLimit:      { $ref: '#/components/schemas/WellbeingComponent' }
+            transferFrequency: { $ref: '#/components/schemas/WellbeingComponent' }
+            coolingOff:        { $ref: '#/components/schemas/WellbeingComponent' }
+
     DemoResetResponse:
       type: object
       required: [reset]
@@ -781,6 +985,181 @@ paths:
             application/json:
               schema: { $ref: '#/components/schemas/EmployerStatsResponse' }
         '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/v1/savings/pots:
+    get:
+      tags: [Savings]
+      summary: List the calling employee's savings pots
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      responses:
+        '200':
+          description: All pots for this employee, oldest first.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SavingsPotListResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+    post:
+      tags: [Savings]
+      summary: Create a new savings pot
+      description: |
+        The first pot for an employee is automatically `isDefault: true`.
+        Auto-save (when enabled via self-controls) credits the default
+        pot on every successful EWA transfer.
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/CreatePotBody' }
+      responses:
+        '201':
+          description: New pot record (balance starts at 0).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SavingsPot' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/savings/pots/{id}/contribute:
+    post:
+      tags: [Savings]
+      summary: Manually credit a savings pot
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+        - name: id
+          in: path
+          required: true
+          schema: { type: string, format: uuid }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/ContributeBody' }
+      responses:
+        '200':
+          description: Updated pot (post-credit).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/SavingsPot' }
+        '404':
+          description: Pot not found, or not owned by the calling employee (CLAUDE.md rule 5 — same 404 shape either way, no existence leak).
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Error' }
+
+  /api/v1/budget:
+    get:
+      tags: [Budget]
+      summary: 50/30/20 budget for the current pay period
+      description: |
+        Allocations are derived from the period's gross earnings.
+        EWA accessed counts as drawing from the Needs envelope; Wants
+        and Savings have allocation but no `used` tracking until
+        Open Banking integration lands.
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      responses:
+        '200':
+          description: Budget for the active pay period.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BudgetResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/wellbeing/score:
+    get:
+      tags: [Wellbeing]
+      summary: Financial wellbeing score with component breakdown
+      description: |
+        Single 0–100 score with four weighted components: savings
+        (30%), monthly limit usage (25%), transfer frequency (25%),
+        cooling-off enabled (20%). Every input is live — no persona-
+        hardcoded outputs.
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      responses:
+        '200':
+          description: Score + band + per-component breakdown.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/WellbeingResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/benefits:
+    get:
+      tags: [Benefits]
+      summary: Five statutory employment entitlements
+      description: |
+        Holiday entitlement, Statutory Sick Pay, Pension auto-enrolment,
+        NMW compliance, Maternity/paternity — all computed from the HR +
+        Payroll data the API already has. No questionnaire.
+
+        Numeric thresholds (LEL £123/week, pension £10,000/year,
+        NMW age brackets, holiday weeks, maternity qualifying period)
+        are centralised at the top of `benefits.service.ts` for the
+        April 2026 rate update.
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      responses:
+        '200':
+          description: Per-entitlement eligibility, amounts, and human-readable detail strings.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/BenefitsResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
+
+  /api/v1/discounts:
+    get:
+      tags: [Discounts]
+      summary: Partner discount catalogue + employer-specific perks
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      responses:
+        '200':
+          description: Static 5-category catalogue plus `employerPerks` from `EmployerConfig.perks`.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/DiscountsResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+
+  /api/v1/pension:
+    get:
+      tags: [Pension]
+      summary: Pension contributions, projection, and lost-pot nudge
+      description: |
+        Current employee + employer contribution split, simple flat-rate
+        projection to age 67, three "what if I increased by 1/2/3%"
+        scenarios, and a lost-pension nudge with a link to the GOV.UK
+        tracing service when tenure > 2 years.
+
+        Projection model: `total_monthly × 12 × years_to_retirement`,
+        no investment growth, inflation, or salary escalation —
+        legible at the cost of conservatism. Documented in
+        `pension.service.ts`.
+      parameters:
+        - $ref: '#/components/parameters/EmployeeIdHeader'
+        - $ref: '#/components/parameters/EmployerIdHeader'
+      responses:
+        '200':
+          description: Full pension state for the calling employee.
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/PensionResponse' }
+        '400': { $ref: '#/components/responses/BadRequest' }
+        '404': { $ref: '#/components/responses/NotFound' }
 
   /api/v1/demo/reset:
     post:

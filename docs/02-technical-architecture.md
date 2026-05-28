@@ -62,54 +62,67 @@ observability: iQ360 events + structured logging (Winston)
 
 ## Module structure
 
+Each module is a NestJS feature module — controller(s), service(s),
+DTOs, and a `<name>.module.ts` wiring file. Modules consume one or
+more reader/writer interfaces (database) or adapter interfaces
+(integrations); they never touch `pg.Pool` or `fetch` directly.
+
 ```
 src/
+├── main.ts                    # NestFactory bootstrap, CORS, ValidationPipe, 0.0.0.0 bind
+├── app.module.ts              # Wires every feature module + the conditional Pg switch
+│
 ├── modules/
-│   ├── ewa/                    # Core EWA engine
-│   │   ├── ewa.controller.ts
-│   │   ├── ewa.service.ts
-│   │   ├── balance.service.ts  # Earnings calculation
-│   │   ├── transfer.service.ts # Transfer execution
-│   │   ├── cooling-off.service.ts
-│   │   └── ewa.module.ts
-│   │
-│   ├── payslip/               # Payslip aggregation
-│   ├── savings/               # Savings pots
-│   ├── loans/                 # Workplace loans
-│   ├── benefits/              # Benefits checker
-│   ├── pension/               # Pension finder
-│   ├── coach/                 # AI money coach
-│   ├── spending/              # Open banking / budget
-│   ├── discounts/             # Discount catalogue
-│   ├── notifications/         # Push + in-app notifications
-│   ├── self-controls/         # Employee self-controls
-│   └── wellbeing/             # Wellbeing score + insights
+│   ├── ewa/                   # /api/v1/ewa — balance, transfer, transfers, earnings (P0, IMPLEMENTED)
+│   ├── self-controls/         # /api/v1/self-controls (P0, IMPLEMENTED)
+│   ├── payslip/               # /api/v1/payslips, /:period, /:period/pdf (P0, IMPLEMENTED)
+│   ├── notifications/         # /api/v1/notifications (P0, IMPLEMENTED)
+│   ├── shifts/                # /api/v1/shifts — upcoming + recent + weekly (P1, IMPLEMENTED)
+│   ├── savings/               # /api/v1/savings/pots — pots + manual + auto-save sink (P1, IMPLEMENTED)
+│   ├── budget/                # /api/v1/budget — 50/30/20 from real earnings (P1, IMPLEMENTED)
+│   ├── coach/                 # /api/v1/coach/message — money coach (P2, IMPLEMENTED, keyword-routed)
+│   ├── employer/              # /api/v1/employer/stats — anonymised dashboard (cross-cutting, IMPLEMENTED)
+│   ├── benefits/              # /api/v1/benefits — statutory entitlements (P2, IMPLEMENTED)
+│   ├── pension/               # /api/v1/pension — contributions + projection + lost-pot nudge (P2, IMPLEMENTED)
+│   ├── discounts/             # /api/v1/discounts — partner catalogue + employer perks (P2, IMPLEMENTED)
+│   ├── wellbeing/             # /api/v1/wellbeing/score — 4-component score (P2, IMPLEMENTED)
+│   └── demo/                  # /api/v1/demo/reset — in-memory reseed (gated off in Pg mode)
 │
 ├── integrations/
-│   ├── wfm/                   # Fourth WFM adapter
+│   ├── wfm/                   # Fourth WFM adapter (Approved Hours, FAID→EmployeeID lookup)
 │   │   ├── wfm.adapter.ts
-│   │   ├── wfm.types.ts
-│   │   └── wfm.mock.ts        # Mock for local dev
-│   ├── payroll/               # Fourth Payroll adapter
+│   │   ├── wfm.module.ts
+│   │   └── wfm.mock.ts
+│   ├── payroll/               # Fourth Payroll adapter (Periods, Payslips, Deductions)
 │   │   ├── payroll.adapter.ts
-│   │   ├── payroll.types.ts
-│   │   ├── deduction-queue.service.ts
+│   │   ├── payroll.module.ts
 │   │   └── payroll.mock.ts
-│   └── hr/                    # Fourth HR adapter
-│       ├── hr.adapter.ts
-│       ├── hr.types.ts
-│       └── hr.mock.ts
+│   ├── hr/                    # Fourth HR adapter (Employees, Employments, employment profile)
+│   │   ├── hr.adapter.ts
+│   │   ├── hr.module.ts
+│   │   └── hr.mock.ts
+│   ├── fourth-hcm.config.ts   # FOURTH_HCM_CONFIG token (baseUrl + orgId)
+│   └── fourth-hcm.module.ts   # Reads FOURTH_INTERNAL_API_URL + FOURTH_ORG_ID env
 │
 ├── common/
-│   ├── audit/                 # FCA audit logging
-│   ├── guards/                # Auth guards
-│   ├── filters/               # Exception filters
-│   ├── interceptors/          # Logging, transform
-│   └── decorators/            # Custom decorators
+│   └── instrumentation/       # iQ360 service (global, fire-and-forget)
+│       ├── iq360.service.ts
+│       └── instrumentation.module.ts
 │
 └── database/
-    ├── migrations/
-    └── entities/
+    ├── pg.ts                  # PG_POOL DI token + Pool factory
+    ├── database.module.ts     # @Global, conditionally provides PG_POOL via .forRoot()
+    ├── use-pg.ts              # usePg() = NODE_ENV === 'production' && !!DATABASE_URL
+    ├── migrations/            # TypeORM migrations (5 files, see Database schema below)
+    ├── readers/               # *.reader.ts interfaces + EMPLOYEE_ACCOUNT_READER
+    ├── writers/               # *.writer.ts interfaces + InMemory* + Pg* implementations
+    ├── ewa-transfer.store.ts          # InMemory + seed (Jordan 3, Marcus 1, +56 anon)
+    ├── pg-ewa-transfer.store.ts       # Pg-backed equivalent
+    ├── self-controls.store.ts         # InMemory + seed (Marcus £150 cap)
+    ├── pg-self-controls.store.ts
+    ├── notifications.store.ts         # InMemory + seed (3 unread notifs for Jordan)
+    ├── pg-notifications.store.ts
+    └── savings-pot.store.ts           # InMemory + seed (Jordan Emergency fund £45/£500)
 ```
 
 ---
@@ -411,41 +424,90 @@ EWA_TRANSFER_IN_PROGRESS      - Concurrent transfer attempt
 
 ## iQ360 instrumentation events
 
-Every feature must emit defined events to iQ360. These are the events for the EWA module:
+All events flow through `Iq360Service.emit()` in
+`src/common/instrumentation/iq360.service.ts`. The service is
+fire-and-forget — it never throws back into the call site so an
+instrumentation outage cannot block a transfer, balance fetch, or
+any other user-facing flow. Payload contract: every event carries
+`event` (name), `timestamp` (ISO 8601), `employee_id` (FAID — **never**
+the internal UUID or NI number), `employer_id` where the action is
+employer-scoped, and optional `properties`.
 
 ```yaml
 events:
-  # Transfer events
+  # EWA — transfer lifecycle
   - name: ewa.transfer.initiated
-    properties: [employee_id, amount, transfer_speed, fee_amount, fee_subsidised]
-    
+    properties: [employee_id, employer_id, amount, transfer_speed]
   - name: ewa.transfer.completed
-    properties: [employee_id, amount, transfer_speed, fee_amount, duration_ms]
-    
+    properties: [employee_id, employer_id, amount, fee, transfer_speed]
   - name: ewa.transfer.failed
-    properties: [employee_id, amount, error_code, failure_reason]
-    
-  # Balance check (indicates engagement)
+    properties: [employee_id, employer_id, amount, transfer_speed, error_code]
+    # error_code is the HttpException 'code' field (e.g. EWA_FCA_DISCLOSURE_REQUIRED)
   - name: ewa.balance.viewed
-    properties: [employee_id, available_amount, period_day_number]
-    
-  # Self-controls events
-  - name: ewa.self_control.updated
-    properties: [employee_id, control_type, previous_value, new_value]
-    
-  - name: ewa.self_control.override
-    properties: [employee_id, control_type, has_reason]
-    # Note: reason text is NOT sent to iQ360 — privacy
-    
-  - name: ewa.account.paused
-    properties: [employee_id, duration_days]
-    
-  # FCA compliance events  
+    properties: [employee_id, employer_id]
+  - name: ewa.transfers.list.viewed
+    properties: [employee_id, employer_id, result_count]
+
+  # EWA — FCA compliance gates
   - name: ewa.fca.disclosure_shown
-    properties: [employee_id, disclosure_type, context]
-    
+    properties: [employee_id, employer_id]
+    # Fires alongside ewa.balance.viewed — the balance card carries the FCA copy
   - name: ewa.fca.disclosure_acknowledged
-    properties: [employee_id, disclosure_type, acknowledged_at]
+    properties: [employee_id, employer_id]
+    # Fires when the controller sees fcaDisclosureAcknowledged: true on a transfer
+
+  # Self-controls
+  - name: ewa.self_control.updated
+    properties: [employee_id, employer_id, fields_changed]
+    # fields_changed[] is filtered to keys the caller actually sent;
+    # raw values never leave the service (CLAUDE.md rule 4 / 5)
+  - name: ewa.self_control.override
+    properties: [employee_id, employer_id, control_type]
+    # Reason is free-text and could carry PII — only the bucket goes to iQ360
+  - name: ewa.account.paused
+    properties: [employee_id, employer_id, duration_days]
+
+  # Earnings + shifts
+  - name: earnings.tracker.viewed
+    properties: [employee_id, employer_id]
+  - name: shifts.viewed
+    properties: [employee_id, employer_id]
+
+  # Notifications
+  - name: notifications.list.viewed
+    properties: [employee_id, result_count, unread_count, category]
+    # category is set only when the caller filters by one
+  - name: notifications.read
+    properties: [employee_id, notification_id, category]
+
+  # Payslips
+  - name: payslip.viewed
+    properties: [employee_id, pay_period_start]
+  - name: payslip.pdf.downloaded
+    properties: [employee_id, pay_period_start]
+
+  # Coach
+  - name: coach.session.started
+    properties: [employee_id, employer_id]
+    # Fires only on the first message of a session (empty conversationHistory)
+
+  # Employer dashboard (workforce-aggregate; no employee_id — rule 5)
+  - name: employer.dashboard.viewed
+    properties: [employer_id]
+
+  # Wealth-building modules
+  - name: savings.pot.viewed
+    properties: [employee_id, employer_id, pot_count]
+  - name: budget.viewed
+    properties: [employee_id, employer_id]
+  - name: wellbeing.score.viewed
+    properties: [employee_id, employer_id, score, band]
+  - name: benefits.viewed
+    properties: [employee_id, employer_id, nmw_compliant, pension_auto_enrol_eligible]
+  - name: discounts.viewed
+    properties: [employee_id, employer_id, partner_count, employer_perk_count]
+  - name: pension.viewed
+    properties: [employee_id, employer_id, auto_enrolment_status]
 ```
 
 ---
