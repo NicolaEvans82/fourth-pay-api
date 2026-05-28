@@ -141,6 +141,12 @@ export class EwaController {
         });
     }
 
+    this.iq360?.emit('ewa.transfers.list.viewed', {
+      employee_id: ids.fourthEmployeeId,
+      employer_id: ids.fourthEmployerId,
+      properties: { result_count: transfers.length },
+    });
+
     return {
       transfers: transfers.map((t) => ({
         id: t.id,

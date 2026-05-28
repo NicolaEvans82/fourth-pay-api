@@ -41,7 +41,16 @@ export class NotificationsController {
   ): Promise<{ notifications: Notification[]; unreadCount: number }> {
     const fourthEmployeeId = extractEmployeeId(headers);
     const category = parseCategory(categoryRaw);
-    return this.service.list({ fourthEmployeeId, category });
+    const result = await this.service.list({ fourthEmployeeId, category });
+    this.iq360?.emit('notifications.list.viewed', {
+      employee_id: fourthEmployeeId,
+      properties: {
+        result_count: result.notifications.length,
+        unread_count: result.unreadCount,
+        ...(category ? { category } : {}),
+      },
+    });
+    return result;
   }
 
   @Post(':id/read')
