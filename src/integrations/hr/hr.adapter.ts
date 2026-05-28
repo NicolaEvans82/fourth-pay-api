@@ -51,10 +51,32 @@ interface EmployeesApiRow {
   IR35?: boolean;
 }
 
+// Full row shape confirmed by Ali Barlow from the API Explorer.
+// `Is*` flags arrive as strings ("Yes" / "No"), not booleans. Dates
+// arrive as ISO 8601 strings.
 interface EmploymentRecordApiRow {
-  StartDate?: string;
-  EndDate?: string | null;
-  ContractType?: string;
+  EmployeeID: number;
+  EmploymentReference: string;
+  EmploymentStartDate: string;
+  EmploymentEndDate: string;
+  AssignmentStartDate: string;
+  AssignmentEndDate: string;
+  TerminationReason: string;
+  Rehire: string;
+  EmploymentStatus: string;
+  IsPermanent: string;
+  IsFulltime: string;
+  IsForeignStudent: string;
+  IsLiveIn: string;
+  EmploymentType: string;
+  Department: string;
+  DepartmentDescription: string;
+  JobCode: string;
+  JobDescription: string;
+  ShiftType: string;
+  SiteCode: string;
+  SiteDescription: string;
+  RateOfPay: number;
 }
 
 @Injectable()
@@ -182,16 +204,33 @@ export class FourthHrAdapter implements HrAdapter {
   }
 }
 
+// Permitted EmploymentStatus values that count as currently-employed.
+// Confirmed values from the API Explorer aren't enumerated, so this is
+// a best-guess match list — if production ever sees a different
+// in-employment value (e.g. "OnLeave"), extend this set rather than
+// loosening the check.
+const ACTIVE_EMPLOYMENT_STATUSES = new Set([
+  'active',
+  'current',
+  'employed',
+  'live',
+]);
+
 function checkTenure(
   employment: EmploymentRecordApiRow[],
   minTenureDays: number,
 ): { passes: true } | { passes: false; reason: string } {
-  const active = employment.find((e) => !e.EndDate);
+  // Use EmploymentStatus as the primary signal — Ali confirmed the
+  // field is present on every row. Date-based "no EndDate = active"
+  // is no longer needed.
+  const active = employment.find((e) =>
+    ACTIVE_EMPLOYMENT_STATUSES.has((e.EmploymentStatus ?? '').trim().toLowerCase()),
+  );
   if (!active) {
     return { passes: false, reason: 'No active employment record' };
   }
-  if (active.StartDate) {
-    const start = new Date(active.StartDate);
+  if (active.EmploymentStartDate) {
+    const start = new Date(active.EmploymentStartDate);
     const days = Math.floor(
       (Date.now() - start.getTime()) / (1000 * 60 * 60 * 24),
     );

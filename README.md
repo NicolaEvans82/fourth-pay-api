@@ -68,9 +68,8 @@ the in-memory state and reapplies the seed — useful between demos.
 
 FAID → EmployeeID resolution is wired in `FourthWfmAdapter.resolveEmployeeId` (calls the HR `Employees` endpoint, caches the mapping per process). Approved Hours rows are now filtered client-side to the calling employee — no cross-employee leakage.
 
-**Still open with Ali**:
-
-- Employment-records response shape — `EmploymentRecordApiRow` in `hr.adapter.ts` only models `StartDate` / `EndDate` / `ContractType`; the API Explorer didn't list structured fields.
+All endpoint paths and response shapes are confirmed against the
+API Explorer; nothing currently blocked on Ali.
 
 ## Tests
 

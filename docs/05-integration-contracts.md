@@ -67,10 +67,44 @@ URL  GET http://10.12.6.10:85/organisations/{orgId}/Employees/Employments
 Auth X-Fourth-Org: <OrganisationID/GroupID>
 ```
 
-**Note:** No structured response fields in the API Explorer — the
-`EmploymentRecordApiRow` type in `hr.adapter.ts` only models
-`StartDate` / `EndDate` / `ContractType`. Confirm the full shape with
-Ali Barlow before relying on extra fields.
+**Full response field list:**
+```
+EmployeeID              Integer  Internal numeric ID (joins to Employees)
+EmploymentReference     Text     Per-employment reference code
+EmploymentStartDate     Date     Employment start date (use this for tenure)
+EmploymentEndDate       Date     Employment end date (blank/empty when current)
+AssignmentStartDate     Date     Current assignment start
+AssignmentEndDate       Date     Current assignment end
+TerminationReason       Text     Free-text leaver reason
+Rehire                  Text     Eligible-for-rehire flag (Yes/No)
+EmploymentStatus        Text     Active / Current / Terminated / etc. — drives the tenure gate
+IsPermanent             Text     Yes/No
+IsFulltime              Text     Yes/No
+IsForeignStudent        Text     Yes/No
+IsLiveIn                Text     Yes/No
+EmploymentType          Text     e.g. PAYE, Self-employed
+Department              Text     Department code
+DepartmentDescription   Text     Department name
+JobCode                 Text     Job code
+JobDescription          Text     Job title at time of payslip
+ShiftType               Text     e.g. Day, Night
+SiteCode                Text     Site code
+SiteDescription         Text     Site / venue name
+RateOfPay               Number   Current pay rate
+```
+
+**Fourth Pay mapping:**
+```typescript
+// EmploymentStatus is the primary signal for "is this employee
+// currently working" — see ACTIVE_EMPLOYMENT_STATUSES in
+// hr.adapter.ts. EmploymentEndDate is informational; do not use it
+// as the active-employment check (status can flip independently).
+//
+// EmploymentStartDate (not AssignmentStartDate) is the tenure clock —
+// AssignmentStartDate resets on every internal move.
+//
+// Note: every Is* flag arrives as a "Yes"/"No" string, not a boolean.
+```
 
 ---
 

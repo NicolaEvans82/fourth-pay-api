@@ -203,10 +203,13 @@ unfiltered org list (CLAUDE.md rule 5).
 
 ### Still open with Ali
 
-- **Employment records response shape** — `EmploymentRecordApiRow` in
-  `hr.adapter.ts` only models `StartDate` / `EndDate` / `ContractType`.
-  The API Explorer didn't list structured fields. Confirm the full
-  shape with Ali before relying on extra fields.
+Nothing currently blocked. All six PeopleSystem endpoints are
+wired against confirmed paths and the `EmploymentRecordApiRow`
+field list is now complete from the API Explorer. The tenure check
+in `hr.adapter.ts` uses `EmploymentStatus` as the active signal — if
+production reveals a status value outside the current allow-list
+(`active` / `current` / `employed` / `live`), extend
+`ACTIVE_EMPLOYMENT_STATUSES` rather than loosening the check.
 
 ## 7. Switching from Mock* to Fourth* adapters
 
