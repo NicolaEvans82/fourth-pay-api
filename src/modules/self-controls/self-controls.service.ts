@@ -89,7 +89,13 @@ export class SelfControlsService {
     const current =
       (await this.reader.findByEmployeeAccountId(employee.id)) ??
       defaultRecord(employee.id);
-    const next: SelfControlsRecord = { ...current, ...patch };
+    // Drop undefined keys so an absent optional field in the PUT body
+    // doesn't clobber the stored value (class-transformer materialises
+    // declared-but-unset properties as undefined with TS class fields).
+    const definedPatch = Object.fromEntries(
+      Object.entries(patch).filter(([, v]) => v !== undefined),
+    );
+    const next: SelfControlsRecord = { ...current, ...definedPatch };
 
     if (
       next.monthlyLimitAmount !== null &&

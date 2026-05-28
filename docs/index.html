@@ -676,7 +676,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
       <div class="info-row"><span class="info-label">Monthly limit remaining after</span><span class="info-val orange" id="s-remain">£0.00</span></div>
       <div class="bank-row"><div style="display:flex;align-items:center;gap:10px;"><div class="bank-logo">M</div><div><div class="bank-name">Monzo</div><div class="bank-num">•••• 4891</div></div></div><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--text-3);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M9 6l6 6l-6 6"/></svg></div>
       <div class="receive-row"><span style="font-size:12px;font-weight:700;color:var(--teal-text);">You'll receive</span><span style="font-size:16px;font-weight:800;color:var(--text-1);" id="s-receive">£70.00</span></div>
-      <button class="btn btn-teal" id="stream-cta-btn" onclick="go('confirm')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg> Access pay instantly</button>
+      <button class="btn btn-teal" id="stream-cta-btn" onclick="submitTransfer()"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg> Access pay instantly</button>
       <p style="text-align:center;font-size:11px;color:var(--text-3);margin-top:10px;">FCA regulated · <span id="stream-speed-note">Arrives within minutes</span> · <span style="color:var(--teal);font-weight:700;cursor:pointer;" onclick="go('controls')">Manage limits →</span></p>
     </div>
   </div>
@@ -689,11 +689,11 @@ input[type=range]{width:100%;accent-color:var(--teal);}
       <div class="confirm-sub">On its way to your Monzo account</div>
       <div class="confirm-big" id="c-amount">£68.25</div>
       <div class="confirm-detail">
-        <div class="c-row"><span class="c-label">Requested</span><span class="c-val">£70.00</span></div>
+        <div class="c-row"><span class="c-label">Requested</span><span class="c-val" id="c-requested">£70.00</span></div>
         <div class="c-row"><span class="c-label">Fee</span><span class="c-val" id="c-fee">£1.95</span></div>
         <div class="c-row"><span class="c-label">Account</span><span class="c-val">Monzo •••• 4891</span></div>
-        <div class="c-row"><span class="c-label">Arrives</span><span class="c-val" style="color:var(--teal);">Within minutes</span></div>
-        <div class="c-row"><span class="c-label">Monthly limit used</span><span class="c-val" style="color:var(--orange);">£200/£200</span></div>
+        <div class="c-row"><span class="c-label">Arrives</span><span class="c-val" id="c-arrives" style="color:var(--teal);">Within minutes</span></div>
+        <div class="c-row"><span class="c-label">FCA reference</span><span class="c-val" id="c-ref" style="font-family:monospace;font-size:11px;">—</span></div>
       </div>
       <button class="btn btn-navy" onclick="go('home')" style="margin-bottom:10px;">Back to home</button>
       <button class="btn btn-ghost" onclick="go('track')">View history</button>
@@ -1140,7 +1140,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
         <div class="control-header"><div><div class="control-title">Monthly access limit</div><div class="control-sub">Cap total per pay period</div></div><div class="toggle on" id="tog-limit" onclick="togCtrl('limit')"><div class="toggle-thumb"></div></div></div>
         <div class="ctrl-slider-wrap" id="wrap-limit">
           <div class="ctrl-slider-label"><span>Monthly cap</span><span id="val-limit">£200</span></div>
-          <input type="range" min="50" max="312" value="200" step="10" id="slider-limit" oninput="document.getElementById('val-limit').textContent='£'+this.value">
+          <input type="range" min="50" max="312" value="200" step="10" id="slider-limit" oninput="document.getElementById('val-limit').textContent='£'+this.value" onchange="putControl({monthlyLimitAmount: parseInt(this.value,10)})">
           <div class="ctrl-range-labels"><span>£50</span><span>£312 (50% max)</span></div>
         </div>
       </div>
@@ -1148,7 +1148,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
         <div class="control-header"><div><div class="control-title">Per-transfer limit</div><div class="control-sub">Maximum single transaction</div></div><div class="toggle on" id="tog-txn" onclick="togCtrl('txn')"><div class="toggle-thumb"></div></div></div>
         <div class="ctrl-slider-wrap" id="wrap-txn">
           <div class="ctrl-slider-label"><span>Max per transfer</span><span id="val-txn">£100</span></div>
-          <input type="range" min="10" max="312" value="100" step="10" id="slider-txn" oninput="document.getElementById('val-txn').textContent='£'+this.value">
+          <input type="range" min="10" max="312" value="100" step="10" id="slider-txn" oninput="document.getElementById('val-txn').textContent='£'+this.value" onchange="putControl({perTransferLimitAmount: parseInt(this.value,10)})">
           <div class="ctrl-range-labels"><span>£10</span><span>£312</span></div>
         </div>
       </div>
@@ -1160,7 +1160,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
         <div class="control-header"><div><div class="control-title">Auto-save on access</div><div class="control-sub">Save a % each time you access pay</div></div><div class="toggle off" id="tog-autosave" onclick="togCtrl('autosave')"><div class="toggle-thumb"></div></div></div>
         <div class="ctrl-slider-wrap" id="wrap-autosave" style="display:none;">
           <div class="ctrl-slider-label"><span>Auto-save rate</span><span id="val-autosave">10%</span></div>
-          <input type="range" min="5" max="30" value="10" step="5" id="slider-autosave" oninput="document.getElementById('val-autosave').textContent=this.value+'%'">
+          <input type="range" min="5" max="30" value="10" step="5" id="slider-autosave" oninput="document.getElementById('val-autosave').textContent=this.value+'%'" onchange="putControl({autoSavePercent: parseInt(this.value,10)})">
           <div class="ctrl-range-labels"><span>5%</span><span>30%</span></div>
         </div>
       </div>
@@ -1505,14 +1505,24 @@ function switchPS(tab){
   });
 }
 
+const TOG_FIELD={limit:'monthlyLimitEnabled',txn:'perTransferLimitEnabled',cool:'coolingOffEnabled',autosave:'autoSaveEnabled',nudge:'wellbeingNudgesEnabled'};
+const COOLDOWN_HOURS={'24h':24,'48h':48,'7 days':168};
+
 function togCtrl(key){
   const t=document.getElementById('tog-'+key);
   const on=t.classList.contains('on');
   t.classList.toggle('on',!on);t.classList.toggle('off',on);
   const w=document.getElementById('wrap-'+key);
   if(w)w.style.display=on?'none':'block';
+  const field=TOG_FIELD[key];
+  if(field)putControl({[field]:!on});
 }
-function setCooldown(el){document.querySelectorAll('.cooldown-opt').forEach(o=>o.classList.remove('active'));el.classList.add('active');}
+function setCooldown(el){
+  document.querySelectorAll('.cooldown-opt').forEach(o=>o.classList.remove('active'));
+  el.classList.add('active');
+  const hours=COOLDOWN_HOURS[el.textContent.trim()];
+  if(hours)putControl({coolingOffHours:hours});
+}
 
 function filterN(cat){
   document.querySelectorAll('.chip').forEach(c=>c.classList.remove('active'));
@@ -1867,6 +1877,58 @@ async function loadSelfControls(){
     setToggle('tog-nudge', sc.wellbeingNudgesEnabled);
   } catch (err) {
     console.warn('self-controls fetch failed:', err);
+  }
+}
+
+async function submitTransfer(){
+  const amountInput=document.getElementById('s-amount');
+  const amount=parseFloat(amountInput && amountInput.value);
+  if(!amount||amount<10){alert('Enter an amount of at least £10.');return;}
+  const speed=(typeof transferSpeed==='string'?transferSpeed:'instant');
+  const btn=document.getElementById('stream-cta-btn');
+  if(btn)btn.disabled=true;
+  try{
+    const res=await fetch(API_BASE+'/api/v1/ewa/transfer',{
+      method:'POST',
+      headers:Object.assign({'Content-Type':'application/json'},API_HEADERS),
+      body:JSON.stringify({amount,transferSpeed:speed,fcaDisclosureAcknowledged:true}),
+    });
+    if(!res.ok){
+      let msg='Transfer failed (HTTP '+res.status+')';
+      try{const j=await res.json();if(j&&j.message)msg=Array.isArray(j.message)?j.message.join(', '):j.message;}catch(_){}
+      alert(msg);
+      return;
+    }
+    const data=await res.json();
+    const set=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+    set('c-amount',fmtGbp(data.netAmount));
+    set('c-requested',fmtGbp(amount));
+    set('c-fee',data.feeAmount===0?'Free (employer pays)':fmtGbp(data.feeAmount));
+    set('c-arrives',data.estimatedArrival==='immediate'?'Within minutes':data.estimatedArrival);
+    set('c-ref',data.fcaReference);
+    go('confirm');
+    loadBalance();
+    loadTransfers();
+    loadSelfControls();
+  }catch(err){
+    alert('Transfer failed: '+(err&&err.message||err));
+  }finally{
+    if(btn)btn.disabled=false;
+  }
+}
+
+async function putControl(patch){
+  try{
+    const res=await fetch(API_BASE+'/api/v1/self-controls',{
+      method:'PUT',
+      headers:Object.assign({'Content-Type':'application/json'},API_HEADERS),
+      body:JSON.stringify(patch),
+    });
+    if(!res.ok){console.warn('self-controls PUT failed:',res.status,await res.text());return;}
+    // Refresh the hero usage line if monthlyLimitAmount changed.
+    if('monthlyLimitAmount' in patch||'monthlyLimitEnabled' in patch)loadSelfControls();
+  }catch(err){
+    console.warn('self-controls PUT error:',err);
   }
 }
 
