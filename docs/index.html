@@ -1048,7 +1048,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
   <!-- ═══ PAYSLIP ═══ -->
   <div class="screen" id="screen-payslip">
     <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">My payslips</div></div></div>
-    <div class="payslip-body">
+    <div class="payslip-body" id="payslip-list">
       <div class="payslip-tabs">
         <div class="ptab active" onclick="switchPS('may')" id="ptab-may">May 2026</div>
         <div class="ptab" onclick="switchPS('apr')" id="ptab-apr">Apr 2026</div>
@@ -1132,15 +1132,15 @@ input[type=range]{width:100%;accent-color:var(--teal);}
     <div class="controls-body">
       <div class="controls-hero">
         <div class="controls-hero-label">This month's usage</div>
-        <div class="controls-hero-val">£130 of £200 limit</div>
-        <div class="controls-hero-sub">65% of your monthly cap</div>
-        <div class="prog-track" style="margin-top:12px;"><div class="prog-fill" style="width:65%;background:var(--orange);"></div></div>
+        <div class="controls-hero-val" id="ctrl-hero-val">£130 of £200 limit</div>
+        <div class="controls-hero-sub" id="ctrl-hero-sub">65% of your monthly cap</div>
+        <div class="prog-track" style="margin-top:12px;"><div class="prog-fill" id="ctrl-hero-fill" style="width:65%;background:var(--orange);"></div></div>
       </div>
       <div class="control-card">
         <div class="control-header"><div><div class="control-title">Monthly access limit</div><div class="control-sub">Cap total per pay period</div></div><div class="toggle on" id="tog-limit" onclick="togCtrl('limit')"><div class="toggle-thumb"></div></div></div>
         <div class="ctrl-slider-wrap" id="wrap-limit">
           <div class="ctrl-slider-label"><span>Monthly cap</span><span id="val-limit">£200</span></div>
-          <input type="range" min="50" max="312" value="200" step="10" oninput="document.getElementById('val-limit').textContent='£'+this.value">
+          <input type="range" min="50" max="312" value="200" step="10" id="slider-limit" oninput="document.getElementById('val-limit').textContent='£'+this.value">
           <div class="ctrl-range-labels"><span>£50</span><span>£312 (50% max)</span></div>
         </div>
       </div>
@@ -1148,7 +1148,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
         <div class="control-header"><div><div class="control-title">Per-transfer limit</div><div class="control-sub">Maximum single transaction</div></div><div class="toggle on" id="tog-txn" onclick="togCtrl('txn')"><div class="toggle-thumb"></div></div></div>
         <div class="ctrl-slider-wrap" id="wrap-txn">
           <div class="ctrl-slider-label"><span>Max per transfer</span><span id="val-txn">£100</span></div>
-          <input type="range" min="10" max="312" value="100" step="10" oninput="document.getElementById('val-txn').textContent='£'+this.value">
+          <input type="range" min="10" max="312" value="100" step="10" id="slider-txn" oninput="document.getElementById('val-txn').textContent='£'+this.value">
           <div class="ctrl-range-labels"><span>£10</span><span>£312</span></div>
         </div>
       </div>
@@ -1160,7 +1160,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
         <div class="control-header"><div><div class="control-title">Auto-save on access</div><div class="control-sub">Save a % each time you access pay</div></div><div class="toggle off" id="tog-autosave" onclick="togCtrl('autosave')"><div class="toggle-thumb"></div></div></div>
         <div class="ctrl-slider-wrap" id="wrap-autosave" style="display:none;">
           <div class="ctrl-slider-label"><span>Auto-save rate</span><span id="val-autosave">10%</span></div>
-          <input type="range" min="5" max="30" value="10" step="5" oninput="document.getElementById('val-autosave').textContent=this.value+'%'">
+          <input type="range" min="5" max="30" value="10" step="5" id="slider-autosave" oninput="document.getElementById('val-autosave').textContent=this.value+'%'">
           <div class="ctrl-range-labels"><span>5%</span><span>30%</span></div>
         </div>
       </div>
@@ -1185,6 +1185,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
         <div class="chip" id="chip-pension" onclick="filterN('pension')">Pension</div>
       </div>
       <span class="mark-all" onclick="markRead()">Mark all as read</span>
+      <div id="notif-items">
       <div class="notif-item urgent" data-cat="pay"><div class="notif-icon" style="background:var(--red-tint);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--red-text);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16v.01"/></svg></div><div class="notif-content"><div class="notif-title">Bill due today — Internet £32.00</div><div class="notif-text">Your internet direct debit is due today. Make sure you have enough in your Monzo account.</div><div class="notif-cta" onclick="go('spend')">View bill reminders →</div><div class="notif-time">7:00 AM · Today</div></div><div class="notif-unread-dot" style="background:var(--red);"></div></div>
       <div class="group-label">Today</div>
       <div class="notif-item unread" data-cat="pay"><div class="notif-icon" style="background:var(--teal-tint);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--teal);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/></svg></div><div class="notif-content"><div class="notif-title">Pay access confirmed ✓</div><div class="notif-text">£80.00 sent to Monzo •••• 4891. Should arrive within minutes.</div><div class="notif-time">9:14 AM · Today</div></div><div class="unread-dot"></div></div>
@@ -1195,6 +1196,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
       <div class="notif-item" data-cat="payslip"><div class="notif-icon" style="background:rgba(0,39,71,0.06);"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:var(--navy);"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/><path d="M9 9h1"/><path d="M9 13h6"/><path d="M9 17h6"/></svg></div><div class="notif-content"><div class="notif-title">May payslip is ready</div><div class="notif-text">Net pay £1,247.30 for May 2026. Tap to view or download.</div><div class="notif-cta" onclick="go('payslip')">View payslip →</div><div class="notif-time">22 May</div></div></div>
       <div class="notif-item unread" data-cat="pension"><div class="notif-icon" style="background:#f3e8ff;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:#8b5cf6;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M10 3.2a9 9 0 1 0 10.8 10.8a1 1 0 0 0 -1 -1h-6.8a2 2 0 0 1 -2 -2v-7a.9 .9 0 0 0 -1 -.8"/><path d="M15 3.5a9 9 0 0 1 5.5 5.5h-4.5a1 1 0 0 1 -1 -1v-4.5"/></svg></div><div class="notif-content"><div class="notif-title">Lost pension found! 🎉</div><div class="notif-text">We found a £11,580 deferred pension pot from Mitchells & Butlers. Want to consolidate it?</div><div class="notif-cta" onclick="go('pension')">View pension →</div><div class="notif-time">20 May</div></div><div class="unread-dot" style="background:#8b5cf6;"></div></div>
       <div class="notif-item" data-cat="wellbeing"><div class="notif-icon" style="background:#e8f8f4;"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:#00937f;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.566"/></svg></div><div class="notif-content"><div class="notif-title">Wellbeing score up 8 points 🎉</div><div class="notif-text">Your financial wellbeing is at 74/100. You're building great habits.</div><div class="notif-time">20 May</div></div></div>
+      </div>
       <div style="height:8px;"></div>
     </div>
   </div>
@@ -1678,9 +1680,202 @@ async function loadTransfers(){
   }
 }
 
+function escHtml(s){
+  return String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+
+function fmtFullDate(iso){
+  const d = new Date(iso);
+  return d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+}
+function fmtMonthShort(iso){
+  const d = new Date(iso);
+  return MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+}
+function fmtPeriodFull(startIso){
+  const s = new Date(startIso);
+  const monthStart = new Date(Date.UTC(s.getUTCFullYear(), s.getUTCMonth(), 1));
+  const monthEnd = new Date(Date.UTC(s.getUTCFullYear(), s.getUTCMonth() + 1, 0));
+  return monthStart.getUTCDate() + '–' + monthEnd.getUTCDate() + ' ' + MONTHS[s.getUTCMonth()] + ' ' + s.getUTCFullYear();
+}
+
+function selectPayslip(idx){
+  document.querySelectorAll('#payslip-list .ptab').forEach(t => t.classList.toggle('active', parseInt(t.dataset.idx,10) === idx));
+  document.querySelectorAll('#payslip-list .payslip-card').forEach(c => c.style.display = parseInt(c.dataset.idx,10) === idx ? 'block' : 'none');
+}
+
+function renderPayslipCard(p, idx){
+  return '<div class="payslip-card" data-idx="' + idx + '"' + (idx === 0 ? '' : ' style="display:none;"') + '>' +
+    '<div class="ps-header">' +
+      '<div class="ps-employer">The Crown Pub Group Ltd</div>' +
+      '<div class="ps-period">' + escHtml(fmtPeriodFull(p.payPeriodStart)) + '</div>' +
+      '<div class="ps-ref">Paid ' + escHtml(fmtFullDate(p.paymentDate)) + '</div>' +
+    '</div>' +
+    '<div class="ps-net">' +
+      '<div class="ps-net-label">Net pay</div>' +
+      '<div class="ps-net-amount">' + fmtGbp(p.netPay) + '</div>' +
+      '<div class="ps-net-sub">Gross ' + fmtGbp(p.grossPay) + ' · Monzo •••• 4891</div>' +
+    '</div>' +
+    '<button class="btn btn-navy" style="margin-top:12px;margin-bottom:8px;">Download PDF</button>' +
+  '</div>';
+}
+
+async function loadPayslips(){
+  try {
+    const res = await fetch(API_BASE + '/api/v1/payslips', { headers: API_HEADERS });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const wrap = document.getElementById('payslip-list');
+    if (!wrap) return;
+    if (!data.payslips || !data.payslips.length) {
+      wrap.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-3);font-size:13px;">No payslips yet</div>';
+      return;
+    }
+    const tabs = data.payslips.map((p, i) =>
+      '<div class="ptab' + (i === 0 ? ' active' : '') + '" data-idx="' + i + '" onclick="selectPayslip(' + i + ')">' + escHtml(fmtMonthShort(p.payPeriodStart)) + '</div>'
+    ).join('');
+    const cards = data.payslips.map(renderPayslipCard).join('');
+    wrap.innerHTML = '<div class="payslip-tabs">' + tabs + '</div>' + cards;
+  } catch (err) {
+    console.warn('payslips fetch failed:', err);
+  }
+}
+
+const NOTIF_STYLE = {
+  pay:       { bg: 'var(--teal-tint)',  color: 'var(--teal)',      icon: '<path d="M13 3l0 7l6 0l-8 11l0 -7l-6 0l8 -11"/>' },
+  savings:   { bg: 'var(--orange-tint)', color: 'var(--orange)',   icon: '<path d="M17 8v-1a5 5 0 0 0 -10 0v1"/><path d="M11 16a1 1 0 1 0 2 0a1 1 0 0 0 -2 0"/><path d="M5 8h14a1 1 0 0 1 1 1v4a1 1 0 0 1 -1 1h-1l-1 3h-8l-1 -3h-1a1 1 0 0 1 -1 -1v-4a1 1 0 0 1 1 -1z"/><path d="M19 12h2"/>' },
+  payslip:   { bg: 'rgba(0,39,71,0.06)', color: 'var(--navy)',     icon: '<path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M17 21h-10a2 2 0 0 1 -2 -2v-14a2 2 0 0 1 2 -2h7l5 5v11a2 2 0 0 1 -2 2z"/>' },
+  wellbeing: { bg: '#e8f8f4',            color: '#00937f',         icon: '<path d="M19.5 12.572l-7.5 7.428l-7.5 -7.428a5 5 0 1 1 7.5 -6.566a5 5 0 1 1 7.5 6.566"/>' },
+  pension:   { bg: '#f3e8ff',            color: '#8b5cf6',         icon: '<path d="M10 3.2a9 9 0 1 0 10.8 10.8a1 1 0 0 0 -1 -1h-6.8a2 2 0 0 1 -2 -2v-7a.9 .9 0 0 0 -1 -.8"/>' },
+  bills:     { bg: 'var(--red-tint)',    color: 'var(--red-text)', icon: '<circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16v.01"/>' },
+  system:    { bg: 'rgba(0,39,71,0.06)', color: 'var(--navy)',     icon: '<circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16v.01"/>' },
+};
+
+function renderNotification(n){
+  const style = NOTIF_STYLE[n.category] || NOTIF_STYLE.system;
+  const cls = n.readAt ? '' : (n.urgency === 'urgent' ? ' urgent' : ' unread');
+  const dotColor = n.urgency === 'urgent' ? 'var(--red)' : n.urgency === 'warning' ? 'var(--orange)' : 'var(--teal)';
+  const dot = n.readAt ? '' : '<div class="unread-dot" style="background:' + dotColor + ';"></div>';
+  const when = new Date(n.createdAt);
+  const timeStr = fmtDay(n.createdAt) + ' · ' + String(when.getUTCHours()).padStart(2,'0') + ':' + String(when.getUTCMinutes()).padStart(2,'0');
+  return '<div class="notif-item' + cls + '" data-cat="' + escHtml(n.category) + '">' +
+    '<div class="notif-icon" style="background:' + style.bg + ';">' +
+      '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;color:' + style.color + ';"><path stroke="none" d="M0 0h24v24H0z" fill="none"/>' + style.icon + '</svg>' +
+    '</div>' +
+    '<div class="notif-content">' +
+      '<div class="notif-title">' + escHtml(n.title) + '</div>' +
+      '<div class="notif-text">' + escHtml(n.body) + '</div>' +
+      '<div class="notif-time">' + escHtml(timeStr) + '</div>' +
+    '</div>' +
+    dot +
+  '</div>';
+}
+
+async function loadNotifications(){
+  try {
+    const res = await fetch(API_BASE + '/api/v1/notifications', { headers: API_HEADERS });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const data = await res.json();
+    const wrap = document.getElementById('notif-items');
+    if (!wrap) return;
+    const chipAll = document.getElementById('chip-all');
+    if (chipAll) chipAll.textContent = 'All (' + (data.notifications ? data.notifications.length : 0) + ')';
+    const badge = document.getElementById('notif-badge');
+    if (badge) badge.style.display = data.unreadCount > 0 ? 'flex' : 'none';
+    if (data.notifications && data.notifications.length) {
+      wrap.innerHTML = data.notifications.map(renderNotification).join('');
+    } else {
+      wrap.innerHTML = '<div style="padding:32px;text-align:center;color:var(--text-3);font-size:13px;">No notifications yet</div>';
+    }
+  } catch (err) {
+    console.warn('notifications fetch failed:', err);
+  }
+}
+
+function setToggle(id, on){
+  const t = document.getElementById(id);
+  if (!t) return;
+  t.classList.toggle('on', !!on);
+  t.classList.toggle('off', !on);
+}
+function setWrap(id, visible){
+  const w = document.getElementById(id);
+  if (w) w.style.display = visible ? 'block' : 'none';
+}
+
+async function loadSelfControls(){
+  try {
+    const [scRes, balRes] = await Promise.all([
+      fetch(API_BASE + '/api/v1/self-controls', { headers: API_HEADERS }),
+      fetch(API_BASE + '/api/v1/ewa/balance', { headers: API_HEADERS }),
+    ]);
+    if (!scRes.ok) throw new Error('self-controls HTTP ' + scRes.status);
+    const sc = await scRes.json();
+    let bal = null;
+    if (balRes.ok) bal = await balRes.json();
+
+    // Hero usage
+    if (sc.monthlyLimitEnabled && sc.monthlyLimitAmount && bal) {
+      const used = bal.accessedAmount;
+      const cap = sc.monthlyLimitAmount;
+      const pct = Math.min(100, Math.round((used / cap) * 100));
+      const heroVal = document.getElementById('ctrl-hero-val');
+      const heroSub = document.getElementById('ctrl-hero-sub');
+      const heroFill = document.getElementById('ctrl-hero-fill');
+      if (heroVal) heroVal.textContent = fmtGbp(used) + ' of ' + fmtGbp(cap) + ' limit';
+      if (heroSub) heroSub.textContent = pct + '% of your monthly cap';
+      if (heroFill) heroFill.style.width = pct + '%';
+    }
+
+    // Monthly limit
+    setToggle('tog-limit', sc.monthlyLimitEnabled);
+    setWrap('wrap-limit', sc.monthlyLimitEnabled);
+    if (sc.monthlyLimitAmount != null) {
+      const valEl = document.getElementById('val-limit');
+      const slider = document.getElementById('slider-limit');
+      if (valEl) valEl.textContent = fmtGbp(sc.monthlyLimitAmount);
+      if (slider) slider.value = sc.monthlyLimitAmount;
+    }
+
+    // Per-transfer limit
+    setToggle('tog-txn', sc.perTransferLimitEnabled);
+    setWrap('wrap-txn', sc.perTransferLimitEnabled);
+    if (sc.perTransferLimitAmount != null) {
+      const valEl = document.getElementById('val-txn');
+      const slider = document.getElementById('slider-txn');
+      if (valEl) valEl.textContent = fmtGbp(sc.perTransferLimitAmount);
+      if (slider) slider.value = sc.perTransferLimitAmount;
+    }
+
+    // Cooling-off
+    setToggle('tog-cool', sc.coolingOffEnabled);
+    setWrap('wrap-cool', sc.coolingOffEnabled);
+    const coolLabel = sc.coolingOffHours === 24 ? '24h' : sc.coolingOffHours === 168 ? '7 days' : '48h';
+    document.querySelectorAll('#wrap-cool .cooldown-opt').forEach(o => o.classList.toggle('active', o.textContent.trim() === coolLabel));
+
+    // Auto-save
+    setToggle('tog-autosave', sc.autoSaveEnabled);
+    setWrap('wrap-autosave', sc.autoSaveEnabled);
+    if (sc.autoSavePercent != null) {
+      const valEl = document.getElementById('val-autosave');
+      const slider = document.getElementById('slider-autosave');
+      if (valEl) valEl.textContent = sc.autoSavePercent + '%';
+      if (slider) slider.value = sc.autoSavePercent;
+    }
+
+    // Wellbeing nudges
+    setToggle('tog-nudge', sc.wellbeingNudgesEnabled);
+  } catch (err) {
+    console.warn('self-controls fetch failed:', err);
+  }
+}
+
 loadBalance();
 loadEarnings();
 loadTransfers();
+loadPayslips();
+loadNotifications();
+loadSelfControls();
 </script>
 </div></body>
 </html>
