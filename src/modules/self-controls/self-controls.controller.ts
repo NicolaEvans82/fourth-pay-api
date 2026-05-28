@@ -6,9 +6,11 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Optional,
   Post,
   Put,
 } from '@nestjs/common';
+import { Iq360Service } from '../../common/instrumentation/iq360.service';
 import type { SelfControlsRecord } from '../../database/readers/self-controls.reader';
 import {
   OverrideRequestBody,
@@ -29,7 +31,10 @@ const HEADER_FOURTH_ROLE = 'x-fourth-role';
 
 @Controller('api/v1/self-controls')
 export class SelfControlsController {
-  constructor(private readonly service: SelfControlsService) {}
+  constructor(
+    private readonly service: SelfControlsService,
+    @Optional() private readonly iq360?: Iq360Service,
+  ) {}
 
   @Get()
   async get(
@@ -43,7 +48,24 @@ export class SelfControlsController {
     @Headers() headers: Record<string, string>,
     @Body() body: UpdateSelfControlsBody,
   ): Promise<SelfControlsRecord> {
-    return this.service.update(extractAuthContext(headers), body);
+    const ctx = extractAuthContext(headers);
+    const result = await this.service.update(ctx, body);
+    // Only emit field names — never the new values themselves, since
+    // surfacing 'monthlyLimitAmount=100' in an event payload would
+    // start to leak per-employee financial state.
+    // Filter to keys with defined values — the DTO class materialises
+    // every declared field as `undefined` so a naive Object.keys(body)
+    // emits the full schema rather than the keys the caller actually
+    // sent.
+    const fieldsChanged = Object.entries(body)
+      .filter(([, v]) => v !== undefined)
+      .map(([k]) => k);
+    this.iq360?.emit('ewa.self_control.updated', {
+      employee_id: ctx.fourthEmployeeId,
+      employer_id: ctx.fourthEmployerId,
+      properties: { fields_changed: fieldsChanged },
+    });
+    return result;
   }
 
   @Post('pause')
@@ -52,10 +74,13 @@ export class SelfControlsController {
     @Headers() headers: Record<string, string>,
     @Body() body: PauseRequestBody,
   ): Promise<{ pausedUntil: string }> {
-    const result = await this.service.pause(
-      extractAuthContext(headers),
-      body.durationDays,
-    );
+    const ctx = extractAuthContext(headers);
+    const result = await this.service.pause(ctx, body.durationDays);
+    this.iq360?.emit('ewa.account.paused', {
+      employee_id: ctx.fourthEmployeeId,
+      employer_id: ctx.fourthEmployerId,
+      properties: { duration_days: body.durationDays },
+    });
     return { pausedUntil: result.pausedUntil.toISOString() };
   }
 
@@ -65,7 +90,17 @@ export class SelfControlsController {
     @Headers() headers: Record<string, string>,
     @Body() body: OverrideRequestBody,
   ): Promise<{ overrideToken: string }> {
-    return this.service.override(extractAuthContext(headers), body);
+    const ctx = extractAuthContext(headers);
+    const result = await this.service.override(ctx, body);
+    // `reason` is free-text and could carry personal context — only the
+    // control_type bucket goes into iQ360. The full reason still lands
+    // in audit_log via SelfControlsService.
+    this.iq360?.emit('ewa.self_control.override', {
+      employee_id: ctx.fourthEmployeeId,
+      employer_id: ctx.fourthEmployerId,
+      properties: { control_type: body.controlType },
+    });
+    return result;
   }
 }
 

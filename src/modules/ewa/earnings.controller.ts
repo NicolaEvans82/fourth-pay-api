@@ -3,8 +3,10 @@ import {
   Controller,
   Get,
   Headers,
+  Optional,
   Query,
 } from '@nestjs/common';
+import { Iq360Service } from '../../common/instrumentation/iq360.service';
 import { EarningsService } from './earnings.service';
 
 interface EarningsShiftJson {
@@ -29,7 +31,10 @@ interface EarningsJson {
 
 @Controller('api/v1/ewa/earnings')
 export class EarningsController {
-  constructor(private readonly service: EarningsService) {}
+  constructor(
+    private readonly service: EarningsService,
+    @Optional() private readonly iq360?: Iq360Service,
+  ) {}
 
   @Get()
   async getEarnings(
@@ -50,6 +55,10 @@ export class EarningsController {
       fourthEmployeeId,
       fourthEmployerId,
       payPeriodStart,
+    });
+    this.iq360?.emit('earnings.tracker.viewed', {
+      employee_id: fourthEmployeeId,
+      employer_id: fourthEmployerId,
     });
     return {
       payPeriodStart: earnings.payPeriodStart.toISOString(),

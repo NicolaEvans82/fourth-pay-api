@@ -5,10 +5,12 @@ import {
   Headers,
   HttpCode,
   HttpStatus,
+  Optional,
   Param,
   Post,
   Query,
 } from '@nestjs/common';
+import { Iq360Service } from '../../common/instrumentation/iq360.service';
 import type {
   Notification,
   NotificationCategory,
@@ -27,7 +29,10 @@ const VALID_CATEGORIES: NotificationCategory[] = [
 
 @Controller('api/v1/notifications')
 export class NotificationsController {
-  constructor(private readonly service: NotificationsService) {}
+  constructor(
+    private readonly service: NotificationsService,
+    @Optional() private readonly iq360?: Iq360Service,
+  ) {}
 
   @Get()
   async list(
@@ -46,7 +51,12 @@ export class NotificationsController {
     @Param('id') id: string,
   ): Promise<Notification> {
     const fourthEmployeeId = extractEmployeeId(headers);
-    return this.service.markRead({ fourthEmployeeId, id });
+    const result = await this.service.markRead({ fourthEmployeeId, id });
+    this.iq360?.emit('notifications.read', {
+      employee_id: fourthEmployeeId,
+      properties: { notification_id: id, category: result.category },
+    });
+    return result;
   }
 
   @Post('mark-all-read')

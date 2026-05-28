@@ -1,10 +1,13 @@
 import {
   BadRequestException,
   ForbiddenException,
+  HttpException,
   Inject,
   Injectable,
   NotFoundException,
+  Optional,
 } from '@nestjs/common';
+import { Iq360Service } from '../../common/instrumentation/iq360.service';
 import {
   EWA_TRANSFER_READER,
   EWA_TRANSFER_WRITER,
@@ -61,9 +64,54 @@ export class TransferService {
     @Inject(EWA_DEDUCTION_QUEUE_WRITER)
     private readonly deductionQueue: EwaDeductionQueueWriter,
     @Inject(AUTO_SAVE_SINK) private readonly autoSave: AutoSaveSink,
+    @Optional() private readonly iq360?: Iq360Service,
   ) {}
 
   async executeTransfer(input: {
+    fourthEmployeeId: string;
+    fourthEmployerId: string;
+    amount: number;
+    transferSpeed: 'instant' | 'standard';
+    bankAccountId?: string | null;
+    fcaDisclosureAcknowledged: boolean;
+  }): Promise<EwaTransfer> {
+    // iQ360: every attempt — including ones that will hard-fail at the
+    // FCA gate — is an "initiated" event.
+    this.iq360?.emit('ewa.transfer.initiated', {
+      employee_id: input.fourthEmployeeId,
+      employer_id: input.fourthEmployerId,
+      properties: {
+        amount: input.amount,
+        transfer_speed: input.transferSpeed,
+      },
+    });
+    try {
+      const transfer = await this.executeTransferInner(input);
+      this.iq360?.emit('ewa.transfer.completed', {
+        employee_id: input.fourthEmployeeId,
+        employer_id: input.fourthEmployerId,
+        properties: {
+          amount: transfer.requestedAmount,
+          fee: transfer.feeAmount,
+          transfer_speed: transfer.transferSpeed,
+        },
+      });
+      return transfer;
+    } catch (err) {
+      this.iq360?.emit('ewa.transfer.failed', {
+        employee_id: input.fourthEmployeeId,
+        employer_id: input.fourthEmployerId,
+        properties: {
+          amount: input.amount,
+          transfer_speed: input.transferSpeed,
+          error_code: extractErrorCode(err),
+        },
+      });
+      throw err;
+    }
+  }
+
+  private async executeTransferInner(input: {
     fourthEmployeeId: string;
     fourthEmployerId: string;
     amount: number;
@@ -285,4 +333,20 @@ export class TransferService {
 
 function round2(value: number): number {
   return Math.round(value * 100) / 100;
+}
+
+// Pulls a stable string for the iQ360 `error_code` property. Prefers the
+// caller-supplied `code` on Nest HttpException responses (e.g.
+// `EWA_FCA_DISCLOSURE_REQUIRED`), falls back to the exception class name.
+function extractErrorCode(err: unknown): string {
+  if (err instanceof HttpException) {
+    const body = err.getResponse();
+    if (typeof body === 'object' && body !== null) {
+      const code = (body as { code?: unknown }).code;
+      if (typeof code === 'string') return code;
+    }
+    return err.constructor.name;
+  }
+  if (err instanceof Error) return err.constructor.name;
+  return 'unknown';
 }

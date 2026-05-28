@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { InstrumentationModule } from './common/instrumentation/instrumentation.module';
 import { DatabaseModule } from './database/database.module';
 import { usePg } from './database/use-pg';
 import { CoachModule } from './modules/coach/coach.module';
@@ -38,7 +39,7 @@ const featureModules = usePg()
     ];
 
 @Module({
-  imports: [DatabaseModule.forRoot(), ...featureModules],
+  imports: [InstrumentationModule, DatabaseModule.forRoot(), ...featureModules],
   controllers: [AppController],
   providers: [AppService],
 })

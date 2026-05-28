@@ -3,7 +3,9 @@ import {
   Controller,
   Get,
   Headers,
+  Optional,
 } from '@nestjs/common';
+import { Iq360Service } from '../../common/instrumentation/iq360.service';
 import type { ShiftsResponse } from './dtos';
 import { ShiftsService } from './shifts.service';
 
@@ -12,7 +14,10 @@ const HEADER_FOURTH_EMPLOYER_ID = 'x-fourth-employer-id';
 
 @Controller('api/v1/shifts')
 export class ShiftsController {
-  constructor(private readonly service: ShiftsService) {}
+  constructor(
+    private readonly service: ShiftsService,
+    @Optional() private readonly iq360?: Iq360Service,
+  ) {}
 
   @Get()
   async list(
@@ -25,6 +30,14 @@ export class ShiftsController {
         `Missing required headers: ${HEADER_FOURTH_EMPLOYEE_ID}, ${HEADER_FOURTH_EMPLOYER_ID}`,
       );
     }
-    return this.service.getShifts({ fourthEmployeeId, fourthEmployerId });
+    const shifts = await this.service.getShifts({
+      fourthEmployeeId,
+      fourthEmployerId,
+    });
+    this.iq360?.emit('shifts.viewed', {
+      employee_id: fourthEmployeeId,
+      employer_id: fourthEmployerId,
+    });
+    return shifts;
   }
 }

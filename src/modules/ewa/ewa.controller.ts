@@ -7,9 +7,11 @@ import {
   HttpCode,
   HttpStatus,
   Inject,
+  Optional,
   Post,
   Query,
 } from '@nestjs/common';
+import { Iq360Service } from '../../common/instrumentation/iq360.service';
 import {
   EWA_TRANSFER_READER,
   type EwaTransferReader,
@@ -42,6 +44,7 @@ export class EwaController {
     private readonly employees: EmployeeAccountReader,
     @Inject(EWA_TRANSFER_READER)
     private readonly transfersReader: EwaTransferReader,
+    @Optional() private readonly iq360?: Iq360Service,
   ) {}
 
   @Get('balance')
@@ -50,6 +53,16 @@ export class EwaController {
   ): Promise<BalanceResponse> {
     const ids = extractIds(headers);
     const balance = await this.balanceService.getBalance(ids);
+    // The balance card surfaces the FCA disclosure copy alongside the
+    // available amount, so 'shown' fires whenever balance is read.
+    this.iq360?.emit('ewa.balance.viewed', {
+      employee_id: ids.fourthEmployeeId,
+      employer_id: ids.fourthEmployerId,
+    });
+    this.iq360?.emit('ewa.fca.disclosure_shown', {
+      employee_id: ids.fourthEmployeeId,
+      employer_id: ids.fourthEmployerId,
+    });
     return {
       availableAmount: balance.availableAmount,
       earnedAmount: balance.earnedAmount,
@@ -69,6 +82,12 @@ export class EwaController {
     @Body() body: TransferRequestBody,
   ): Promise<TransferResponse> {
     const ids = extractIds(headers);
+    if (body.fcaDisclosureAcknowledged === true) {
+      this.iq360?.emit('ewa.fca.disclosure_acknowledged', {
+        employee_id: ids.fourthEmployeeId,
+        employer_id: ids.fourthEmployerId,
+      });
+    }
     const transfer = await this.transferService.executeTransfer({
       ...ids,
       amount: body.amount,

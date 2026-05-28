@@ -3,9 +3,11 @@ import {
   Controller,
   Get,
   Headers,
+  Optional,
   Param,
   StreamableFile,
 } from '@nestjs/common';
+import { Iq360Service } from '../../common/instrumentation/iq360.service';
 import {
   PayslipService,
   type PayslipDetailResponse,
@@ -14,7 +16,10 @@ import type { PayslipSummary } from '../../integrations/payroll/payroll.adapter'
 
 @Controller('api/v1/payslips')
 export class PayslipController {
-  constructor(private readonly service: PayslipService) {}
+  constructor(
+    private readonly service: PayslipService,
+    @Optional() private readonly iq360?: Iq360Service,
+  ) {}
 
   @Get()
   async list(
@@ -31,10 +36,15 @@ export class PayslipController {
     @Param('payPeriodStart') payPeriodStartRaw: string,
   ): Promise<PayslipDetailResponse> {
     const fourthEmployeeId = extractEmployeeId(headers);
-    return this.service.getDetail({
+    const detail = await this.service.getDetail({
       fourthEmployeeId,
       payPeriodStart: parsePeriodStart(payPeriodStartRaw),
     });
+    this.iq360?.emit('payslip.viewed', {
+      employee_id: fourthEmployeeId,
+      properties: { pay_period_start: payPeriodStartRaw },
+    });
+    return detail;
   }
 
   @Get(':payPeriodStart/pdf')
@@ -46,6 +56,10 @@ export class PayslipController {
     const buffer = await this.service.getPdf({
       fourthEmployeeId,
       payPeriodStart: parsePeriodStart(payPeriodStartRaw),
+    });
+    this.iq360?.emit('payslip.pdf.downloaded', {
+      employee_id: fourthEmployeeId,
+      properties: { pay_period_start: payPeriodStartRaw },
     });
     return new StreamableFile(buffer, {
       type: 'application/pdf',

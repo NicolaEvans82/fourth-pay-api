@@ -55,6 +55,8 @@ the in-memory state and reapplies the seed — useful between demos.
 | `ANTHROPIC_API_KEY` | Real LLM calls for the in-app money coach. Currently the coach is keyword-routed and **does not** need this — see `src/modules/coach/coach.service.ts`. Re-add if you swap the coach back to a live model. | No (current build). |
 | `FOURTH_INTERNAL_API_URL` | Base URL for the Fourth HCM PeopleSystem Integration API. **Internal Fourth network only** — `http://10.12.6.10:85` for production, unreachable from Railway. | Required when switching `Mock*Adapter` → `Fourth*Adapter`. |
 | `FOURTH_ORG_ID` | OrganisationID / GroupID. Used both as a URL segment (`/Organisations/{OrganisationID}/...`) and as the `X-Fourth-Org` auth header value. | Same as above. |
+| `IQ360_API_URL` | iQ360 event-collection endpoint. When set together with `IQ360_API_KEY` *and* `NODE_ENV=production`, every instrumented event is POSTed here. Otherwise events are console-logged so engineers can verify wiring. | Optional. |
+| `IQ360_API_KEY` | Auth credential for iQ360; sent as the `X-API-Key` header. | Optional. |
 
 ## Fourth HCM integration status
 
