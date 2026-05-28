@@ -588,7 +588,7 @@ input[type=range]{width:100%;accent-color:var(--teal);}
           <div class="pay-meta-item">
             <div class="pay-meta-label">Available</div>
             <div id="balance-available" class="pay-meta-val" style="font-size:20px;letter-spacing:-0.5px;color:var(--teal-text);">£312.50</div>
-            <div style="font-size:10px;color:var(--text-3);margin-top:1px;">of <span id="balance-earned-of">£625</span> earned</div>
+            <div style="font-size:10px;color:var(--text-3);margin-top:1px;">of <span id="balance-earned-of">£625</span> earned · <span id="balance-accessed">£0</span> used</div>
           </div>
           <div class="pay-meta-item">
             <div class="pay-meta-label">Next payday</div>
@@ -608,8 +608,8 @@ input[type=range]{width:100%;accent-color:var(--teal);}
         </div>
         <!-- Pay period progress bar -->
         <div>
-          <div class="prog-label"><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-3);">Pay cycle · Day 17 of 31</span><span style="font-size:11px;color:var(--teal-text);font-weight:700;"><span id="balance-progress">£312.50</span> earned</span></div>
-          <div class="prog-track" style="margin-top:4px;"><div class="prog-fill" style="width:55%;"></div></div>
+          <div class="prog-label"><span style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;color:var(--text-3);">Pay cycle · Day 17 of 31</span><span style="font-size:11px;color:var(--teal-text);font-weight:700;"><span id="balance-progress">£0</span> accessed</span></div>
+          <div class="prog-track" style="margin-top:4px;"><div class="prog-fill" id="balance-progress-fill" style="width:0%;transition:width 0.4s ease;"></div></div>
         </div>
       </div>
 
@@ -1741,8 +1741,16 @@ async function loadBalance(){
     const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
     set('balance-available', fmtGbp(data.availableAmount));
     set('balance-earned-of', fmtGbp(data.earnedAmount));
+    set('balance-accessed', fmtGbp(data.accessedAmount));
     set('balance-month', fmtGbp(data.earnedAmount));
-    set('balance-progress', fmtGbp(data.availableAmount));
+    set('balance-progress', fmtGbp(data.accessedAmount));
+    const fill = document.getElementById('balance-progress-fill');
+    if (fill) {
+      const pct = data.earnedAmount > 0
+        ? Math.min(100, Math.max(0, (data.accessedAmount / data.earnedAmount) * 100))
+        : 0;
+      fill.style.width = pct.toFixed(1) + '%';
+    }
   } catch (err) {
     console.warn('balance fetch failed:', err);
   }
