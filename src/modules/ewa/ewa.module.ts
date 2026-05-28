@@ -27,6 +27,7 @@ import {
   AUTO_SAVE_SINK,
   InMemoryAutoSaveSink,
 } from '../savings/auto-save.sink';
+import { SavingsModule } from '../savings/savings.module';
 import { SelfControlsModule } from '../self-controls/self-controls.module';
 import { BalanceService } from './balance.service';
 import { EarningsController } from './earnings.controller';
@@ -56,7 +57,7 @@ const inMemoryStoreProviders: Provider[] = [
 const storeProviders = usePg() ? pgStoreProviders : inMemoryStoreProviders;
 
 @Module({
-  imports: [WfmModule, HrModule, PayrollModule, SelfControlsModule],
+  imports: [WfmModule, HrModule, PayrollModule, SelfControlsModule, SavingsModule],
   controllers: [EwaController, EarningsController],
   providers: [
     BalanceService,

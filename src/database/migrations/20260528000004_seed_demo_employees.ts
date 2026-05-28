@@ -92,9 +92,32 @@ export class SeedDemoEmployees20260528000004 implements MigrationInterface {
       )
       ON CONFLICT (employee_account_id) DO NOTHING
     `);
+
+    // Jordan's Emergency fund — default pot, target £500, balance £45
+    // from 3 prior auto-saves. Mirrors the InMemorySavingsPotStore
+    // seed. Requires migration 5 (savings_pots) to have run first.
+    await queryRunner.query(`
+      INSERT INTO savings_pots (
+        id, employee_account_id, name, target_amount, balance, is_default
+      ) VALUES (
+        '22222222-2222-2222-2222-222222222222',
+        '00000000-0000-0000-0000-000000000001',
+        'Emergency fund',
+        500.00,
+        45.00,
+        true
+      )
+      ON CONFLICT (id) DO NOTHING
+    `);
   }
 
   public async down(queryRunner: QueryRunner): Promise<void> {
+    await queryRunner.query(
+      `DELETE FROM savings_pots WHERE employee_account_id IN (
+         '00000000-0000-0000-0000-000000000001',
+         '11111111-1111-1111-1111-111111111111'
+       )`,
+    );
     await queryRunner.query(
       `DELETE FROM self_controls WHERE employee_account_id IN (
          '00000000-0000-0000-0000-000000000001',

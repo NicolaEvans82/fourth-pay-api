@@ -1054,12 +1054,13 @@ input[type=range]{width:100%;accent-color:var(--teal);}
       <div class="score-card">
         <div class="score-label">Wellbeing score</div>
         <div class="score-row">
-          <div><div class="score-value">74<span class="score-max">/100</span></div><div style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">Good · Up 8 pts this month</div></div>
-          <div class="score-ring"><svg viewBox="0 0 72 72"><circle class="score-track" cx="36" cy="36" r="32"/><circle class="score-fill" cx="36" cy="36" r="32"/></svg></div>
+          <div><div class="score-value" id="wb-score">—<span class="score-max">/100</span></div><div id="wb-band" style="font-size:12px;color:rgba(255,255,255,0.5);margin-top:4px;">Loading…</div></div>
+          <div class="score-ring"><svg viewBox="0 0 72 72"><circle class="score-track" cx="36" cy="36" r="32"/><circle class="score-fill" id="wb-ring" cx="36" cy="36" r="32"/></svg></div>
         </div>
       </div>
+      <div class="section-title" style="padding:0 0 10px;">What's driving your score</div>
+      <div id="wb-components" style="display:flex;flex-direction:column;gap:8px;margin-bottom:16px;"></div>
       <div class="section-title" style="padding:0 0 10px;">Insights</div>
-      <div class="insight-card"><div class="insight-header"><span>📊</span><div class="insight-title">Streaming more than last month</div></div><div class="insight-body">You've accessed £130 vs £80 last month. Setting a limit can help you build a buffer instead.</div><span class="insight-action" onclick="go('controls')">Set a limit →</span></div>
       <div class="insight-card"><div class="insight-header"><span>💡</span><div class="insight-title">£1,240/year in unclaimed benefits</div></div><div class="insight-body">Based on your profile, you may be entitled to Working Tax Credit, Council Tax Support, and more.</div><span class="insight-action" onclick="go('benefits')">Check now →</span></div>
       <div class="insight-card"><div class="insight-header"><span>🎯</span><div class="insight-title">Holiday pot on track</div></div><div class="insight-body">At your current save rate you'll hit your £500 holiday goal by October 2026. Keep going!</div><span class="insight-action" onclick="go('save')">View pot →</span></div>
       <div class="insight-card"><div class="insight-header"><span>🏦</span><div class="insight-title">Lost pension found</div></div><div class="insight-body">We found a £11,580 deferred pot from Mitchells & Butlers. You could consolidate it now to grow it faster.</div><span class="insight-action" onclick="go('pension')">View pension →</span></div>
@@ -1272,14 +1273,14 @@ input[type=range]{width:100%;accent-color:var(--teal);}
     <div class="dark-header-sm"><div class="screen-title-row"><button class="back-btn" onclick="go('home')"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.75" stroke-linecap="round" stroke-linejoin="round" style="display:inline-block;vertical-align:middle;flex-shrink:0;"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M15 6l-6 6l6 6"/></svg></button><div class="screen-title">Budget planner</div></div></div>
     <div style="flex:1;padding:16px;">
       <div style="background:var(--navy-deep);border-radius:var(--r-lg);padding:20px;margin-bottom:16px;color:white;">
-        <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:rgba(255,255,255,0.4);font-weight:700;margin-bottom:6px;">May budget</div>
+        <div id="budget-period-label" style="font-size:11px;text-transform:uppercase;letter-spacing:0.8px;color:rgba(255,255,255,0.4);font-weight:700;margin-bottom:6px;">This period</div>
         <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:14px;">
-          <div style="text-align:center;"><div style="font-family:var(--font);font-size:17px;font-weight:700;color:white;">£1,247</div><div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;font-weight:700;letter-spacing:0.4px;margin-top:2px;">Income</div></div>
-          <div style="text-align:center;"><div style="font-family:var(--font);font-size:17px;font-weight:700;color:var(--orange);">£847</div><div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;font-weight:700;letter-spacing:0.4px;margin-top:2px;">Spent</div></div>
-          <div style="text-align:center;"><div style="font-family:var(--font);font-size:17px;font-weight:700;color:var(--teal);">£400</div><div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;font-weight:700;letter-spacing:0.4px;margin-top:2px;">Left</div></div>
+          <div style="text-align:center;"><div id="budget-income" style="font-family:var(--font);font-size:17px;font-weight:700;color:white;">—</div><div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;font-weight:700;letter-spacing:0.4px;margin-top:2px;">Earned</div></div>
+          <div style="text-align:center;"><div id="budget-used" style="font-family:var(--font);font-size:17px;font-weight:700;color:var(--orange);">—</div><div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;font-weight:700;letter-spacing:0.4px;margin-top:2px;">Used</div></div>
+          <div style="text-align:center;"><div id="budget-left" style="font-family:var(--font);font-size:17px;font-weight:700;color:var(--teal);">—</div><div style="font-size:10px;color:rgba(255,255,255,0.4);text-transform:uppercase;font-weight:700;letter-spacing:0.4px;margin-top:2px;">Left</div></div>
         </div>
-        <div style="background:rgba(255,255,255,0.08);border-radius:100px;height:8px;overflow:hidden;"><div style="width:68%;height:100%;border-radius:100px;background:var(--orange);"></div></div>
-        <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px;"><span>68% of budget used</span><span>17 days left</span></div>
+        <div style="background:rgba(255,255,255,0.08);border-radius:100px;height:8px;overflow:hidden;"><div id="budget-overall-fill" style="width:0%;height:100%;border-radius:100px;background:var(--orange);transition:width 0.4s ease;"></div></div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:rgba(255,255,255,0.4);margin-top:4px;"><span id="budget-overall-pct">—% of budget used</span><span>50/30/20 rule</span></div>
       </div>
 
       <div style="font-family:var(--font);font-size:15px;font-weight:600;color:var(--text-1);margin-bottom:10px;">Category budgets</div>
@@ -1753,6 +1754,8 @@ function switchPersona(key){
   loadNotifications();
   loadSelfControls();
   loadShifts();
+  loadBudget();
+  loadWellbeing();
 }
 
 function fmtGbp(n){
@@ -1924,6 +1927,103 @@ async function loadShifts(){
     }
   } catch (err) {
     console.warn('shifts fetch failed:', err);
+  }
+}
+
+function fmtGbpInt(n){
+  if (typeof n !== 'number' || !isFinite(n)) return '—';
+  return '£' + Math.round(n).toLocaleString('en-GB');
+}
+
+function renderBudgetCategory(label, c, accent){
+  const pct = c.allocated > 0 ? Math.min(100, (c.used / c.allocated) * 100) : 0;
+  return '<div style="background:white;border:1px solid var(--border);border-radius:var(--r-md);padding:12px 14px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">'
+      + '<div style="font-size:13px;font-weight:700;color:var(--text-1);">' + escHtml(label) + '</div>'
+      + '<div style="font-size:12px;color:var(--text-3);"><span style="color:var(--text-1);font-weight:700;">' + fmtGbpInt(c.used) + '</span> of ' + fmtGbpInt(c.allocated) + '</div>'
+    + '</div>'
+    + '<div class="prog-track"><div class="prog-fill" style="width:' + pct.toFixed(1) + '%;background:' + accent + ';transition:width 0.4s ease;"></div></div>'
+    + '<div style="font-size:11px;color:var(--text-3);margin-top:6px;">' + fmtGbpInt(c.remaining) + ' left</div>'
+  + '</div>';
+}
+
+async function loadBudget(){
+  try {
+    const res = await fetch(API_BASE + '/api/v1/budget', { headers: API_HEADERS });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    const used = d.needs.used + d.wants.used + d.savings.used;
+    const left = d.monthlyEarnings - used;
+    const pct = d.monthlyEarnings > 0 ? Math.min(100, (used / d.monthlyEarnings) * 100) : 0;
+    set('budget-income', fmtGbpInt(d.monthlyEarnings));
+    set('budget-used', fmtGbpInt(used));
+    set('budget-left', fmtGbpInt(left));
+    set('budget-overall-pct', Math.round(pct) + '% of budget used');
+    set('budget-period-label', fmtMonthShort(d.payPeriodStart) + ' budget');
+    const fill = document.getElementById('budget-overall-fill');
+    if (fill) fill.style.width = pct.toFixed(1) + '%';
+    const cats = document.getElementById('budget-cats');
+    if (cats) {
+      cats.innerHTML =
+        renderBudgetCategory('Needs (50%)', d.needs, 'var(--orange)') +
+        renderBudgetCategory('Wants (30%)', d.wants, '#8b5cf6') +
+        renderBudgetCategory('Save / debt (20%)', d.savings, 'var(--teal)');
+    }
+  } catch (err) {
+    console.warn('budget fetch failed:', err);
+  }
+}
+
+const WELLBEING_LABELS = {
+  savings: 'Savings progress',
+  monthlyLimit: 'Monthly limit usage',
+  transferFrequency: 'Transfer frequency',
+  coolingOff: 'Cooling-off period',
+};
+
+function renderWellbeingComponent(key, c){
+  const label = WELLBEING_LABELS[key] || key;
+  return '<div style="background:white;border:1px solid var(--border);border-radius:var(--r-md);padding:12px 14px;">'
+    + '<div style="display:flex;justify-content:space-between;align-items:baseline;margin-bottom:6px;">'
+      + '<div><div style="font-size:13px;font-weight:700;color:var(--text-1);">' + escHtml(label) + '</div>'
+      + '<div style="font-size:11px;color:var(--text-3);margin-top:2px;">Weight ' + Math.round(c.weight * 100) + '%</div></div>'
+      + '<div style="font-size:17px;font-weight:800;color:var(--text-1);">' + c.score + '<span style="font-size:11px;color:var(--text-3);font-weight:500;">/100</span></div>'
+    + '</div>'
+    + '<div class="prog-track"><div class="prog-fill" style="width:' + c.score + '%;transition:width 0.4s ease;"></div></div>'
+    + '<div style="font-size:11px;color:var(--text-3);margin-top:6px;">' + escHtml(c.detail) + '</div>'
+  + '</div>';
+}
+
+async function loadWellbeing(){
+  try {
+    const res = await fetch(API_BASE + '/api/v1/wellbeing/score', { headers: API_HEADERS });
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    const d = await res.json();
+    const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+    const scoreEl = document.getElementById('wb-score');
+    if (scoreEl) scoreEl.innerHTML = d.score + '<span class="score-max">/100</span>';
+    const bandLabels = { thriving: 'Thriving · keep it going', steady: 'Steady · building good habits', building: 'Building · small steps add up' };
+    set('wb-band', bandLabels[d.band] || d.band);
+    // The .score-fill ring is stylesheet-driven; we just nudge the
+    // dasharray inline since the JS doesn't own the CSS values.
+    const ring = document.getElementById('wb-ring');
+    if (ring) {
+      const r = 32;
+      const circumference = 2 * Math.PI * r;
+      ring.style.strokeDasharray = circumference.toFixed(2);
+      ring.style.strokeDashoffset = (circumference * (1 - d.score / 100)).toFixed(2);
+    }
+    const components = document.getElementById('wb-components');
+    if (components && d.components) {
+      const order = ['savings', 'monthlyLimit', 'transferFrequency', 'coolingOff'];
+      components.innerHTML = order
+        .filter((k) => d.components[k])
+        .map((k) => renderWellbeingComponent(k, d.components[k]))
+        .join('');
+    }
+  } catch (err) {
+    console.warn('wellbeing fetch failed:', err);
   }
 }
 
@@ -2177,6 +2277,8 @@ loadPayslips();
 loadNotifications();
 loadSelfControls();
 loadShifts();
+loadBudget();
+loadWellbeing();
 </script>
 </div></body>
 </html>

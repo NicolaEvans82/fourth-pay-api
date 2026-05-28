@@ -1,6 +1,7 @@
 import { Controller, HttpCode, HttpStatus, Logger, Post } from '@nestjs/common';
 import { InMemoryEwaTransferStore } from '../../database/ewa-transfer.store';
 import { InMemoryNotificationsStore } from '../../database/notifications.store';
+import { InMemorySavingsPotStore } from '../../database/savings-pot.store';
 import { InMemorySelfControlsStore } from '../../database/self-controls.store';
 
 // Demo-only endpoint. Wipes the three in-memory stores and re-runs
@@ -15,6 +16,7 @@ export class DemoController {
     private readonly transfers: InMemoryEwaTransferStore,
     private readonly selfControls: InMemorySelfControlsStore,
     private readonly notifications: InMemoryNotificationsStore,
+    private readonly pots: InMemorySavingsPotStore,
   ) {}
 
   @Post('reset')
@@ -23,6 +25,7 @@ export class DemoController {
     this.transfers.resetToSeed();
     this.selfControls.resetToSeed();
     this.notifications.resetToSeed();
+    this.pots.resetToSeed();
     this.logger.log('Demo data reset to original seed state');
     return { reset: true };
   }
