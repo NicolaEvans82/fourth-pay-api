@@ -253,6 +253,28 @@ export interface LearningResponse {
   categories: LearningCategoryGroup[];
 }
 
+// Spending — GET /api/v1/spending
+export interface SpendingCategory {
+  name: string;
+  amount: number;
+  color: string;
+}
+export interface SpendingTransaction {
+  id: string;
+  merchant: string;
+  amount: number;
+  category: string;
+  daysAgo: number;
+}
+export interface SpendingResponse {
+  total_income: number;
+  total_spent: number;
+  remaining: number;
+  categories: SpendingCategory[];
+  transactions: SpendingTransaction[];
+  estimated_disclaimer: string;
+}
+
 // Employer stats — GET /api/v1/employer/stats
 export interface EmployerStats {
   total_employees_enrolled: number;

@@ -1051,6 +1051,84 @@ instrumentation:
   - learning.article.viewed (with article_id, category)
 ```
 
+
+#═══════════════════════════════════════════════════════════════════
+# SPEC 20: SPENDING TRACKER (simulated) — IMPLEMENTED
+#═══════════════════════════════════════════════════════════════════
+> Spec 16's spending_tracker line said "Open Banking — UI-only";
+> this spec replaces that with a simulated tracker that uses real
+> data we already own (EWA accessed amount + savings pot balance)
+> blended with realistic UK hospitality spending percentages.
+> Open Banking integration is still future work — this surface
+> ships with a "Connect your bank" CTA that's intentionally
+> non-functional until the partner is live.
+
+```yaml
+feature: spending_tracker
+version: 1.0
+status: implemented
+module: src/modules/spending
+endpoint: GET /api/v1/spending
+priority: P1
+
+description: >
+  Simulated spending breakdown for UK hospitality workers. The
+  tracker estimates monthly outgoings from net pay using typical
+  category percentages, then blends in the real EWA accessed
+  amount and savings pot balance. Returns a categorical breakdown
+  for the chart plus per-persona seeded transactions.
+
+inputs_from_other_modules:
+  - BalanceService.getBalance → earnedAmount (gross), accessedAmount
+  - PayrollAdapter.getPayPeriodConfig → averageDeductionRate (for net pay)
+  - SavingsService.listPots → pot balances (per-period contributions proxy)
+
+response_shape:
+  total_income: number      # gross earned this period
+  total_spent: number       # max(70% of net pay, sum of categories)
+  remaining: number         # total_income - total_spent
+  categories:               # 8 entries, in this order
+    - { name: 'Housing',        amount, color }   # 35% of net pay
+    - { name: 'Food and drink', amount, color }   # 15% of net pay
+    - { name: 'Transport',      amount, color }   # 10% of net pay
+    - { name: 'Entertainment',  amount, color }   #  8% of net pay
+    - { name: 'Shopping',       amount, color }   #  7% of net pay
+    - { name: 'EWA accessed',   amount, color }   # real, from BalanceService
+    - { name: 'Savings',        amount, color }   # real, sum of pot balances
+    - { name: 'Other',          amount, color }   # max(0, 70%·net - others)
+  transactions:             # 8 seeded entries, per persona
+    - { id, merchant, amount, category, daysAgo }
+  estimated_disclaimer: string  # always present, surfaces in UI
+
+business_rules:
+  - hard_categories_use_net_pay_percentages_not_gross
+  - ewa_and_savings_are_real_data_not_estimates
+  - total_spent_floors_at_sum_of_categories_to_keep_bar_chart_balanced
+  - other_clamped_to_zero_when_category_sum_exceeds_70pc_net_pay
+  - disclaimer_always_present_in_response_and_visible_in_ui
+  - jordan_seed_uses_uk_high_street_brands_typical_of_28yo_FT_bar_supervisor
+  - marcus_seed_amounts_are_proportionally_smaller_he_is_PT_at_lower_rate
+
+acceptance_criteria:
+  - response_contains_eight_categories_in_documented_order
+  - jordan_first_transaction_is_tesco_at_£34.50_three_days_ago
+  - marcus_first_transaction_is_lidl_at_£22.40
+  - estimated_disclaimer_text_present_for_every_persona
+  - remaining_equals_total_income_minus_total_spent
+
+fca_flags:
+  consumer_duty: [consumer_understanding]
+  disclaimer_required: true
+  notes: >
+    Spending figures are *estimates* derived from typical patterns,
+    not real bank transactions. The estimated_disclaimer copy is
+    rendered verbatim in the UI per Consumer Duty consumer-
+    understanding rules.
+
+instrumentation:
+  - spending.viewed (with category_count, has_open_banking: false)
+```
+
 ---
 
 ## Implementation priority
@@ -1067,8 +1145,8 @@ P1 — First major release:
   ✓ savings_pots                 (Spec 17 — supersedes Spec 5)
   ✓ budget_planner               (Spec 16 — supersedes Spec 6)
   ✓ shifts                       (week + upcoming + recent — new)
+  ✓ spending_tracker             (Spec 20 — simulated, awaiting Open Banking)
   ⌛ bill_reminders               (Spec 7 — not started)
-  ⌛ spending_tracker             (Open Banking — UI-only)
 
 P2 — Stream feature parity:
   ✓ benefits_checker             (Spec 13 — supersedes Spec 9; employment-statutory only)

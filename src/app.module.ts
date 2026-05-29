@@ -18,6 +18,7 @@ import { PensionModule } from './modules/pension/pension.module';
 import { SavingsModule } from './modules/savings/savings.module';
 import { SelfControlsModule } from './modules/self-controls/self-controls.module';
 import { ShiftsModule } from './modules/shifts/shifts.module';
+import { SpendingModule } from './modules/spending/spending.module';
 import { WellbeingModule } from './modules/wellbeing/wellbeing.module';
 
 // Demo reset only makes sense for the in-memory stores; the Pg
@@ -39,6 +40,7 @@ const baseModules = [
   DiscountsModule,
   PensionModule,
   LearningModule,
+  SpendingModule,
 ];
 
 const featureModules = usePg() ? baseModules : [...baseModules, DemoModule];
