@@ -735,12 +735,14 @@ description: >
   management UI is a future iteration.
 
 response_shape:
-  categories:
-    - { name: 'Food & drink',   discounts: [Greggs, Costa Coffee] }
-    - { name: 'Travel',         discounts: [National Express, Trainline] }
-    - { name: 'Fitness',        discounts: [PureGym, The Gym Group] }
-    - { name: 'Entertainment',  discounts: [Cineworld, Spotify] }
-    - { name: 'Retail',         discounts: [Boots, Argos] }
+  categories:                              # 7 categories, 54 partners total
+    - { name: 'Food & drink',  count: 12 } # Greggs, Costa, McDonald's, Subway, Nando's, Pizza Hut, KFC, Domino's, Wagamama, Pret, Caffe Nero, Starbucks
+    - { name: 'Supermarkets',  count: 7 }  # Tesco, Sainsbury's, Lidl, Aldi, Morrisons, Co-op, Iceland
+    - { name: 'Travel',        count: 8 }  # National Express, Trainline, Uber, Zipcar, Europcar, Booking.com, Premier Inn, Travelodge
+    - { name: 'Fitness',       count: 5 }  # PureGym, The Gym Group, Hussle, Anytime Fitness, Nuffield Health
+    - { name: 'Entertainment', count: 8 }  # Cineworld, Vue, Odeon, Spotify, Amazon Prime, Disney+, NOW TV, Sky Sports
+    - { name: 'Retail',        count: 9 }  # Boots, Argos, ASOS, Next, Currys, Amazon, H&M, New Look, TK Maxx
+    - { name: 'Wellbeing',     count: 5 }  # Headspace, Calm, Holland & Barrett, Specsavers, Vision Express
   employer_perks: from EmployerConfig.perks   # see hr.adapter.ts
 
 partner_record:
@@ -762,7 +764,7 @@ business_rules:
   - voucher_codes_rendered_monospace_easy_to_copy
 
 acceptance_criteria:
-  - response_contains_exactly_five_categories_with_two_partners_each
+  - response_contains_seven_categories_with_54_partners_total
   - employer_perks_only_present_when_employer_config_has_them
   - voucher_codes_returned_for_redemption_eq_code
 
