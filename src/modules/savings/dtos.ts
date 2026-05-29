@@ -25,6 +25,9 @@ export interface PotJson {
   balance: number;
   isDefault: boolean;
   progressPercent: number | null;
+  aerRate: number;
+  dailyInterestAccrued: number;
+  projectedAnnualInterest: number;
   createdAt: string;
   updatedAt: string;
 }

@@ -35,10 +35,24 @@ export class SavingsController {
   ): Promise<PotListResponse> {
     const { fourthEmployeeId, fourthEmployerId } = extractIds(headers);
     const pots = await this.service.listPots(fourthEmployeeId);
+    const totalPotBalance = round2(
+      pots.reduce((sum, p) => sum + p.balance, 0),
+    );
+    const projectedAnnualInterest = round2(
+      pots.reduce((sum, p) => sum + p.projectedAnnualInterest, 0),
+    );
     this.iq360?.emit('savings.pot.viewed', {
       employee_id: fourthEmployeeId,
       employer_id: fourthEmployerId,
       properties: { pot_count: pots.length },
+    });
+    this.iq360?.emit('savings.interest.viewed', {
+      employee_id: fourthEmployeeId,
+      employer_id: fourthEmployerId,
+      properties: {
+        total_pot_balance: totalPotBalance,
+        projected_annual_interest: projectedAnnualInterest,
+      },
     });
     return { pots };
   }
@@ -66,6 +80,10 @@ export class SavingsController {
     const { fourthEmployeeId } = extractIds(headers);
     return this.service.contribute(fourthEmployeeId, id, body.amount);
   }
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
 }
 
 function extractIds(headers: Record<string, string>): {

@@ -892,24 +892,36 @@ priority: P1
 description: >
   Named savings pots with optional targets. Each employee can have
   many pots; exactly one is is_default and receives the auto-save
-  side-effect of every successful EWA transfer.
+  side-effect of every successful EWA transfer. Each pot displays a
+  headline 4.5% AER and a projected annual interest amount — these
+  are display figures only; no interest is paid until pots are wired
+  to the cash-ISA partner.
 
 storage: savings_pots table (migration 20260528000005)
+
+response_extras:                     # per-pot, computed on read
+  aerRate: 4.5                       # AER_RATE * 100
+  dailyInterestAccrued: balance * 0.045 / 365   # 2dp
+  projectedAnnualInterest: balance * 0.045      # 2dp
 
 business_rules:
   - exactly_one_default_pot_per_employee_enforced_by_partial_unique_index
   - auto_save_credits_default_pot_only_when_self_controls_auto_save_enabled
   - cross_employee_pot_lookups_return_404_not_403_no_existence_leak
   - balance_check_constraint_prevents_negative
+  - aer_rate_is_display_only_until_cash_isa_partner_live
+  - ui_must_disclose_interest_paid_when_connected_to_banking_infrastructure
 
 acceptance_criteria:
   - jordan_persona_starts_with_emergency_fund_45_of_500_default
   - marcus_persona_starts_with_no_pots
   - first_pot_for_an_employee_is_automatically_is_default
   - auto_save_writes_to_default_pot_after_successful_transfer
+  - every_pot_in_response_carries_aer_rate_and_projected_interest_fields
 
 instrumentation:
   - savings.pot.viewed (with pot_count property)
+  - savings.interest.viewed (with total_pot_balance, projected_annual_interest)
 ```
 
 

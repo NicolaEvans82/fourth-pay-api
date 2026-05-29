@@ -12,6 +12,14 @@ import {
 } from '../../database/savings-pot.store';
 import type { PotJson } from './dtos';
 
+// Headline AER. Set above Stream's 4.01% to remain competitive while
+// the FCA cash-ISA review is in play. Interest is *projected* today —
+// money does not actually accrue interest until pots are connected to
+// the banking infrastructure (cash-ISA wrapper or e-money sweep).
+// Until then this is a display rate, not a contractual rate, and the
+// UI must say so. Update in lockstep with the cash-ISA partner contract.
+export const AER_RATE = 0.045;
+
 @Injectable()
 export class SavingsService {
   constructor(
@@ -71,6 +79,8 @@ export class SavingsService {
 }
 
 function toJson(p: SavingsPot): PotJson {
+  const projectedAnnualInterest = round2(p.balance * AER_RATE);
+  const dailyInterestAccrued = round2((p.balance * AER_RATE) / 365);
   return {
     id: p.id,
     name: p.name,
@@ -81,7 +91,14 @@ function toJson(p: SavingsPot): PotJson {
       p.targetAmount && p.targetAmount > 0
         ? Math.round((p.balance / p.targetAmount) * 1000) / 10
         : null,
+    aerRate: AER_RATE * 100,
+    dailyInterestAccrued,
+    projectedAnnualInterest,
     createdAt: p.createdAt.toISOString(),
     updatedAt: p.updatedAt.toISOString(),
   };
+}
+
+function round2(n: number): number {
+  return Math.round(n * 100) / 100;
 }
