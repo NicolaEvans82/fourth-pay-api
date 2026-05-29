@@ -38,6 +38,21 @@ export interface EarningsResponse {
   shifts: EarningsShift[];
 }
 
+export type TransferSpeed = 'instant' | 'standard' | 'gift_card';
+
+// Slug-name pairs that must match the backend's GIFT_CARD_PARTNERS
+// allow-list in src/modules/ewa/dtos.ts. Source of truth lives there;
+// changes need to land in both files.
+export const GIFT_CARD_PARTNERS = [
+  { slug: 'tesco',  name: 'Tesco',  bg: '#00539f', fg: 'white' },
+  { slug: 'costa',  name: 'Costa',  bg: '#751c30', fg: 'white' },
+  { slug: 'amazon', name: 'Amazon', bg: '#ff9900', fg: '#232f3e' },
+  { slug: 'boots',  name: 'Boots',  bg: '#005eb8', fg: 'white' },
+  { slug: 'argos',  name: 'Argos',  bg: '#ed1c24', fg: 'white' },
+  { slug: 'asos',   name: 'ASOS',   bg: '#000000', fg: 'white' },
+] as const;
+export type GiftCardPartner = (typeof GIFT_CARD_PARTNERS)[number]['slug'];
+
 // EWA Transfers — GET /api/v1/ewa/transfers
 export interface Transfer {
   id: string;
@@ -45,7 +60,7 @@ export interface Transfer {
   feeAmount: number;
   netAmount: number;
   status: 'pending' | 'completed' | 'failed';
-  transferSpeed: 'instant' | 'standard';
+  transferSpeed: TransferSpeed;
   initiatedAt: string;
   fcaReference?: string;
   estimatedArrival?: string;
@@ -57,17 +72,20 @@ export interface TransfersResponse {
 // EWA Transfer — POST /api/v1/ewa/transfer
 export interface TransferRequest {
   amount: number;
-  transferSpeed: 'instant' | 'standard';
+  transferSpeed: TransferSpeed;
+  giftCardPartner?: GiftCardPartner;
   fcaDisclosureAcknowledged: boolean;
 }
 export interface TransferResult {
   id: string;
   amount: number;
   feeAmount: number;
+  feeDescription: string;
   netAmount: number;
   fcaReference: string;
   status: string;
   estimatedArrival: string;
+  giftCardPartner: GiftCardPartner | null;
 }
 
 // Shifts — GET /api/v1/shifts

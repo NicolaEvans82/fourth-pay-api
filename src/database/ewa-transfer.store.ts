@@ -15,6 +15,12 @@ export type EwaTransferStatus =
   | 'failed'
   | 'reversed';
 
+// 'gift_card' added alongside instant/standard — fee always 0 and
+// effectively instant arrival. Stored as a third string in the
+// transferSpeed column; no schema change needed because the column
+// is already string-typed.
+export type EwaTransferSpeed = 'instant' | 'standard' | 'gift_card';
+
 export interface EwaTransfer {
   id: string;
   employeeAccountId: string;
@@ -24,7 +30,11 @@ export interface EwaTransfer {
   feeAmount: number;
   feeSubsidised: boolean;
   netAmount: number;
-  transferSpeed: 'instant' | 'standard';
+  transferSpeed: EwaTransferSpeed;
+  // Slug of the partner brand when transferSpeed === 'gift_card',
+  // null otherwise. In Pg mode this maps to a new gift_card_partner
+  // column (deferred — mock mode bypasses).
+  giftCardPartner: string | null;
   status: EwaTransferStatus;
   bankAccountId: string | null;
   initiatedAt: Date;
@@ -43,7 +53,8 @@ export interface NewEwaTransfer {
   feeAmount: number;
   feeSubsidised: boolean;
   netAmount: number;
-  transferSpeed: 'instant' | 'standard';
+  transferSpeed: EwaTransferSpeed;
+  giftCardPartner: string | null;
   bankAccountId: string | null;
   fcaDisclosureShown: boolean;
   fcaDisclosureAt: Date | null;
@@ -260,6 +271,7 @@ function seedAnonymousEmployerTransfers(target: EwaTransfer[]): void {
         feeSubsidised: false,
         netAmount: amount,
         transferSpeed: isInstant ? 'instant' : 'standard',
+        giftCardPartner: null,
         status: 'completed',
         bankAccountId: null,
         initiatedAt,
@@ -305,6 +317,7 @@ function seedJordanTransfers(target: EwaTransfer[]): void {
       feeSubsidised: feeAmount > 0,
       netAmount: s.amount,
       transferSpeed: s.speed,
+      giftCardPartner: null,
       status: 'completed',
       bankAccountId: 'monzo-4891',
       initiatedAt,
@@ -333,6 +346,7 @@ function seedMarcusTransfers(target: EwaTransfer[]): void {
     feeSubsidised: false,
     netAmount: 50,
     transferSpeed: 'standard',
+    giftCardPartner: null,
     status: 'completed',
     bankAccountId: 'starling-3142',
     initiatedAt,

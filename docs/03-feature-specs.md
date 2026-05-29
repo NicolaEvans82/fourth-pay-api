@@ -1204,6 +1204,86 @@ instrumentation:
   - employer.config.updated (with access_cap_percent property)
 ```
 
+
+#═══════════════════════════════════════════════════════════════════
+# SPEC 22: GIFT CARD WITHDRAWAL — IMPLEMENTED
+#═══════════════════════════════════════════════════════════════════
+> Adds a third transferSpeed alongside instant + standard. Gift
+> cards are free, instant, and route to one of six retail partners
+> (Tesco, Costa, Amazon, Boots, Argos, ASOS). Unlocks an alternative
+> revenue path (partner commissions in production) while letting
+> users avoid the £1.95 instant fee when their employer doesn't
+> subsidise it.
+
+```yaml
+feature: ewa_gift_card_withdrawal
+version: 1.0
+status: implemented
+module: src/modules/ewa
+endpoint: POST /api/v1/ewa/transfer (with transferSpeed=gift_card)
+priority: P1
+
+description: >
+  Extends the EWA transfer flow so users can withdraw their earned
+  wages as a partner gift card instead of a bank transfer. The fee
+  is always £0 regardless of employer subsidy state; arrival is
+  immediate. The selected partner is stored on the transfer row
+  for audit purposes and echoed back in the response so the Confirm
+  screen can show which retailer the gift card is for.
+
+request_shape:
+  body:
+    amount: number
+    transferSpeed: 'instant' | 'standard' | 'gift_card'   # union extended
+    giftCardPartner: 'tesco' | 'costa' | 'amazon' | 'boots' | 'argos' | 'asos'
+                                                          # required when speed=gift_card
+                                                          # server-side default: 'tesco'
+    fcaDisclosureAcknowledged: boolean
+
+response_shape:
+  feeAmount: 0                  # always when speed=gift_card
+  feeDescription: 'Free (gift card)'
+  netAmount: <= amount          # equals amount when gift_card
+  estimatedArrival: 'immediate'
+  giftCardPartner: <slug> | null  # null for non-gift-card transfers
+
+business_rules:
+  - gift_card_fee_is_always_zero_regardless_of_employer_subsidy
+  - gift_card_partner_must_be_in_allow_list_otherwise_400
+  - gift_card_partner_defaults_to_tesco_if_omitted
+  - gift_card_value_equals_requested_amount_no_fee_deduction
+  - bank_account_id_is_ignored_when_speed_is_gift_card
+  - fca_disclosure_acknowledgement_still_required_per_claude_rule_3
+
+acceptance_criteria:
+  - post_with_speed_gift_card_returns_fee_0_partner_tesco_by_default
+  - post_with_gift_card_partner_amazon_returns_partner_amazon
+  - post_with_invalid_partner_returns_400_with_EWA_INVALID_GIFT_CARD_PARTNER
+  - instant_and_standard_paths_unchanged_no_partner_field
+  - frontend_confirm_screen_shows_partner_name_when_gift_card_path
+  - fca_disclosure_copy_displays_gift_card_specific_line
+
+fca_flags:
+  consumer_duty: [consumer_understanding, fair_value]
+  disclaimer_required: true
+  notes: >
+    The UI explicitly states "Gift card withdrawals are instant and
+    free. The gift card value equals your requested amount." per
+    Consumer Duty consumer-understanding rules. Production should
+    add a fair-value review on each partner contract to make sure
+    the gift card's redemption flexibility matches the bank
+    transfer alternative — gift cards locked to a single retailer
+    represent reduced fungibility vs cash.
+
+instrumentation:
+  - ewa.transfer.gift_card.selected (with amount, partner) — fires
+    server-side when the POST includes transferSpeed=gift_card,
+    BEFORE the FCA gate, so partner-selection analytics are
+    captured even on transfers that subsequently fail validation.
+  - ewa.transfer.initiated / completed / failed still fire
+    alongside, carrying transfer_speed='gift_card'.
+```
+
 ---
 
 ## Implementation priority
@@ -1236,7 +1316,7 @@ Cross-cutting infrastructure (IMPLEMENTED):
   ✓ employer_dashboard           (anonymised aggregate stats + access cap settings)
   ✓ employer_access_cap          (50/60/70 dashboard knob — see SPEC 21 below)
   ✓ demo_reset                   (POST /api/v1/demo/reset, gated off in Pg mode)
-  ✓ iq360_instrumentation        (25 event types across the service)
+  ✓ iq360_instrumentation        (26 event types across the service)
   ✓ persona_switcher             (Jordan + Marcus, localStorage-backed)
   ✓ pg_backed_stores             (DatabaseModule.forRoot, NODE_ENV + DATABASE_URL gate)
 ```

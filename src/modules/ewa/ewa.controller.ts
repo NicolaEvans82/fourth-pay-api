@@ -22,7 +22,9 @@ import {
 } from '../../database/readers/employee-account.reader';
 import { BalanceService } from './balance.service';
 import {
+  GIFT_CARD_PARTNERS,
   type BalanceResponse,
+  type GiftCardPartner,
   type TransferListResponse,
   type TransferRequestBody,
   type TransferResponse,
@@ -82,6 +84,32 @@ export class EwaController {
     @Body() body: TransferRequestBody,
   ): Promise<TransferResponse> {
     const ids = extractIds(headers);
+
+    // Coerce gift card partner: default to 'tesco' if missing, reject
+    // anything not in the allow-list with a 400.
+    let giftCardPartner: GiftCardPartner | null = null;
+    if (body.transferSpeed === 'gift_card') {
+      const requested = (body.giftCardPartner ?? 'tesco') as GiftCardPartner;
+      if (!GIFT_CARD_PARTNERS.includes(requested)) {
+        throw new BadRequestException({
+          code: 'EWA_INVALID_GIFT_CARD_PARTNER',
+          message: `giftCardPartner must be one of: ${GIFT_CARD_PARTNERS.join(', ')}`,
+        });
+      }
+      giftCardPartner = requested;
+      // Fires at the server-side commitment point — the user has
+      // picked Gift card AND submitted. The frontend treats this as
+      // the canonical 'selected' moment.
+      this.iq360?.emit('ewa.transfer.gift_card.selected', {
+        employee_id: ids.fourthEmployeeId,
+        employer_id: ids.fourthEmployerId,
+        properties: {
+          amount: body.amount,
+          partner: giftCardPartner,
+        },
+      });
+    }
+
     if (body.fcaDisclosureAcknowledged === true) {
       this.iq360?.emit('ewa.fca.disclosure_acknowledged', {
         employee_id: ids.fourthEmployeeId,
@@ -93,18 +121,30 @@ export class EwaController {
       amount: body.amount,
       transferSpeed: body.transferSpeed,
       bankAccountId: body.bankAccountId ?? null,
+      giftCardPartner,
       fcaDisclosureAcknowledged: body.fcaDisclosureAcknowledged === true,
     });
+
+    const feeDescription =
+      transfer.transferSpeed === 'gift_card'
+        ? 'Free (gift card)'
+        : transfer.feeAmount === 0
+          ? transfer.feeSubsidised
+            ? 'Free (employer pays)'
+            : 'Free'
+          : `£${transfer.feeAmount.toFixed(2)}`;
+    const estimatedArrival =
+      transfer.transferSpeed === 'standard' ? '1-3 working days' : 'immediate';
+
     return {
       transferId: transfer.id,
       status: transfer.status,
       feeAmount: transfer.feeAmount,
+      feeDescription,
       netAmount: transfer.netAmount,
-      estimatedArrival:
-        transfer.transferSpeed === 'instant'
-          ? 'immediate'
-          : '1-3 working days',
+      estimatedArrival,
       fcaReference: transfer.id,
+      giftCardPartner: (transfer.giftCardPartner as GiftCardPartner | null) ?? null,
     };
   }
 

@@ -82,10 +82,10 @@ export class PgEwaTransferStore implements EwaTransferReader, EwaTransferWriter 
       `INSERT INTO ewa_transfers (
          employee_account_id, pay_period_start, pay_period_end,
          requested_amount, fee_amount, fee_subsidised, net_amount,
-         transfer_speed, status, bank_account_id,
+         transfer_speed, gift_card_partner, status, bank_account_id,
          fca_disclosure_shown, fca_disclosure_at
        ) VALUES (
-         $1, $2, $3, $4, $5, $6, $7, $8, 'pending', $9, $10, $11
+         $1, $2, $3, $4, $5, $6, $7, $8, $9, 'pending', $10, $11, $12
        )
        RETURNING *`,
       [
@@ -97,6 +97,7 @@ export class PgEwaTransferStore implements EwaTransferReader, EwaTransferWriter 
         input.feeSubsidised,
         input.netAmount,
         input.transferSpeed,
+        input.giftCardPartner,
         input.bankAccountId,
         input.fcaDisclosureShown,
         input.fcaDisclosureAt,
@@ -141,7 +142,11 @@ interface EwaTransferRow {
   fee_amount: string;
   fee_subsidised: boolean;
   net_amount: string;
-  transfer_speed: 'instant' | 'standard';
+  transfer_speed: 'instant' | 'standard' | 'gift_card';
+  // Optional column — production migration to land alongside the
+  // gift_card transferSpeed rollout. Currently nullable in mock mode
+  // (the Pg path isn't exercised on the demo Railway deploy).
+  gift_card_partner: string | null;
   status: EwaTransferStatus;
   bank_account_id: string | null;
   initiated_at: Date;
@@ -163,6 +168,7 @@ function fromRow(r: EwaTransferRow): EwaTransfer {
     feeSubsidised: r.fee_subsidised,
     netAmount: parseFloat(r.net_amount),
     transferSpeed: r.transfer_speed,
+    giftCardPartner: r.gift_card_partner ?? null,
     status: r.status,
     bankAccountId: r.bank_account_id,
     initiatedAt: r.initiated_at,

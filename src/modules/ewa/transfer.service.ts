@@ -70,8 +70,9 @@ export class TransferService {
     fourthEmployeeId: string;
     fourthEmployerId: string;
     amount: number;
-    transferSpeed: 'instant' | 'standard';
+    transferSpeed: 'instant' | 'standard' | 'gift_card';
     bankAccountId?: string | null;
+    giftCardPartner?: string | null;
     fcaDisclosureAcknowledged: boolean;
   }): Promise<EwaTransfer> {
     // iQ360: every attempt — including ones that will hard-fail at the
@@ -114,8 +115,9 @@ export class TransferService {
     fourthEmployeeId: string;
     fourthEmployerId: string;
     amount: number;
-    transferSpeed: 'instant' | 'standard';
+    transferSpeed: 'instant' | 'standard' | 'gift_card';
     bankAccountId?: string | null;
+    giftCardPartner?: string | null;
     fcaDisclosureAcknowledged: boolean;
   }): Promise<EwaTransfer> {
     // FCA gate: rule 3 in CLAUDE.md — no transfer can execute without
@@ -237,10 +239,18 @@ export class TransferService {
       });
     }
 
-    // Fee: instant = £1.95 unless employer subsidises; standard = £0.
+    // Fee tiers:
+    //   instant   → £1.95 (unless employer subsidises)
+    //   standard  → £0
+    //   gift_card → £0 (the partner gives the gift card at face value;
+    //               we don't charge the user a fee for that route)
     const feeSubsidised = eligibility.employerConfig.feeSubsidised;
-    const feeAmount =
-      input.transferSpeed === 'standard' || feeSubsidised ? 0 : INSTANT_FEE;
+    let feeAmount: number;
+    if (input.transferSpeed === 'gift_card' || input.transferSpeed === 'standard') {
+      feeAmount = 0;
+    } else {
+      feeAmount = feeSubsidised ? 0 : INSTANT_FEE;
+    }
     const netAmount = round2(input.amount - feeAmount);
 
     // FCA audit: disclosure shown + acknowledged BEFORE state change.
@@ -272,6 +282,9 @@ export class TransferService {
       feeSubsidised,
       netAmount,
       transferSpeed: input.transferSpeed,
+      // Only stored when the user picked gift_card; ignored otherwise.
+      giftCardPartner:
+        input.transferSpeed === 'gift_card' ? input.giftCardPartner ?? null : null,
       bankAccountId: input.bankAccountId ?? null,
       fcaDisclosureShown: true,
       fcaDisclosureAt,
