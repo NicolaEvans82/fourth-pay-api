@@ -98,6 +98,7 @@ const SUBSIDISED_HR: HrAdapter = {
       employerConfig: {
         fourthEmployerId: input.fourthEmployerId,
         maxAccessPercent: 50,
+        accessCapPercent: 50,
         feeSubsidised: true,
         minTenureDays: 0,
         enabled: true,

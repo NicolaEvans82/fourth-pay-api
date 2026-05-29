@@ -43,7 +43,6 @@ import {
 } from '../savings/auto-save.sink';
 
 const INSTANT_FEE = 1.95;
-const FCA_MAX_ACCESS_FRACTION = 0.5;
 const MIN_TRANSFER_AMOUNT = 10.0;
 
 @Injectable()
@@ -223,17 +222,14 @@ export class TransferService {
       .filter((s) => !s.submittedToPayroll)
       .reduce((sum, s) => sum + s.value, 0);
     const estimatedNetEarned = grossEarned * (1 - period.averageDeductionRate);
-    const fcaCap = Math.max(
-      0,
-      estimatedNetEarned * FCA_MAX_ACCESS_FRACTION - previouslyAccessed,
-    );
-    const employerCap = Math.max(
+    // Same access cap as BalanceService — accessCapPercent (default 50,
+    // up to 70 with an FCA permission letter).
+    const availableAmount = Math.max(
       0,
       estimatedNetEarned *
-        (eligibility.employerConfig.maxAccessPercent / 100) -
+        (eligibility.employerConfig.accessCapPercent / 100) -
         previouslyAccessed,
     );
-    const availableAmount = Math.min(fcaCap, employerCap);
     if (input.amount > round2(availableAmount)) {
       throw new BadRequestException({
         code: 'EWA_INSUFFICIENT_BALANCE',

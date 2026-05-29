@@ -3,6 +3,7 @@ import { JORDAN_HARRIS_FAID, MARCUS_THOMPSON_FAID } from '../wfm/wfm.mock';
 import {
   EligibilityResult,
   EmployerConfig,
+  EmployerConfigWriter,
   EmploymentProfile,
   HrAdapter,
 } from './hr.adapter';
@@ -10,9 +11,14 @@ import {
 // The Crown Pub Group — Jordan Harris's employer (docs/01-product-context.md).
 export const CROWN_PUB_GROUP_EMPLOYER_ID = 'CROWN-PUB-GROUP';
 
+// Mutable in mock mode — the employer dashboard's "Pay access
+// settings" surface PATCHes accessCapPercent at runtime. In Pg mode
+// the equivalent column lives on employer_config and the
+// PgEmployerConfigWriter persists changes.
 const CROWN_PUB_GROUP_CONFIG: EmployerConfig = {
   fourthEmployerId: CROWN_PUB_GROUP_EMPLOYER_ID,
   maxAccessPercent: 50,
+  accessCapPercent: 50,
   feeSubsidised: false,
   minTenureDays: 90,
   enabled: true,
@@ -167,4 +173,21 @@ function configFor(fourthEmployerId: string): EmployerConfig {
   throw new Error(
     `No employer_config row for ${fourthEmployerId} — employer onboarding incomplete`,
   );
+}
+
+// Writes mutate the in-memory config object — callers re-read via
+// configFor() and observe the change immediately. Demo reset clears
+// it back to seed values (see DemoModule).
+@Injectable()
+export class MockEmployerConfigWriter implements EmployerConfigWriter {
+  async updateConfig(input: {
+    fourthEmployerId: string;
+    accessCapPercent?: number;
+  }): Promise<EmployerConfig> {
+    const cfg = configFor(input.fourthEmployerId);
+    if (input.accessCapPercent !== undefined) {
+      cfg.accessCapPercent = input.accessCapPercent;
+    }
+    return cfg;
+  }
 }

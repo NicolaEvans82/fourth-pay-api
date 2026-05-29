@@ -16,6 +16,15 @@ export interface EmployerPerk {
 export interface EmployerConfig {
   fourthEmployerId: string;
   maxAccessPercent: number;
+  // Employer-set ceiling on the % of net earned wages an employee
+  // can access early. Default 50 (matches the FCA EWA Code of
+  // Practice baseline), configurable up to 70 via the employer
+  // dashboard. BalanceService uses this in place of the formerly
+  // hard-coded 0.5 multiplier. Note: raising this above 50% is a
+  // regulatory decision — the FCA Code of Practice recommends 50%
+  // as the ceiling, so deployments using >50% must hold an active
+  // FCA permission letter (or be in a sandboxed pilot).
+  accessCapPercent: number;
   feeSubsidised: boolean;
   minTenureDays: number;
   enabled: boolean;
@@ -33,6 +42,19 @@ export interface EmployerConfigReader {
   findByFourthEmployerId(
     fourthEmployerId: string,
   ): Promise<EmployerConfig | null>;
+}
+
+// Writer is only used by the employer dashboard's "Pay access
+// settings" surface. Today's patches are limited to accessCapPercent;
+// expand the input type as more knobs surface in the UI. Production
+// should back this with an audit_log entry (CLAUDE.md rule 6) so
+// regulatory changes to the access cap are traceable.
+export const EMPLOYER_CONFIG_WRITER = Symbol('EmployerConfigWriter');
+export interface EmployerConfigWriter {
+  updateConfig(input: {
+    fourthEmployerId: string;
+    accessCapPercent?: number;
+  }): Promise<EmployerConfig>;
 }
 
 export interface EligibilityResult {

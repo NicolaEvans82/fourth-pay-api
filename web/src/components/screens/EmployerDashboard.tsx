@@ -24,6 +24,9 @@ function dayOfMonth(iso: string): number {
   return parseInt(iso.slice(8, 10), 10);
 }
 
+type CapValue = 50 | 60 | 70;
+const CAP_OPTIONS: CapValue[] = [50, 60, 70];
+
 export function EmployerDashboard() {
   const [stats, setStats] = useState<EmployerStats | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -33,14 +36,25 @@ export function EmployerDashboard() {
     msg: '',
     busy: false,
   });
+  const [accessCap, setAccessCap] = useState<CapValue>(50);
+  const [capBusy, setCapBusy] = useState(false);
 
   const load = useCallback(async () => {
     setError(null);
     try {
-      const res = await fetch(API_BASE + '/api/v1/employer/stats', { headers: EMPLOYER_HEADERS });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      const data = (await res.json()) as EmployerStats;
+      const [statsRes, configRes] = await Promise.all([
+        fetch(API_BASE + '/api/v1/employer/stats', { headers: EMPLOYER_HEADERS }),
+        fetch(API_BASE + '/api/v1/employer/config', { headers: EMPLOYER_HEADERS }),
+      ]);
+      if (!statsRes.ok) throw new Error('stats HTTP ' + statsRes.status);
+      const data = (await statsRes.json()) as EmployerStats;
       setStats(data);
+      if (configRes.ok) {
+        const config = (await configRes.json()) as { access_cap_percent: number };
+        if (CAP_OPTIONS.includes(config.access_cap_percent as CapValue)) {
+          setAccessCap(config.access_cap_percent as CapValue);
+        }
+      }
       const now = new Date();
       setUpdatedAt(now.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }));
     } catch (err: unknown) {
@@ -52,6 +66,27 @@ export function EmployerDashboard() {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const setCap = async (next: CapValue) => {
+    if (next === accessCap || capBusy) return;
+    const prev = accessCap;
+    setAccessCap(next); // optimistic
+    setCapBusy(true);
+    try {
+      const res = await fetch(API_BASE + '/api/v1/employer/config', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...EMPLOYER_HEADERS },
+        body: JSON.stringify({ access_cap_percent: next }),
+      });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+    } catch (err: unknown) {
+      setAccessCap(prev); // rollback
+      // eslint-disable-next-line no-console
+      console.warn('access cap update failed:', err);
+    } finally {
+      setCapBusy(false);
+    }
+  };
 
   const resetDemo = async () => {
     setResetState({ status: '', msg: '', busy: true });
@@ -133,6 +168,74 @@ export function EmployerDashboard() {
           <Icon name="info" size={18} />
           <div>
             <strong>Anonymisation:</strong> all figures are workforce-level aggregates. Individual employee transfer data is never accessible to employers — see Fourth Pay's FCA Consumer Duty implementation.
+          </div>
+        </div>
+
+        <div
+          style={{
+            background: 'var(--bg-card)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--r-lg)',
+            padding: 24,
+            marginTop: 24,
+            boxShadow: 'var(--shadow-card)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: 14 }}>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: 'var(--text-1)' }}>Pay access settings</div>
+              <div style={{ fontSize: 12, color: 'var(--text-3)', marginTop: 4 }}>
+                Maximum percentage of net earned wages employees can access early.
+              </div>
+            </div>
+            <div style={{ fontSize: 11, fontWeight: 700, color: capBusy ? 'var(--orange-text)' : 'var(--teal-text)' }}>
+              {capBusy ? 'Saving…' : 'Current: ' + accessCap + '%'}
+            </div>
+          </div>
+          <div
+            style={{
+              display: 'inline-flex',
+              gap: 8,
+              padding: 4,
+              background: 'var(--bg-page)',
+              borderRadius: 100,
+              border: '1px solid var(--border)',
+            }}
+          >
+            {CAP_OPTIONS.map((v) => (
+              <button
+                key={v}
+                onClick={() => setCap(v)}
+                disabled={capBusy}
+                style={{
+                  padding: '8px 18px',
+                  borderRadius: 100,
+                  border: 'none',
+                  background: accessCap === v ? 'var(--navy)' : 'transparent',
+                  color: accessCap === v ? 'white' : 'var(--text-2)',
+                  fontSize: 13,
+                  fontWeight: 700,
+                  cursor: capBusy ? 'wait' : 'pointer',
+                  fontFamily: 'var(--font)',
+                  transition: 'all 0.15s',
+                }}
+              >
+                Access cap: {v}%
+              </button>
+            ))}
+          </div>
+          <div
+            style={{
+              marginTop: 14,
+              fontSize: 12,
+              color: 'var(--text-2)',
+              lineHeight: 1.5,
+              maxWidth: 640,
+            }}
+          >
+            Higher caps increase employee financial flexibility and shift uptake. The FCA EWA
+            Code of Practice recommends 50% as the standard ceiling — caps above 50% require
+            an active FCA permission letter for your organisation.
           </div>
         </div>
 

@@ -9,6 +9,10 @@ import { PG_POOL } from '../pg';
 interface EmployerConfigRow {
   fourth_employer_id: string;
   max_access_percent: number;
+  // Default 50 in the column definition; the migration to add this
+  // column lands when production needs it (mock mode bypasses
+  // entirely). Falls back to 50 if the column doesn't exist yet.
+  access_cap_percent: number | null;
   fee_subsidised: boolean;
   min_tenure_days: number;
   enabled: boolean;
@@ -27,6 +31,7 @@ export class PgEmployerConfigReader implements EmployerConfigReader {
       `SELECT
          fourth_employer_id,
          max_access_percent,
+         access_cap_percent,
          fee_subsidised,
          min_tenure_days,
          enabled,
@@ -41,6 +46,7 @@ export class PgEmployerConfigReader implements EmployerConfigReader {
     return {
       fourthEmployerId: row.fourth_employer_id,
       maxAccessPercent: row.max_access_percent,
+      accessCapPercent: row.access_cap_percent ?? 50,
       feeSubsidised: row.fee_subsidised,
       minTenureDays: row.min_tenure_days,
       enabled: row.enabled,

@@ -1,7 +1,7 @@
 import { Module, type Provider } from '@nestjs/common';
 import { FourthHcmModule } from '../fourth-hcm.module';
-import { HR_ADAPTER } from './hr.adapter';
-import { MockHrAdapter } from './hr.mock';
+import { EMPLOYER_CONFIG_WRITER, HR_ADAPTER } from './hr.adapter';
+import { MockEmployerConfigWriter, MockHrAdapter } from './hr.mock';
 
 // Mock adapter everywhere until DatabaseModule binds PG_POOL and the
 // PgEmployerConfigReader can be wired in.
@@ -10,9 +10,14 @@ const hrAdapterProvider: Provider = {
   useClass: MockHrAdapter,
 };
 
+const employerConfigWriterProvider: Provider = {
+  provide: EMPLOYER_CONFIG_WRITER,
+  useClass: MockEmployerConfigWriter,
+};
+
 @Module({
   imports: [FourthHcmModule],
-  providers: [hrAdapterProvider],
-  exports: [HR_ADAPTER],
+  providers: [hrAdapterProvider, employerConfigWriterProvider],
+  exports: [HR_ADAPTER, EMPLOYER_CONFIG_WRITER],
 })
 export class HrModule {}

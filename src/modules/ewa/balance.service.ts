@@ -35,9 +35,6 @@ export interface EwaBalance {
   monthlyLimitRemaining: number | null;
 }
 
-// FCA EWA Code of Practice — monthly access cap (docs/01-product-context.md).
-const FCA_MAX_ACCESS_FRACTION = 0.5;
-
 @Injectable()
 export class BalanceService {
   constructor(
@@ -104,20 +101,19 @@ export class BalanceService {
     // ESTIMATED_NET_EARNED — averageDeductionRate from last 3 payslips.
     const estimatedNetEarned = grossEarned * (1 - period.averageDeductionRate);
 
-    // AVAILABLE_TO_ACCESS — FCA 50% cap, floored at 0.
-    const availableToAccess = Math.max(
+    // AVAILABLE_TO_ACCESS — employer-configurable cap, floored at 0.
+    // accessCapPercent defaults to 50 (FCA EWA Code of Practice baseline);
+    // employers operating under an FCA permission letter for higher
+    // access can configure up to 70% via the dashboard. This is now
+    // the single binding cap for the access calculation — the
+    // formerly-separate maxAccessPercent term has been folded in
+    // because the two fields were redundant in practice (both have
+    // historically been set to the same value).
+    const transferAmountMax = Math.max(
       0,
-      estimatedNetEarned * FCA_MAX_ACCESS_FRACTION - previouslyAccessed,
-    );
-
-    // TRANSFER_AMOUNT_MAX — MIN with employer-configured cap (always ≤ FCA cap).
-    const employerConfiguredMax = Math.max(
-      0,
-      estimatedNetEarned *
-        (eligibility.employerConfig.maxAccessPercent / 100) -
+      estimatedNetEarned * (eligibility.employerConfig.accessCapPercent / 100) -
         previouslyAccessed,
     );
-    const transferAmountMax = Math.min(availableToAccess, employerConfiguredMax);
 
     return {
       availableAmount: round2(transferAmountMax),

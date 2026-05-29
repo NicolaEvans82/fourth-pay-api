@@ -1129,6 +1129,81 @@ instrumentation:
   - spending.viewed (with category_count, has_open_banking: false)
 ```
 
+
+#═══════════════════════════════════════════════════════════════════
+# SPEC 21: EMPLOYER-CONFIGURABLE ACCESS CAP — IMPLEMENTED
+#═══════════════════════════════════════════════════════════════════
+> Replaces the hard-coded FCA_MAX_ACCESS_FRACTION = 0.5 constant
+> in BalanceService + TransferService with an employer_config
+> field readable via GET /api/v1/employer/config and writable via
+> PATCH. CLAUDE.md rule 1 historically pinned the 50% multiplier
+> as part of the earnings formula — but the formula stays the
+> same shape, only the multiplier is now a per-employer field
+> with a defended default of 50.
+
+```yaml
+feature: employer_access_cap
+version: 1.0
+status: implemented
+module: src/modules/employer + src/integrations/hr/{adapter,mock}
+endpoints:
+  - GET   /api/v1/employer/config
+  - PATCH /api/v1/employer/config
+priority: P1
+
+description: >
+  Adds an accessCapPercent field to employer_config with a default
+  of 50 and a constrained range of {50, 60, 70}. BalanceService
+  and TransferService both use this field (employerConfig.accessCapPercent)
+  as the binding cap for the access calculation. The dashboard
+  surfaces it as three selectable pills; PATCH validates the
+  value is in the allow-list before writing.
+
+request_shape:
+  patch:
+    body: { access_cap_percent: 50 | 60 | 70 }  # IsIn class-validator
+  response: { employer_id, access_cap_percent }
+
+formula_change:
+  before: estimatedNetEarned * 0.5 - previouslyAccessed
+  after:  estimatedNetEarned * (employerConfig.accessCapPercent / 100) - previouslyAccessed
+  applied_in:
+    - BalanceService.getBalance (TRANSFER_AMOUNT_MAX)
+    - TransferService.executeTransfer (availableAmount validation)
+  note: >
+    The formerly-separate maxAccessPercent ratchet term has been
+    folded out of the access formula because the two fields were
+    in practice always equal; maxAccessPercent stays on the type
+    because self-controls still reads it as a £-multiplier for
+    monthly-limit ceilings.
+
+business_rules:
+  - access_cap_default_is_50_percent_fca_baseline
+  - access_cap_must_be_in_allowed_values_50_60_70
+  - raising_above_50_requires_active_fca_permission_letter
+  - patch_is_idempotent_repeated_calls_emit_event_each_time
+
+acceptance_criteria:
+  - get_returns_50_by_default_for_crown_pub_group
+  - patch_with_60_changes_jordans_available_from_90_to_140
+  - patch_with_70_changes_jordans_available_from_90_to_190
+  - patch_with_55_returns_400_class_validator_rejects
+  - missing_employer_header_returns_400
+
+fca_flags:
+  consumer_duty: [consumer_understanding, consumer_protection]
+  disclaimer_required: true
+  notes: >
+    UI surfaces the line "The FCA EWA Code of Practice recommends
+    50% as the standard ceiling — caps above 50% require an active
+    FCA permission letter for your organisation." Production must
+    add an audit_log entry per CLAUDE.md rule 6 — the in-memory
+    mock writer mutates the config object without persistence.
+
+instrumentation:
+  - employer.config.updated (with access_cap_percent property)
+```
+
 ---
 
 ## Implementation priority
@@ -1158,9 +1233,10 @@ P2 — Stream feature parity:
   ⌛ workplace_loans              (UI-only)
 
 Cross-cutting infrastructure (IMPLEMENTED):
-  ✓ employer_dashboard           (anonymised aggregate stats)
+  ✓ employer_dashboard           (anonymised aggregate stats + access cap settings)
+  ✓ employer_access_cap          (50/60/70 dashboard knob — see SPEC 21 below)
   ✓ demo_reset                   (POST /api/v1/demo/reset, gated off in Pg mode)
-  ✓ iq360_instrumentation        (24 event types across the service)
+  ✓ iq360_instrumentation        (25 event types across the service)
   ✓ persona_switcher             (Jordan + Marcus, localStorage-backed)
   ✓ pg_backed_stores             (DatabaseModule.forRoot, NODE_ENV + DATABASE_URL gate)
 ```
