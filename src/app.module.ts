@@ -11,6 +11,7 @@ import { DemoModule } from './modules/demo/demo.module';
 import { DiscountsModule } from './modules/discounts/discounts.module';
 import { EmployerModule } from './modules/employer/employer.module';
 import { EwaModule } from './modules/ewa/ewa.module';
+import { LearningModule } from './modules/learning/learning.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { PayslipModule } from './modules/payslip/payslip.module';
 import { PensionModule } from './modules/pension/pension.module';
@@ -37,6 +38,7 @@ const baseModules = [
   BenefitsModule,
   DiscountsModule,
   PensionModule,
+  LearningModule,
 ];
 
 const featureModules = usePg() ? baseModules : [...baseModules, DemoModule];

@@ -984,6 +984,73 @@ instrumentation:
   - wellbeing.score.viewed (with score + band properties)
 ```
 
+
+#═══════════════════════════════════════════════════════════════════
+# SPEC 19: FINANCIAL LEARNING — IMPLEMENTED
+#═══════════════════════════════════════════════════════════════════
+
+```yaml
+feature: financial_learning
+version: 1.0
+status: implemented
+module: src/modules/learning
+endpoints:
+  - GET /api/v1/learning              # list, grouped by category
+  - GET /api/v1/learning/:id          # single article (fires article.viewed)
+priority: P2
+
+description: >
+  Hand-written financial guidance for UK hospitality workers.
+  15 articles across 5 categories (budgeting, saving, debt,
+  pensions, benefits) — 3 per category. Content is static today;
+  a CMS-backed version is a future iteration. Every article cites
+  UK-current figures (NMW, SSP, auto-enrolment thresholds) — when
+  these change each April, search the file for £ amounts.
+
+response_shape:
+  list:
+    categories:
+      - { category: 'budgeting', label, emoji, articles: [Article × 3] }
+      - { category: 'saving',    ... }
+      - { category: 'debt',      ... }
+      - { category: 'pensions',  ... }
+      - { category: 'benefits',  ... }
+  article:
+    id: kebab-case slug
+    title: string
+    summary: string (2 sentences)
+    readTimeMinutes: number
+    category: enum (5 values above)
+    content: string[] (3-4 paragraphs)
+
+business_rules:
+  - article_content_must_be_uk_specific_not_generic_us_personal_finance
+  - figures_cite_current_uk_rates_and_statutory_thresholds
+  - no_promotion_of_third_party_credit_or_bnpl_products
+  - bnpl_article_is_explicitly_cautionary_per_fca_consumer_duty
+  - pension_tracing_article_warns_against_paid_tracing_services
+
+acceptance_criteria:
+  - list_returns_five_categories_with_three_articles_each
+  - get_by_id_returns_full_content_array
+  - get_by_unknown_id_returns_404
+  - missing_headers_returns_400
+
+fca_flags:
+  consumer_duty: [consumer_understanding, consumer_support]
+  disclaimer_required: false  # educational content, not advice
+  notes: >
+    Articles are guidance, not regulated financial advice. They
+    must not recommend specific products. The 'good vs bad debt'
+    article uses APR thresholds, not product names. The pension
+    articles signpost gov.uk and the Pension Tracing Service, not
+    consolidation providers.
+
+instrumentation:
+  - learning.list.viewed (with category_count, article_count)
+  - learning.article.viewed (with article_id, category)
+```
+
 ---
 
 ## Implementation priority
@@ -1009,8 +1076,8 @@ P2 — Stream feature parity:
   ✓ ai_money_coach               (Spec 11 — keyword-routed, Anthropic SDK ready)
   ✓ wellbeing_score              (Spec 18 — supersedes Spec 12)
   ✓ discounts                    (Spec 14 — new)
+  ✓ financial_learning           (Spec 19 — new)
   ⌛ workplace_loans              (UI-only)
-  ⌛ financial_learning           (not started)
 
 Cross-cutting infrastructure (IMPLEMENTED):
   ✓ employer_dashboard           (anonymised aggregate stats)
