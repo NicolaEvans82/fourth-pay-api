@@ -145,6 +145,7 @@ export class EwaController {
       estimatedArrival,
       fcaReference: transfer.id,
       giftCardPartner: (transfer.giftCardPartner as GiftCardPartner | null) ?? null,
+      anomaly: transfer.anomaly === true,
     };
   }
 

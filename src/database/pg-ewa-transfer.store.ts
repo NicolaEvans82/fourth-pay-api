@@ -70,6 +70,41 @@ export class PgEwaTransferStore implements EwaTransferReader, EwaTransferWriter 
     return r.rows[0] ? fromRow(r.rows[0]) : null;
   }
 
+  async countAttemptsSince(input: {
+    employeeAccountId: string;
+    since: Date;
+  }): Promise<number> {
+    const r = await this.pool.query<{ count: string }>(
+      `SELECT COUNT(*)::text AS count
+         FROM ewa_transfers
+        WHERE employee_account_id = $1
+          AND initiated_at >= $2
+          AND status NOT IN ('failed', 'reversed')`,
+      [input.employeeAccountId, input.since],
+    );
+    return parseInt(r.rows[0]?.count ?? '0', 10);
+  }
+
+  async averageCompletedAmount(
+    employeeAccountId: string,
+  ): Promise<{ average: number; count: number }> {
+    const r = await this.pool.query<{ avg: string | null; count: string }>(
+      `SELECT COALESCE(AVG(requested_amount), 0)::text AS avg,
+              COUNT(*)::text AS count
+         FROM ewa_transfers
+        WHERE employee_account_id = $1
+          AND status = 'completed'`,
+      [employeeAccountId],
+    );
+    const row = r.rows[0];
+    const count = parseInt(row?.count ?? '0', 10);
+    if (count === 0) return { average: 0, count: 0 };
+    return {
+      average: Math.round(parseFloat(row?.avg ?? '0') * 100) / 100,
+      count,
+    };
+  }
+
   async listAll(): Promise<EwaTransfer[]> {
     const r = await this.pool.query<EwaTransferRow>(
       `SELECT * FROM ewa_transfers ORDER BY initiated_at DESC`,

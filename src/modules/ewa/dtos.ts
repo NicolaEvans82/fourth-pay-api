@@ -39,6 +39,11 @@ export interface TransferResponse {
   // Echoed back only when the user selected a gift card; null
   // otherwise so the response shape stays predictable.
   giftCardPartner: GiftCardPartner | null;
+  // Set when the requested amount > 2× the employee's historical
+  // average. Non-blocking — the transfer still completes; the
+  // fraud-review team consumes this via audit_log entries with
+  // eventType='amount_anomaly'.
+  anomaly: boolean;
 }
 
 export interface BalanceResponse {

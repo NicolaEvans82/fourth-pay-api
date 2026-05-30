@@ -1284,6 +1284,95 @@ instrumentation:
     alongside, carrying transfer_speed='gift_card'.
 ```
 
+
+#═══════════════════════════════════════════════════════════════════
+# SPEC 23: FRAUD DETECTION (velocity + amount anomaly) — IMPLEMENTED
+#═══════════════════════════════════════════════════════════════════
+
+```yaml
+feature: ewa_fraud_detection
+version: 1.0
+status: implemented
+module: src/modules/ewa/transfer.service
+priority: P0
+applies_to: POST /api/v1/ewa/transfer
+
+description: >
+  Two server-side fraud signals run before the balance check in
+  TransferService.executeTransferInner:
+    1) Velocity — hard-block if the employee has 3+ non-failed
+       transfer attempts in the rolling 24h window (403,
+       EWA_VELOCITY_LIMIT_EXCEEDED).
+    2) Amount anomaly — non-blocking flag when the requested
+       amount exceeds 2× the employee's historical average
+       completed transfer amount. The transfer still goes through;
+       the response carries anomaly: true and an audit_log row
+       with eventType='amount_anomaly' is written for the
+       fraud-review team to action asynchronously.
+
+reader_methods:
+  countAttemptsSince(employeeAccountId, since): number
+    # status NOT IN ('failed','reversed'); same filter as
+    # sumAdvancesInPeriod so the two stats are commensurate.
+  averageCompletedAmount(employeeAccountId): { average, count }
+    # status = 'completed' only — pending/failed don't anchor
+    # what's "normal" for this employee.
+
+ordering:
+  - fca_disclosure_gate (CLAUDE.md rule 3)
+  - employee_lookup + eligibility + self_controls
+  - velocity_and_anomaly                     # NEW — security first
+  - balance_check                            # moved after fraud
+  - fee_calculation + audit + writer.insert
+
+response_shape_change:
+  anomaly: boolean   # always present; true when flagged, false otherwise
+  # All other fields unchanged.
+
+audit_log_entries:
+  - eventType: 'velocity_blocked'   # written before throwing the 403
+    eventData: { requestedAmount, transferSpeed, recentAttempts,
+                 windowHours, limit }
+  - eventType: 'amount_anomaly'     # written on detect, before insert
+    eventData: { requestedAmount, historicalAverage, historyCount,
+                 multiplier }
+
+business_rules:
+  - velocity_window_is_24h_rolling_from_now
+  - velocity_counts_pending_and_completed_excludes_failed_reversed
+  - velocity_limit_is_3_attempts
+  - anomaly_threshold_is_2x_historical_completed_average
+  - anomaly_only_fires_when_history_count_gt_zero
+  - anomaly_does_not_block_just_flags_and_audit_logs
+  - velocity_check_runs_before_balance_check
+  - both_signals_run_before_writer_insert_no_dangling_rows
+
+acceptance_criteria:
+  - four_transfers_in_60_seconds_block_the_fourth_with_403
+  - velocity_block_emits_ewa_transfer_velocity_blocked
+  - amount_anomaly_sets_response_anomaly_true_and_completes
+  - amount_anomaly_emits_ewa_transfer_anomaly_flagged
+  - employee_with_no_history_never_flags_anomaly
+  - existing_32_tests_still_pass
+
+fca_flags:
+  consumer_duty: [consumer_protection]
+  notes: >
+    The anomaly path is intentionally non-blocking because false
+    positives on a low-history employee (avg = 0 → no flag; avg
+    set by 1-2 transfers → easy to trip) shouldn't deny access to
+    earned wages. Velocity is hard-blocking because rapid-fire
+    abuse is much harder to false-positive on. The audit_log
+    trail meets the FCA's record-keeping requirement for fraud
+    review.
+
+instrumentation:
+  - ewa.transfer.velocity_blocked
+    (amount, recent_attempts, window_hours, limit)
+  - ewa.transfer.anomaly_flagged
+    (amount, historical_average, history_count, multiplier)
+```
+
 ---
 
 ## Implementation priority
@@ -1316,7 +1405,7 @@ Cross-cutting infrastructure (IMPLEMENTED):
   ✓ employer_dashboard           (anonymised aggregate stats + access cap settings)
   ✓ employer_access_cap          (50/60/70 dashboard knob — see SPEC 21 below)
   ✓ demo_reset                   (POST /api/v1/demo/reset, gated off in Pg mode)
-  ✓ iq360_instrumentation        (26 event types across the service)
+  ✓ iq360_instrumentation        (28 event types across the service)
   ✓ persona_switcher             (Jordan + Marcus, localStorage-backed)
   ✓ pg_backed_stores             (DatabaseModule.forRoot, NODE_ENV + DATABASE_URL gate)
 ```

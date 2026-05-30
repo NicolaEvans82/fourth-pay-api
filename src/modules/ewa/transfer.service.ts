@@ -232,6 +232,83 @@ export class TransferService {
         (eligibility.employerConfig.accessCapPercent / 100) -
         previouslyAccessed,
     );
+    // ─────────── Fraud detection ───────────
+    // 1) Velocity: max 3 attempts in a rolling 24h window.
+    // 2) Amount anomaly: requested > 2× employee's historical average.
+    // The velocity check is hard-blocking; the anomaly check is a
+    // non-blocking flag — audit-logged, surfaced on the response, but
+    // doesn't stop the transfer (the fraud-review team can act on
+    // the audit-log entry asynchronously). Both apply BEFORE any
+    // writer.insert so failed velocity checks leave no transfer row.
+    const VELOCITY_LIMIT = 3;
+    const VELOCITY_WINDOW_HOURS = 24;
+    const ANOMALY_MULTIPLIER = 2;
+    const velocitySince = new Date(
+      Date.now() - VELOCITY_WINDOW_HOURS * 60 * 60 * 1000,
+    );
+    const [recentAttempts, history] = await Promise.all([
+      this.transfersReader.countAttemptsSince({
+        employeeAccountId: employee.id,
+        since: velocitySince,
+      }),
+      this.transfersReader.averageCompletedAmount(employee.id),
+    ]);
+    if (recentAttempts >= VELOCITY_LIMIT) {
+      await this.audit.append({
+        employeeAccountId: employee.id,
+        eventType: 'velocity_blocked',
+        eventData: {
+          requestedAmount: input.amount,
+          transferSpeed: input.transferSpeed,
+          recentAttempts,
+          windowHours: VELOCITY_WINDOW_HOURS,
+          limit: VELOCITY_LIMIT,
+        },
+      });
+      this.iq360?.emit('ewa.transfer.velocity_blocked', {
+        employee_id: input.fourthEmployeeId,
+        employer_id: input.fourthEmployerId,
+        properties: {
+          amount: input.amount,
+          recent_attempts: recentAttempts,
+          window_hours: VELOCITY_WINDOW_HOURS,
+          limit: VELOCITY_LIMIT,
+        },
+      });
+      throw new ForbiddenException({
+        code: 'EWA_VELOCITY_LIMIT_EXCEEDED',
+        message: `Velocity limit reached: max ${VELOCITY_LIMIT} transfers in ${VELOCITY_WINDOW_HOURS} hours.`,
+      });
+    }
+    const isAnomaly =
+      history.count > 0 && input.amount > ANOMALY_MULTIPLIER * history.average;
+    if (isAnomaly) {
+      await this.audit.append({
+        employeeAccountId: employee.id,
+        eventType: 'amount_anomaly',
+        eventData: {
+          requestedAmount: input.amount,
+          historicalAverage: history.average,
+          historyCount: history.count,
+          multiplier: ANOMALY_MULTIPLIER,
+        },
+      });
+      this.iq360?.emit('ewa.transfer.anomaly_flagged', {
+        employee_id: input.fourthEmployeeId,
+        employer_id: input.fourthEmployerId,
+        properties: {
+          amount: input.amount,
+          historical_average: history.average,
+          history_count: history.count,
+          multiplier: ANOMALY_MULTIPLIER,
+        },
+      });
+    }
+    // ─────────── End fraud detection ───────────
+
+    // Balance check now runs after fraud — security signals fire
+    // before "you can't afford this" so the user gets the most
+    // actionable error code (velocity > balance).
     if (input.amount > round2(availableAmount)) {
       throw new BadRequestException({
         code: 'EWA_INSUFFICIENT_BALANCE',
@@ -336,6 +413,9 @@ export class TransferService {
       },
     });
 
+    // Anomaly is a runtime-only flag; the store layer ignores it, so
+    // attach after the writer has returned the persisted row.
+    if (isAnomaly) completed.anomaly = true;
     return completed;
   }
 }

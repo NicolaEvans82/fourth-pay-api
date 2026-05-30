@@ -43,6 +43,11 @@ export interface EwaTransfer {
   fcaDisclosureShown: boolean;
   fcaDisclosureAt: Date | null;
   createdAt: Date;
+  // Runtime-only flag set by TransferService when the requested
+  // amount exceeds 2× the employee's historical average. Never
+  // persisted — the store reads/writes ignore this field. Tags the
+  // transfer for the response payload + fraud-review surfaces.
+  anomaly?: boolean;
 }
 
 export interface NewEwaTransfer {
@@ -71,6 +76,19 @@ export interface EwaTransferReader {
     payPeriodStart?: Date;
   }): Promise<EwaTransfer[]>;
   findLatestCompleted(employeeAccountId: string): Promise<EwaTransfer | null>;
+  // Fraud-detection inputs (see TransferService).
+  // - countAttemptsSince counts non-failed/non-reversed rows whose
+  //   initiatedAt is at or after `since`. Used for velocity limits.
+  // - averageCompletedAmount returns the historical mean requested
+  //   amount and the count of rows it was computed from. Returns
+  //   { average: 0, count: 0 } when the employee has no history.
+  countAttemptsSince(input: {
+    employeeAccountId: string;
+    since: Date;
+  }): Promise<number>;
+  averageCompletedAmount(
+    employeeAccountId: string,
+  ): Promise<{ average: number; count: number }>;
   // Aggregate-only — for the employer dashboard. Production should filter
   // by employer ID via a join through employee_accounts.
   listAll(): Promise<EwaTransfer[]>;
@@ -163,6 +181,37 @@ export class InMemoryEwaTransferStore
           (b.completedAt?.getTime() ?? 0) - (a.completedAt?.getTime() ?? 0),
       );
     return completed[0] ?? null;
+  }
+
+  // Same status filter as sumAdvancesInPeriod — pending + completed
+  // count as real attempts; failed/reversed don't.
+  async countAttemptsSince(input: {
+    employeeAccountId: string;
+    since: Date;
+  }): Promise<number> {
+    const sinceTs = input.since.getTime();
+    return this.transfers.filter(
+      (t) =>
+        t.employeeAccountId === input.employeeAccountId &&
+        t.status !== 'failed' &&
+        t.status !== 'reversed' &&
+        t.initiatedAt.getTime() >= sinceTs,
+    ).length;
+  }
+
+  async averageCompletedAmount(
+    employeeAccountId: string,
+  ): Promise<{ average: number; count: number }> {
+    const completed = this.transfers.filter(
+      (t) =>
+        t.employeeAccountId === employeeAccountId && t.status === 'completed',
+    );
+    if (completed.length === 0) return { average: 0, count: 0 };
+    const sum = completed.reduce((s, t) => s + t.requestedAmount, 0);
+    return {
+      average: Math.round((sum / completed.length) * 100) / 100,
+      count: completed.length,
+    };
   }
 
   async insert(input: NewEwaTransfer): Promise<EwaTransfer> {

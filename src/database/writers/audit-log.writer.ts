@@ -14,7 +14,12 @@ export type AuditEventType =
   | 'account_paused'
   | 'account_resumed'
   | 'login'
-  | 'bank_account_changed';
+  | 'bank_account_changed'
+  // Fraud-detection markers — TransferService writes these from the
+  // velocity + anomaly checks. Append-only per CLAUDE.md rule 6;
+  // fraud-review consumes them for follow-up action.
+  | 'velocity_blocked'
+  | 'amount_anomaly';
 
 export interface AuditEvent {
   id: string;
